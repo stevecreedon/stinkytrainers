@@ -6,12 +6,12 @@ Rails development isn't just fast it's also fun with a very helpful and friendly
  
 ## Before we start:
 
-### Ruby 1.9.3
+### Make sure we have Ruby 1.9.3
 Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
 
     ruby -v
 
-### Rails
+### Make sure we have Rails
 We need Rails so that we can use the Rails command line to generate a new Rails App for us. Run the command line:
 
     gem list
@@ -22,7 +22,7 @@ rails (3.2.8, 3.2.6, 3.2.3, 3.0.11)
 
 Note that 3.2.8, 3.2.6, 3.2.3, 3.0.11 are the versions of the Rails gem on the machine so they'll almost certainly be different on yours.
 
-### Bundler
+### Make sure we have Bundler
 Bundler is a ruby gem that manages other gems in a single application, a bit like having a package manager but just for your application and not the entire system.
 
 If you don't have bundler then install it:
@@ -34,6 +34,7 @@ If you do have bundler it's a good idea to ensure you have a reasonably recent v
     gem update bundler
 
 ## 1. Create the application:
+### Give it a home
 Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
 
     rails new stinkytrainers --skip-test-unit
@@ -59,8 +60,7 @@ the **app** folder is where all the code will go.
 **vendor** - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.  
 **script** - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.
 
-# 2. Install the Rspec Gem
-
+## 2. Rspec
 We told the Rails generator to skip test unit but testing is going to be very central to building this app so we're going to use the Rspec gem. We're also going to use capybara, a gem that will let us simulate a web browser in our test and launchy, a gem to launch browsers.
 
 If you're wondering what we mean by Rspec being 'more expressive' than Test Unit then just compare these two ways of testing the same thing:

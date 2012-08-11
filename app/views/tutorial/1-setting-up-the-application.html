@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<h1>Stinky Trainers</h1>
+
+<p>Welcome to the stinky trainers tutorial where you'll learn how we built stinkytrainers.co.uk. Unlike many Rails tutorials we won't be building an application in 15 minutes, Stinky Trainers will take some time but at the end of it you'll have a built a full Rails app and have learned enbough to start building your own web applications in Rails.</p>
+
+<p>Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout. </p>
+
+<h2>Before we start:</h2>
+
+<h3>Make sure we have Ruby 1.9.3</h3>
+
+<p>Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:</p>
+
+<pre><div class="highlight">
+<pre><span class="n">ruby</span> <span class="o">-</span><span class="n">v</span>
+</pre>
+</div>
+</pre>
+
+<h3>Make sure we have Rails</h3>
+
+<p>We need Rails so that we can use the Rails command line to generate a new Rails App for us. Run the command line:</p>
+
+<pre><div class="highlight">
+<pre><span class="n">gem</span> <span class="n">list</span>
+</pre>
+</div>
+</pre>
+
+<p>and if you don't see something like:</p>
+
+<p>rails (3.2.8, 3.2.6, 3.2.3, 3.0.11) </p>
+
+<p>Note that 3.2.8, 3.2.6, 3.2.3, 3.0.11 are the versions of the Rails gem on the machine so they'll almost certainly be different on yours.</p>
+
+<h3>Make sure we have Bundler</h3>
+
+<p>Bundler is a ruby gem that manages other gems in a single application, a bit like having a package manager but just for your application and not the entire system.</p>
+
+<p>If you don't have bundler then install it:</p>
+
+<pre><div class="highlight">
+<pre><span class="n">gem</span> <span class="n">install</span> <span class="n">bundler</span>
+</pre>
+</div>
+</pre>
+
+<p>If you do have bundler it's a good idea to ensure you have a reasonably recent version. If you're not sure then just get the latest version by running:</p>
+
+<pre><div class="highlight">
+<pre><span class="n">gem</span> <span class="n">update</span> <span class="n">bundler</span>
+</pre>
+</div>
+</pre>
+
+<h2>1. Create the application:</h2>
+
+<h3>Give it a home</h3>
+
+<p>Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:</p>
+
+<pre><div class="highlight">
+<pre><span class="n">rails</span> <span class="kp">new</span> <span class="n">stinkytrainers</span> <span class="o">--</span><span class="n">skip</span><span class="o">-</span><span class="nb">test</span><span class="o">-</span><span class="n">unit</span>
+</pre>
+</div>
+</pre>
+
+<p>If you're wondering what <strong>--skip-test-unit</strong> does, it just tells the Rails generator that we don't want to use <strong>test unit</strong> the default testing framework that comes with Rails. Instead we'll be installing the more expressive testing framework <strong>rspec</strong> in just a few minutes time. </p>
+
+<p>You'll see that rails has created a lot of files and folders for you.</p>
+
+<h3>Important Files &amp; Folders:</h3>
+
+<p>the <strong>app</strong> folder is where all the code will go.</p>
+
+<p><strong>config/database.yaml</strong> - database connection (by default sqlite3). Note that Rails assumes three environments, Development, Test, Production 
+<strong>config/routes.rb</strong> - connecting web requests to controllers and actions.<br><strong>db</strong> is where our database migrations will go when we create them.
+<strong>doc</strong> is for documentation.
+<strong>public</strong> contains static html files (including the default home page index.html).
+<strong>public/system</strong> - used by rails for local storage of files like the uploaded images we'll be adding later with paperclip.
+<strong>lib</strong> is for code not specific to our application.
+<strong>log</strong> is where the Rails logger writes to</p>
+
+<h3>Less Important Files &amp; Folders:</h3>
+
+<p><strong>tmp</strong> - used by rails for storing temp files like session data, cookie data, PIDs etc.
+<strong>vendor</strong> - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.<br><strong>script</strong> - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.</p>
+
+<h2>2. Rspec</h2>
+
+<p>We told the Rails generator to skip test unit but testing is going to be very central to building this app so we're going to use the Rspec gem. We're also going to use capybara, a gem that will let us simulate a web browser in our test and launchy, a gem to launch browsers.</p>
+
+<p>If you're wondering what we mean by Rspec being 'more expressive' than Test Unit then just compare these two ways of testing the same thing:</p>
+
+<p>user.name.should == 'steve' # a typical rspec test.
+assert_equal('steve', user.name) # a typical test unit test.</p>
+
+<h3>2.1 Add the Rspec gem to the bundler's Gemfile in the root of the application</h3>
+
+<p>Generally we'll be very explicit about what versions of gem we need in this tutorial, probably more explicit than would be needed in a typical application but this will ensure you have the exact same gemset that we are using so you're less likely to encounter some unexpected versioining issue. Versioning problems are uncommon in Rails and easily resolved with a only little bit of experience but they're also a problem you just don't need at this stage.</p>
+
+<p>Add these lines to the Gemfile in the root of your application. Note that we're putting them into a group called 'test' because we don't need these gems on our production server, just the cumputer we're using to test the application, typically this will be your development machine.</p>
+
+<pre><div class="highlight">
+<pre><span class="n">group</span> <span class="ss">:test</span> <span class="k">do</span>
+</pre>
+</div>
+</pre>
+
+<p>   gem 'rspec-rails', '=2.11.0'
+      gem 'capybara', '=1.1.2'
+      gem 'launchy', '=2.1.2'
+    end</p>
+
+<h3>2.2 Download and install these gems</h3>
+
+<pre><div class="highlight">
+<pre><span class="n">bundle</span> <span class="n">install</span>
+</pre>
+</div>
+</pre>
+
+<p>What just happened..</p>
+
+<p>bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. </p>
+
+<h3>2.3 Run the RSpec generator</h3>
+
+<p>Most gems don't need any special install instructions but Rspec needs to create some folders and files so run</p>
+
+<pre><div class="highlight">
+<pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rails</span> <span class="n">generate</span> <span class="n">rspec</span><span class="ss">:install</span>
+</pre>
+</div>
+</pre>
+
+<p>What just happened:</p>
+
+<p>The Rspec gem just created a <strong>spec</strong>_ folder and a file  <strong>spec/spec_helper.rb</strong>. This file has some code that will help you run tests. We'll also be adding some of our own code here a little later as we write our own code to help us write tests.</p>
+
+<h3>2.4 Configure Capybara</h3>
+
+<p>The Capybara gem allows us to simulate browser interaction so that we can build this into our tests. Add the following line to <strong>spec/spec_helper.rb</strong> after require <strong>rspec/autorun</strong>. This will load the capybara test methods. </p>
+
+<pre><div class="highlight">
+<pre><span class="nb">require</span> <span class="s1">'capybara/rails'</span>
+</pre>
+</div>
+</pre>
+</body></html>

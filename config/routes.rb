@@ -1,4 +1,6 @@
 Stinkytrainers::Application.routes.draw do
+  get "rails-tutorial(/*path)" => "tutorial#index"
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

@@ -1,0 +1,12 @@
+// Place all the styles related to the tutorial controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+body {font-family: arial, verdana, modern;}
+div#tutorial{margin-left: auto; margin-right: auto; width: 600px;}
+
+h2, h3 {margin-top: 50px}
+
+h2 {border-top: 1px solid #ccc; border-left: 1px solid #ccc; padding: 10px 0 0 10px}
+
+pre {background-color: #555; color: #FFAA00; padding-left: 20px}
