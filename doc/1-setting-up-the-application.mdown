@@ -1,0 +1,52 @@
+# Stinky Trainers
+
+Welcome to the stinky trainers tutorial where you'll learn how we built stinkytrainers.co.uk. Unlike many Rails tutorials we won't be building an application in 15 minutes, Stinky Trainers will take some time but at the end of it you'll have a built a full Rails app and have learned enbough to start building your own web applications in Rails.
+
+Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout. 
+ 
+## Before we start:
+This application is built upon Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv a helpful, command-line tool that let's you run multiple versions of Ruby on one machine.
+
+1. gem install rails -v 3.2.6
+2. gem install bundler
+3. We're using Ruby 1.9.3
+
+## 1. Create the application:
+
+    rails new smudger
+
+# 2. Rspec
+
+# Were going to use the more expressive Rspec gem in the application rather than test unit which comes with Rails by default. We're also going to use capybara; a gem that will let us simulate a web browser in our test.
+
+# 2.1 Add the Rspec gem to the bundler's Gemfile in the root of the application
+
+  group :development, :test do
+    gem 'rspec-rails', '=2.11.0'
+    gem 'capybara', '=1.1.2'
+    gem 'launchy'
+  end
+
+# 2.2 Download and install the gem by running
+  
+  bundle install
+  
+# What just happened:
+
+#bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. 
+  
+# 2.3 Most gems don't need any special install instructions but Rspec needs to create some folders and files so run
+
+  bundle exec rails generate rspec:install
+  
+# What just happened:
+# 
+#   The Rspec gem just created a /spec folder with a spec_helper.rb file that will let us
+
+# 2.4 Capybara
+
+# In spec/spec_helper.rb add this line after require 'rspec/autorun'.
+
+require 'capybara/rails'
+
+# 2.5 Remove the /test directory and its contents from the application we don't need it any more.
