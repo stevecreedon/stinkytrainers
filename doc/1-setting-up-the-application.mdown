@@ -9,12 +9,16 @@ Rails development isn't just fast it's also fun with a very helpful and friendly
 ### Make sure we have Ruby 1.9.3
 Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
 
-    ruby -v
+~~~console
+ruby -v
+~~~
 
 ### Make sure we have Rails
 We need Rails so that we can use the Rails command line to generate a new Rails App for us. Run the command line:
 
-    gem list
+~~~console
+gem list
+~~~
 
 and if you don't see something like:
 
@@ -27,17 +31,23 @@ Bundler is a ruby gem that manages other gems in a single application, a bit lik
 
 If you don't have bundler then install it:
 
-    gem install bundler
+~~~console
+gem install bundler
+~~~
 
 If you do have bundler it's a good idea to ensure you have a reasonably recent version. If you're not sure then just get the latest version by running:
 
-    gem update bundler
+~~~console
+gem update bundler
+~~~
 
 ## 1. Create the application:
 ### Give it a home
 Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
 
-    rails new stinkytrainers --skip-test-unit
+~~~console
+rails new stinkytrainers --skip-test-unit
+~~~
 
 If you're wondering what __--skip-test-unit__ does, it just tells the Rails generator that we don't want to use __test unit__ the default testing framework that comes with Rails. Instead we'll be installing the more expressive testing framework __rspec__ in just a few minutes time. 
 
@@ -65,23 +75,29 @@ We told the Rails generator to skip test unit but testing is going to be very ce
 
 If you're wondering what we mean by Rspec being 'more expressive' than Test Unit then just compare these two ways of testing the same thing:
 
+~~~ruby
 user.name.should == 'steve' # a typical rspec test.
 assert_equal('steve', user.name) # a typical test unit test.
+~~~
 
 ### 2.1 Add the Rspec gem to the bundler's Gemfile in the root of the application
 Generally we'll be very explicit about what versions of gem we need in this tutorial, probably more explicit than would be needed in a typical application but this will ensure you have the exact same gemset that we are using so you're less likely to encounter some unexpected versioining issue. Versioning problems are uncommon in Rails and easily resolved with a only little bit of experience but they're also a problem you just don't need at this stage.
 
 Add these lines to the Gemfile in the root of your application. Note that we're putting them into a group called 'test' because we don't need these gems on our production server, just the cumputer we're using to test the application, typically this will be your development machine.
 
-    group :test do
-      gem 'rspec-rails', '=2.11.0'
-      gem 'capybara', '=1.1.2'
-      gem 'launchy', '=2.1.2'
-    end
+~~~ruby
+group :test do
+  gem 'rspec-rails', '=2.11.0'
+  gem 'capybara', '=1.1.2'
+  gem 'launchy', '=2.1.2'
+end
+~~~
 
 ### 2.2 Download and install these gems
-  
-    bundle install
+
+~~~console  
+bundle install
+~~~
   
 What just happened..
 
@@ -90,7 +106,9 @@ bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus an
 ### 2.3 Run the RSpec generator
 Most gems don't need any special install instructions but Rspec needs to create some folders and files so run
 
-    bundle exec rails generate rspec:install
+~~~console
+bundle exec rails generate rspec:install
+~~~
   
 What just happened:
  
@@ -99,4 +117,54 @@ The Rspec gem just created a __spec___ folder and a file  __spec/spec_helper.rb_
 ### 2.4 Configure Capybara
 The Capybara gem allows us to simulate browser interaction so that we can build this into our tests. Add the following line to __spec/spec_helper.rb__ after require __rspec/autorun__. This will load the capybara test methods. 
 
-    require 'capybara/rails'
+~~~ruby
+require 'capybara/rails'
+~~~
+
+## 3. Twitter Bootstrap
+This is a Rails tutorial so we won't waste time on web design and layout. That said it's always nice when our application looks a little sexy so we'll install Twitter Bootstrap - an HTML, CSS and Javascript library - to make Stinkytrainers look great with little effort on our part. Twitter Bootstrap is intended for all kinds of website but we can install it using the twitter boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
+
+~~~ruby
+gem "twitter-bootstrap-rails", "=2.0.7"
+gem 'jquery-rails'
+~~~
+
+Now install the gem:
+
+~~~console
+bundle install
+~~~
+
+and then run the generator.
+
+~~~console
+bundle exec rails g bootstrap:install
+~~~
+
+Take a look at the files it generated:
+
+~~~console
+insert  app/assets/javascripts/application.js
+create  app/assets/javascripts/bootstrap.js.coffee
+create  app/assets/stylesheets/bootstrap_and_overrides.css.less
+  gsub  app/assets/stylesheets/application.css
+  gsub  app/assets/stylesheets/application.css
+~~~
+
+The Twitter Boostrap gem has created the files __bootstrap.js.coffee__ and __bootstrap_and_overrides.css.less__ then added itself to __app/assets/javascripts/application.js__
+
+Now we're going to use Twitter Boostrap to create a new layout. Take a look at the file __app/views/layouts/application.html.erb__. This is a Rails layout, basically a wrapper that will 'top & tail' every page that we create. Typically we would put common elements such as html head and our site navigation into application.html.erb. The file you're looking at is the standard one created by Rails but we are going to replace it with a fixed-width layout generated by Twitter Bootstrap that will also contain lots of nice examples like a default navigation.
+
+Run this command
+
+~~~console
+bundle exec rails g bootstrap:layout application fixed
+~~~
+
+You'll be asked if you want to replace the existing layout. Just say yes:
+
+~~~console
+    conflict  app/views/layouts/application.html.erb
+Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/application.html.erb? (enter "h" for help) [Ynaqdh] Y
+       force  app/views/layouts/application.html.erb
+~~~

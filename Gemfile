@@ -9,9 +9,10 @@ gem 'sqlite3'
 
 group :development do
   gem 'redcarpet'
-  gem 'pygments.rb'
+  gem 'pygmentize'
   gem 'nokogiri'
 end
+
 
 
 # Gems used only for assets and not required
@@ -26,6 +27,7 @@ group :assets do
   gem 'uglifier', '>= 1.0.3'
 end
 
+gem "twitter-bootstrap-rails"
 gem 'jquery-rails'
 
 group :test do
