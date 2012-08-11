@@ -5,48 +5,98 @@ Welcome to the stinky trainers tutorial where you'll learn how we built stinkytr
 Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout. 
  
 ## Before we start:
-This application is built upon Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv a helpful, command-line tool that let's you run multiple versions of Ruby on one machine.
 
-1. gem install rails -v 3.2.6
-2. gem install bundler
-3. We're using Ruby 1.9.3
+### Ruby 1.9.3
+Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
+
+    ruby -v
+
+### Rails
+We need Rails so that we can use the Rails command line to generate a new Rails App for us. Run the command line:
+
+    gem list
+
+and if you don't see something like:
+
+rails (3.2.8, 3.2.6, 3.2.3, 3.0.11) 
+
+Note that 3.2.8, 3.2.6, 3.2.3, 3.0.11 are the versions of the Rails gem on the machine so they'll almost certainly be different on yours.
+
+### Bundler
+Bundler is a ruby gem that manages other gems in a single application, a bit like having a package manager but just for your application and not the entire system.
+
+If you don't have bundler then install it:
+
+    gem install bundler
+
+If you do have bundler it's a good idea to ensure you have a reasonably recent version. If you're not sure then just get the latest version by running:
+
+    gem update bundler
 
 ## 1. Create the application:
+Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
 
-    rails new smudger
+    rails new stinkytrainers --skip-test-unit
 
-# 2. Rspec
+If you're wondering what __--skip-test-unit__ does, it just tells the Rails generator that we don't want to use __test unit__ the default testing framework that comes with Rails. Instead we'll be installing the more expressive testing framework __rspec__ in just a few minutes time. 
 
-# Were going to use the more expressive Rspec gem in the application rather than test unit which comes with Rails by default. We're also going to use capybara; a gem that will let us simulate a web browser in our test.
+You'll see that rails has created a lot of files and folders for you.
 
-# 2.1 Add the Rspec gem to the bundler's Gemfile in the root of the application
+### Important Files & Folders:
+the **app** folder is where all the code will go.
 
-  group :development, :test do
-    gem 'rspec-rails', '=2.11.0'
-    gem 'capybara', '=1.1.2'
-    gem 'launchy'
-  end
+**config/database.yaml** - database connection (by default sqlite3). Note that Rails assumes three environments, Development, Test, Production 
+**config/routes.rb** - connecting web requests to controllers and actions.  
+**db** is where our database migrations will go when we create them.
+**doc** is for documentation.
+**public** contains static html files (including the default home page index.html).
+**public/system** - used by rails for local storage of files like the uploaded images we'll be adding later with paperclip.
+**lib** is for code not specific to our application.
+**log** is where the Rails logger writes to
 
-# 2.2 Download and install the gem by running
+### Less Important Files & Folders:
+**tmp** - used by rails for storing temp files like session data, cookie data, PIDs etc.
+**vendor** - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.  
+**script** - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.
+
+# 2. Install the Rspec Gem
+
+We told the Rails generator to skip test unit but testing is going to be very central to building this app so we're going to use the Rspec gem. We're also going to use capybara, a gem that will let us simulate a web browser in our test and launchy, a gem to launch browsers.
+
+If you're wondering what we mean by Rspec being 'more expressive' than Test Unit then just compare these two ways of testing the same thing:
+
+user.name.should == 'steve' # a typical rspec test.
+assert_equal('steve', user.name) # a typical test unit test.
+
+### 2.1 Add the Rspec gem to the bundler's Gemfile in the root of the application
+Generally we'll be very explicit about what versions of gem we need in this tutorial, probably more explicit than would be needed in a typical application but this will ensure you have the exact same gemset that we are using so you're less likely to encounter some unexpected versioining issue. Versioning problems are uncommon in Rails and easily resolved with a only little bit of experience but they're also a problem you just don't need at this stage.
+
+Add these lines to the Gemfile in the root of your application. Note that we're putting them into a group called 'test' because we don't need these gems on our production server, just the cumputer we're using to test the application, typically this will be your development machine.
+
+    group :test do
+      gem 'rspec-rails', '=2.11.0'
+      gem 'capybara', '=1.1.2'
+      gem 'launchy', '=2.1.2'
+    end
+
+### 2.2 Download and install these gems
   
-  bundle install
+    bundle install
   
-# What just happened:
+What just happened..
 
-#bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. 
+bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. 
   
-# 2.3 Most gems don't need any special install instructions but Rspec needs to create some folders and files so run
+### 2.3 Run the RSpec generator
+Most gems don't need any special install instructions but Rspec needs to create some folders and files so run
 
-  bundle exec rails generate rspec:install
+    bundle exec rails generate rspec:install
   
-# What just happened:
-# 
-#   The Rspec gem just created a /spec folder with a spec_helper.rb file that will let us
+What just happened:
+ 
+The Rspec gem just created a __spec___ folder and a file  __spec/spec_helper.rb__. This file has some code that will help you run tests. We'll also be adding some of our own code here a little later as we write our own code to help us write tests.
 
-# 2.4 Capybara
+### 2.4 Configure Capybara
+The Capybara gem allows us to simulate browser interaction so that we can build this into our tests. Add the following line to __spec/spec_helper.rb__ after require __rspec/autorun__. This will load the capybara test methods. 
 
-# In spec/spec_helper.rb add this line after require 'rspec/autorun'.
-
-require 'capybara/rails'
-
-# 2.5 Remove the /test directory and its contents from the application we don't need it any more.
+    require 'capybara/rails'
