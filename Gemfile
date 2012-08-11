@@ -9,7 +9,7 @@ gem 'sqlite3'
 
 group :development do
   gem 'redcarpet'
-  gem 'pygments.rb'
+  gem 'pygmentize'
   gem 'nokogiri'
 end
 

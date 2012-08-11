@@ -1,61 +1,46 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body>
 <h1>Stinky Trainers</h1>
 
-<p>Welcome to the stinky trainers tutorial where you'll learn how we built stinkytrainers.co.uk. Unlike many Rails tutorials we won't be building an application in 15 minutes, Stinky Trainers will take some time but at the end of it you'll have a built a full Rails app and have learned enbough to start building your own web applications in Rails.</p>
+<p>Welcome to the stinky trainers tutorial where you&#39;ll learn how we built stinkytrainers.co.uk. Unlike many Rails tutorials we won&#39;t be building an application in 15 minutes, Stinky Trainers will take some time but at the end of it you&#39;ll have a built a full Rails app and have learned enbough to start building your own web applications in Rails.</p>
 
-<p>Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout. </p>
+<p>Rails development isn&#39;t just fast it&#39;s also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you&#39;ll find throughout. </p>
 
 <h2>Before we start:</h2>
 
-<p>This application is built upon Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv a helpful, command-line tool that let's you run multiple versions of Ruby on one machine.</p>
+<p>This application is built upon Rails 3.2 and Ruby 1.9.3. If you don&#39;t have Ruby 1.9.3 then we recommend installing it using RBenv a helpful, command-line tool that let&#39;s you run multiple versions of Ruby on one machine.</p>
 
 <ol>
 <li>gem install rails -v 3.2.6</li>
 <li>gem install bundler</li>
-<li>We're using Ruby 1.9.3</li>
+<li>We&#39;re using Ruby 1.9.3</li>
 </ol>
-<h2>1. Create the application:</h2>
 
-<pre><div class="highlight">
-<pre><span class="n">rails</span> <span class="kp">new</span> <span class="n">smudger</span>
-</pre>
-</div>
-</pre>
+<h2>1. Create the application:</h2>
+<div class="highlight"><pre><span class="go">rails new smudger</span>
+</pre></div>
 
 <h1>2. Rspec</h1>
 
-<h1>Were going to use the more expressive Rspec gem in the application rather than test unit which comes with Rails by default. We're also going to use capybara; a gem that will let us simulate a web browser in our test.</h1>
+<h1>Were going to use the more expressive Rspec gem in the application rather than test unit which comes with Rails by default. We&#39;re also going to use capybara; a gem that will let us simulate a web browser in our test.</h1>
 
-<h1>2.1 Add the Rspec gem to the bundler's Gemfile in the root of the application</h1>
-
-<p><code>ruby
-    group :development, :test do
-      gem 'rspec-rails', '=2.11.0'
-      gem 'capybara', '=1.1.2'
-      gem 'launchy'
-    end
-</code></p>
+<h1>2.1 Add the Rspec gem to the bundler&#39;s Gemfile in the root of the application</h1>
+<div class="highlight"><pre><span class="n">group</span> <span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span> <span class="k">do</span>
+  <span class="n">gem</span> <span class="s1">&#39;rspec-rails&#39;</span><span class="p">,</span> <span class="s1">&#39;=2.11.0&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;capybara&#39;</span><span class="p">,</span> <span class="s1">&#39;=1.1.2&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;launchy&#39;</span>
+<span class="k">end</span>
+</pre></div>
 
 <h1>2.2 Download and install the gem by running</h1>
-
-<pre><div class="highlight">
-<pre><span class="n">bundle</span> <span class="n">install</span>
-</pre>
-</div>
-</pre>
+<div class="highlight"><pre><span class="go">bundle install</span>
+</pre></div>
 
 <h1>What just happened:</h1>
 
 <h1>bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon.</h1>
 
-<h1>2.3 Most gems don't need any special install instructions but Rspec needs to create some folders and files so run</h1>
-
-<pre><div class="highlight">
-<pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rails</span> <span class="n">generate</span> <span class="n">rspec</span><span class="ss">:install</span>
-</pre>
-</div>
-</pre>
+<h1>2.3 Most gems don&#39;t need any special install instructions but Rspec needs to create some folders and files so run</h1>
+<div class="highlight"><pre><span class="go">  bundle exec rails generate rspec:install</span>
+</pre></div>
 
 <h1>What just happened:</h1>
 
@@ -63,13 +48,8 @@
 
 <h1>2.4 Capybara</h1>
 
-<h1>In spec/spec_helper.rb add this line after require 'rspec/autorun'.</h1>
+<h1>In spec/spec_helper.rb add this line after require &#39;rspec/autorun&#39;.</h1>
+<div class="highlight"><pre><span class="nb">require</span> <span class="s1">&#39;capybara/rails&#39;</span>
+</pre></div>
 
-<pre><div class="highlight">
-<pre><span class="nb">require</span> <span class="s1">'capybara/rails'</span>
-</pre>
-</div>
-</pre>
-
-<h1>2.5 Remove the /test directory and its contents from the application we don't need it any more.</h1>
-</body></html>
+<h1>2.5 Remove the /test directory and its contents from the application we don&#39;t need it any more.</h1>
