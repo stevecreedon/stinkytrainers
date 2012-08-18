@@ -3,8 +3,15 @@
 Welcome to the stinky trainers tutorial where you'll learn how we built stinkytrainers.co.uk. Unlike many Rails tutorials we won't be building an application in 15 minutes, Stinky Trainers will take some time but at the end of it you'll have a built a full Rails app and have learned enbough to start building your own web applications in Rails.
 
 Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout. 
+
+1. [Before we start](#before_we_start)
+1. [Create the application](#create_the_app)
+1. [Add the Rspec & Capybaras testing Gems](#rspec_gem)
+1. [Add the Twitter Bootstrap look & feel Gem](#twitter_bootstrap_gem)
+1. [Start the application](#start_the_app)
+
  
-## Before we start:
+## <a id="before_we_start"></a>Before we start:
 
 ### Make sure we have Ruby 1.9.3
 Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
@@ -41,7 +48,7 @@ If you do have bundler it's a good idea to ensure you have a reasonably recent v
 gem update bundler
 ~~~
 
-## 1. Create the application:
+## <a id="create_the_app"></a>1. Create the application:
 ### Give it a home
 Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
 
@@ -70,7 +77,9 @@ the **app** folder is where all the code will go.
 **vendor** - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.  
 **script** - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.
 
-## 2. Rspec
+## <a id="rspec_gem"></a>2. Rspec
+
+### 2.1 What is RSpec ?
 We told the Rails generator to skip test unit but testing is going to be very central to building this app so we're going to use the Rspec gem. We're also going to use capybara, a gem that will let us simulate a web browser in our test and launchy, a gem to launch browsers.
 
 If you're wondering what we mean by Rspec being 'more expressive' than Test Unit then just compare these two ways of testing the same thing:
@@ -80,7 +89,7 @@ user.name.should == 'steve' # a typical rspec test.
 assert_equal('steve', user.name) # a typical test unit test.
 ~~~
 
-### 2.1 Add the Rspec gem to the bundler's Gemfile in the root of the application
+### 2.2 Add the Rspec gem to the bundler's Gemfile in the root of the application
 Generally we'll be very explicit about what versions of gem we need in this tutorial, probably more explicit than would be needed in a typical application but this will ensure you have the exact same gemset that we are using so you're less likely to encounter some unexpected versioining issue. Versioning problems are uncommon in Rails and easily resolved with a only little bit of experience but they're also a problem you just don't need at this stage.
 
 Add these lines to the Gemfile in the root of your application. Note that we're putting them into a group called 'test' because we don't need these gems on our production server, just the cumputer we're using to test the application, typically this will be your development machine.
@@ -101,7 +110,7 @@ bundle install
   
 What just happened..
 
-bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. 
+bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. If the gem already existed on your computer it will use that gem.
   
 ### 2.3 Run the RSpec generator
 Most gems don't need any special install instructions but Rspec needs to create some folders and files so run
@@ -121,8 +130,8 @@ The Capybara gem allows us to simulate browser interaction so that we can build 
 require 'capybara/rails'
 ~~~
 
-## 3. Twitter Bootstrap
-This is a Rails tutorial so we won't waste time on web design and layout. That said it's always nice when our application looks a little sexy so we'll install Twitter Bootstrap - an HTML, CSS and Javascript library - to make Stinkytrainers look great with little effort on our part. Twitter Bootstrap is intended for all kinds of website but we can install it using the twitter boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
+## <a id="twitter_bootstrap_gem"></a>3. Twitter Bootstrap
+This is a Rails tutorial so we won't waste time on web design and layout but it's always nice when our application looks a little sexy so to make that happen and to save us loads of time we'll install Twitter Bootstrap - an HTML, CSS and Javascript library - to make Stinkytrainers. Twitter Bootstrap is intended for all kinds of website but we can install it using the twitter boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
 
 ~~~ruby
 gem "twitter-bootstrap-rails", "=2.0.7"
@@ -168,3 +177,16 @@ You'll be asked if you want to replace the existing layout. Just say yes:
 Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/application.html.erb? (enter "h" for help) [Ynaqdh] Y
        force  app/views/layouts/application.html.erb
 ~~~
+
+## <a id="start_the_app"></a>4. Start the Application
+Now we've installed all of the gems we need to get started. We'll be adding more gems as we go through but we've got our core testing gems plus the Twitter gem to give us a look & feel. It's time to start.
+
+Start the application on the command line with:
+
+~~~console
+bundle exec rails s
+~~~
+
+Now open a browser and go to localhost:3000. If all is well you should see a colourful page saying __Welcome Aboard__
+
+That's the end of the first section. In the next section we will start building the application.

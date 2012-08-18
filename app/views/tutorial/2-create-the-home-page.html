@@ -1,0 +1,120 @@
+<h1>Create the home page</h1>
+
+<p>The home page is the entry point to our application. Everybody should be able to access this page whether they&#39;re logged on or not making this the best place to start. </p>
+
+<h2>1. Rest, Controllers and Views in Rails</h2>
+
+<p>Rails is an <strong>MVC</strong> model-view-controller framework so we need a home controller <strong>C</strong> that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a &#39;view&#39; <strong>V</strong> in Rails language. If you&#39;re new to MVC you&#39;re probably asking where the model <strong>M</strong> is in MVC ? Well since this is our home page that doesn&#39;t do much we don&#39;t need a business model to do any fancy calculation for us.</p>
+
+<h3>1.1 Rest</h3>
+
+<p>The controllers in our application will all be Restful resources. The Rails website has <a href="http://guides.rubyonrails.org/routing.html#resource-routing-the-rails-default">a fuller discussion of Rails and Rest</a> but in a nutshell we&#39;ll be building controllers for entity:</p>
+
+<ul>
+<li>home</li>
+<li>user</li>
+<li>games</li>
+<li>results</li>
+<li>friends</li>
+</ul>
+
+<h3>1.2 Controllers</h3>
+
+<p>Because we&#39;re using Rest, each of our controllers will have very similar sets of actions (also known as methods) giving us a level of consistency that will make it easy for us to find our way around the application as it grows.</p>
+
+<ol>
+<li><strong>def index</strong> will list all of the objects that controller is responsible for e.g. <strong>games_controller index</strong>_ will list all of the games.</li>
+<li><strong>def new</strong> will display an empty form for creating a new object e.g. <strong>games_controller new</strong> will route through to an empty form for a new game.</li>
+<li><strong>def show</strong> will display an existing object.</li>
+<li><strong>def create</strong> will create a new object submitted by the form in <strong>def new</strong></li>
+<li><strong>def edit</strong> will display a form populated by an existing object</li>
+<li><strong>def update</strong> will update an existing object with details submitted by the form in <strong>def edit</strong></li>
+<li><strong>def destroy</strong> will destroy an existing object</li>
+</ol>
+
+<h3>1.3 Rest: URLs &gt; Controllers &gt; Views</h3>
+
+<p>The Rest convention allows Rails to automatically hook web requests to actions whuich then call controllers:</p>
+
+<ol>
+<li><strong>GET /games</strong> calls <strong>games_controller#index</strong> method which displays the <strong>games/index.html.erb</strong> view.</li>
+<li><strong>GET /games/new</strong> calls <strong>games_controller#new</strong> method which displays the <strong>games/new.html.erb</strong>_ view.</li>
+<li><strong>POST /games</strong> calls the <strong>games_controller#create</strong> method which will either:
+
+<ul>
+<li>If something is wrong with the data and the game can&#39;t be created then display the <strong>games/new.html.erb</strong>.</li>
+<li>If the data is correct and the game is created then redirect to a list of all the games (the <strong>games#index</strong> action).</li>
+</ul></li>
+<li><strong>GET /games/123</strong> calls the <strong>games_controller#show</strong> action which displays the game with id 123 in <strong>games/show.html.erb</strong>.</li>
+<li><strong>GET /games/edit</strong> calls the <strong>games_controller#edit</strong> action which displays a form populated with the game with id 123 in the view <strong>games/edit.html.erb</strong>.</li>
+<li><strong>PUT</strong> calls the <strong>games_controller#update</strong> action which will either:
+
+<ul>
+<li>If something is wrong with the data and the game can&#39;t be created then display the <strong>games/edit.html.erb</strong>.</li>
+<li>If the data is correct and the game is updated then redirect to a list of all the games (the <strong>games#index</strong> action).</li>
+</ul></li>
+<li><strong>DELETE /games/123</strong> will call the <strong>games_controller#destroy</strong>_ action which will then redirect to a list of all the games (the <strong>games#index</strong> action).<br></li>
+</ol>
+
+<p><strong>GET</strong>, <strong>POST</strong>, <strong>PUT</strong> and <strong>DELETE</strong> are all standard HTTP Verbs. You can find out more about HTTP verbs here. Those of you familiar with HTTP verbs will probably be aware that web browsers generally don&#39;t use <strong>PUT</strong> and <strong>DELETE</strong>. Rails appends parameters to the request update and destroy requests that will be interpreted by Rails server as <strong>PUT</strong> and <strong>DELETE</strong>.</p>
+
+<h2>2. Create the home page controller</h2>
+
+<p>OK so that&#39;s enough theory for now. Let&#39;s write some code. Ww&#39;ll create our first controller using one of the Rails generators:</p>
+<div class="highlight"><pre><span class="go">  bundle exec rails g controller home index</span>
+</pre></div>
+
+<p><strong>What just happened ?</strong></p>
+
+<p>The rails generator created a controller <strong>app/controllers/home_controller.rb</strong><em>. It gave the controller an action called _</em>index__ and created a view that will match the index action <strong>app/views/home/index.html.erb</strong>. Rails also created a helper file for our view (we&#39;ll come to that later) and some files under our spec folder for testing the controller and views. We won&#39;t be testing the home page as it&#39;s not really doing anything.</p>
+<div class="highlight"><pre><span class="go">   create app/controllers/home_controller.rb</span>
+<span class="go">    route get &quot;home/index&quot;</span>
+<span class="go">      invoke erb</span>
+<span class="go">     create  app/views/home</span>
+<span class="go">     create  app/views/home/index.html.erb</span>
+<span class="go">     invoke rspec</span>
+<span class="go">     create  spec/controllers/home_controller_spec.rb</span>
+<span class="go">     create  spec/views/home</span>
+<span class="go">     create  spec/views/home/index.html.erb_spec.rb</span>
+<span class="go">     invoke helper</span>
+<span class="go">     create  app/helpers/home_helper.rb</span>
+<span class="go">     invoke  rspec</span>
+<span class="go">     create   spec/helpers/home_helper_spec.rb</span>
+<span class="go">     invoke assets</span>
+<span class="go">     invoke  coffee</span>
+<span class="go">     create   app/assets/javascripts/home.js.coffee</span>
+<span class="go">    invoke  scss</span>
+<span class="go">    create   app/assets/stylesheets/home.css.scss</span>
+</pre></div>
+
+<h2>3. Create the home page</h2>
+
+<h3>3.1 Link the root &quot;/&quot; path to home controller</h3>
+
+<p>Rails can&#39;t know that we want the home controller to manage the home page for our application so add this line to <strong>config/routes.rb</strong></p>
+<div class="highlight"><pre><span class="n">root</span> <span class="ss">:to</span> <span class="o">=&gt;</span> <span class="s1">&#39;home#index&#39;</span>
+</pre></div>
+
+<p>and delete the line</p>
+<div class="highlight"><pre><span class="n">get</span> <span class="s2">&quot;home/index&quot;</span>
+</pre></div>
+
+<p>which was auto-generated for us.</p>
+
+<p>This tells rails that the root of our application is the <strong>index</strong> action of the <strong>home</strong> controller, i.e. <strong>def index</strong> in <strong>app/controllers/home_controller.rb</strong>. Rails will call this action and then render the view <strong>app/views/home/index.html.erb</strong> unless we specifically tell it not to (which we won&#39;t).</p>
+
+<h3>3.2 Put something on the home page to look at:</h3>
+
+<p>Add this line to the home page app/views/home/index.html.erb:</p>
+<div class="highlight"><pre>  <span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Welcome</span> <span class="n">to</span> <span class="no">Stinky</span> <span class="no">Trainers</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</pre></div>
+
+<p>We have a controller a method and a view so now we&#39;re ready to start our application.</p>
+<div class="highlight"><pre><span class="go">bundle exec rails s</span>
+</pre></div>
+
+<p>Browse to <strong>localhost:3000</strong>. There&#39;s a problem. You can probably see the same page &quot;welcome to rails&quot; page we saw at the end of the previous section. Clearly this isn&#39;t the <strong>Welcome to Stinky Trainers</strong> we expected on thehome page so what&#39;s happened ? </p>
+
+<p>When a page or file is requested Rails always checks the public directory first to see if there is a real file there before it runs any code (it&#39;s always much quicker and easier to return a real file than to build one in code). If you look in the <strong>/public</strong> folder you&#39;ll see an <strong>index.html</strong> file. Rails is finding this page and just returning it instead calling of our <strong>home_controller#index</strong> then <strong>index.hrml.erb</strong>. It&#39;s an easy fix; just delete public/index.html.erb, refresh the page in your browser and you should see some <strong>stinky trainers</strong>.</p>
+
+<p><img src="/assets/3.2_first_home_page.png" alt="Our first home page"></p>
