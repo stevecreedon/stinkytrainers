@@ -1,0 +1,185 @@
+<h1>Create the Dashboard Page</h1>
+
+<p>The home page is for anyone on the world wide web that happens to be passing by www.strinkytrainers.com but we&#39;re building a web application and we want it have logged-in users so that they can manage their games &amp; their friends. We want our logged-in users to have their own personalised home page, let&#39;s call it a <strong>dashboard</strong>.</p>
+
+<p>In this section we&#39;ll create a controller and a view for this dashboard (though there won&#39;t be much to show in it for a while). Then in the next section we&#39;ll create a User model and secure the dashboard with the Devise gem that will give us lots of log-in and forgotten password functionality almost out of the box.</p>
+
+<h2>1. The dashboard controller</h2>
+
+<p>We want our users to have a dashboard page where they can easily see their friends, players and matches. Run the command</p>
+<div class="highlight"><pre><span class="go">bundle exec rails g controller dashboard index</span>
+</pre></div>
+
+<p>and we should see:</p>
+<div class="highlight"><pre><span class="go">create  app/controllers/dashboard_controller.rb</span>
+<span class="go">       route  get &quot;dashboard/index&quot;</span>
+<span class="go">      invoke  erb</span>
+<span class="go">      create    app/views/dashboard</span>
+<span class="go">      create    app/views/dashboard/index.html.erb</span>
+<span class="go">      invoke  rspec</span>
+<span class="go">      create    spec/controllers/dashboard_controller_spec.rb</span>
+<span class="go">      create    spec/views/dashboard</span>
+<span class="go">      create    spec/views/dashboard/index.html.erb_spec.rb</span>
+<span class="go">      invoke  helper</span>
+<span class="go">      create    app/helpers/dashboard_helper.rb</span>
+<span class="go">      invoke    rspec</span>
+<span class="go">      create      spec/helpers/dashboard_helper_spec.rb</span>
+<span class="go">      invoke  assets</span>
+<span class="go">      invoke    coffee</span>
+<span class="go">      create      app/assets/javascripts/dashboard.js.coffee</span>
+<span class="go">      invoke    scss</span>
+<span class="go">      create      app/assets/stylesheets/dashboard.css.scss</span>
+</pre></div>
+
+<p><strong>What just happened ?</strong> </p>
+
+<p>Rails has generated a controller called dashboard in app/controllers/dashbaord_controller.rb, it gave that controller an index action and created a view called app/views/index.html.erb. Remembering our Restful routing in section 2, 1.3 - when a browser calls www.stinkytrainers.com/dashboard, Rails will route this request to the index action of the dashboard controller, which in turn routes the request to the app/views/dashboard/index.html.erb:</p>
+
+<p>GET /dashboard  &gt; app/controllers/dashboard_controller.rb#index &gt; app/views/dashboard/index.html.erb</p>
+
+<p>Rails also created some helpers and spec files for us which we&#39;ll come to in a bit. In it&#39;s effort to be helpful Rails also created something for us that we <strong>DON&#39;T WANT</strong>. If you look in <strong>config/routes.rb</strong> you&#39;ll see the line:</p>
+<div class="highlight"><pre><span class="n">get</span> <span class="s2">&quot;dashboard/index&quot;</span>
+</pre></div>
+
+<p>Up until now you&#39;ve had to trust me when I say things like &#39;Rails will route this request to the index action&#39; but I wasn&#39;t being up-front with you because didn&#39;t say how. It all happens in <strong>config/routes.rb</strong>. Rails provides us with a number of options for matching requests to controllers and actions. <strong>get &quot;dashboard/index&quot;</strong> is a very literal mapping of the GET /dashboard request. We could use it but as our application grows we&#39;ll have many such routes and so we&#39;d end up with very many of these lines. It&#39;s likely that <strong>config/routes.rb</strong> will become a bit hard to handle.</p>
+
+<p>Remember again in Section 2 where we had Restful controllers that all had similar actions ? Going back to 1.3 in that section again, I didn&#39;t explain how Rails would match request to our nicely standardised Restful controller/actions in a standard way. We&#39;ll do that by using similar Rest concepts in our config/routes.rb. </p>
+
+<p>First delete the line from config/routes.rb</p>
+<div class="highlight"><pre><span class="n">get</span> <span class="s2">&quot;dashboard/index&quot;</span>
+</pre></div>
+
+<p>In it&#39;s place put: </p>
+<div class="highlight"><pre><span class="n">resources</span> <span class="ss">:dashboard</span> 
+</pre></div>
+
+<p>This tells Rails that we want dashboard to be a Restful resource. This one line - <strong>resources :dashboard</strong> -  routes:</p>
+
+<table style="margin: 20px; font-weight: bold;" cellpadding="5px">
+    <tr><td>GET</td><td>/dashboard</td><td>dashboard_controller#index</td></tr>
+    <tr><td>GET</td><td>/dashboard/new</td><td>dashboard_controller#new</td></tr>
+    <tr><td>POST</td><td>/dashboard</td><td>dashbaord_controller#create</td></tr>
+    <tr><td>GET</td><td>/dashboard/123</td><td>dashbaord_controller#show</td></tr>
+    <tr><td>GET</td><td>/dashboard/123/edit</td><td>dashbaord_controller#edit</td></tr>
+    <tr><td>PUT</td><td>/dashboard/123</td><td>dashbaord_controller#update</td></tr>
+    <tr><td>DELETE</td><td>/dashboard/123</td><td>dashbaord_controller#destroy</td></tr>
+</table>
+
+<p>You can see these routes in the console by running:</p>
+<div class="highlight"><pre><span class="go">rake routes</span>
+</pre></div>
+
+<p>which should return a list of requests and their matching controller#actions</p>
+<div class="highlight"><pre><span class="go">dashboard_index GET    /dashboard(.:format)              dashboard#index</span>
+<span class="go">                POST   /dashboard(.:format)              dashboard#create</span>
+<span class="go">  new_dashboard GET    /dashboard/new(.:format)          dashboard#new</span>
+<span class="go"> edit_dashboard GET    /dashboard/:id/edit(.:format)     dashboard#edit</span>
+<span class="go">      dashboard GET    /dashboard/:id(.:format)          dashboard#show</span>
+<span class="go">                PUT    /dashboard/:id(.:format)          dashboard#update</span>
+<span class="go">                DELETE /dashboard/:id(.:format)          dashboard#destroy</span>
+<span class="go">           root        /                                 home#index                        home#index</span>
+</pre></div>
+
+<p>We&#39;ll be using that same mechanism for all of the remaining controllers in this application. Of course, not every controller will need ALL of the above actions and our dashboard_controller is a prime example of that. In fact we only want the index action so amend the line:</p>
+<div class="highlight"><pre><span class="n">resources</span> <span class="ss">:dashboard</span>
+</pre></div>
+
+<p>so that it becomes</p>
+<div class="highlight"><pre><span class="n">resources</span> <span class="ss">:dashboard</span><span class="p">,</span> <span class="ss">:only</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="ss">:index</span><span class="o">]</span> 
+</pre></div>
+
+<p>Now run rake routes again:</p>
+<div class="highlight"><pre><span class="go">rake routes</span>
+</pre></div>
+
+<p>and the output this time should be a much reduced:</p>
+<div class="highlight"><pre><span class="go">dashboard_index GET /dashboard(.:format)              dashboard#index</span>
+<span class="go">           root     /                                 home#index</span>
+</pre></div>
+
+<p>Rails Resources give us a simple and standard way to handle our routes and controllers.</p>
+
+<h2>2. The dashboard view</h2>
+
+<p>add this html to app/views/dashboard/index.html.erb</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Stinky</span> <span class="no">Trainers</span> <span class="no">Dashboard</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</pre></div>
+
+<h3>2.1 Add a link from the home page to the dashboard</h3>
+
+<p>We want to be able to get from the home page to the dashboard so let&#39;s just add a link. We could hard code a URL or relative path such as <a href="/dashboard">dashboard</a> into our navigation but instead we&#39;re going to return to rails routing again and use something called named paths.</p>
+
+<p>In the file app/views/layouts/application.html.erb change the line:</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;&lt;%=</span> <span class="n">link_to</span> <span class="s2">&quot;Link1&quot;</span><span class="p">,</span> <span class="s2">&quot;/path1&quot;</span>  <span class="sx">%&gt;&lt;/li&gt;</span>
+</pre></div>
+
+<p>to</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;&lt;%=</span> <span class="n">link_to</span> <span class="s2">&quot;dashboard&quot;</span><span class="p">,</span> <span class="n">dashboard_index_path</span>  <span class="sx">%&gt;&lt;/li&gt;</span>
+</pre></div>
+
+<p>now start your application (if it isn&#39;t already running)</p>
+<div class="highlight"><pre><span class="go">rails s</span>
+</pre></div>
+
+<p>and browse to localhost:3000 which should open our home page. At the top of the page you&#39;ll see our dashboard navigation link we created above. Click on it to see our dashboard page.</p>
+
+<p><strong>What just happened ?</strong> </p>
+
+<p>Rails uses metaprogramming to create named paths. If you run <strong>rake routes</strong> again</p>
+<div class="highlight"><pre><span class="go">rake routes</span>
+</pre></div>
+
+<p>you see the line</p>
+
+<p>The first part, <strong>dashboard_index</strong> is a Rails named path which uses Ruby meta-programming to create two named paths:</p>
+
+<ul>
+<li>dashboard<em>index</em>path = &quot;/dashboard&quot;</li>
+<li>dashboard<em>index</em>url = &quot;www.stinkytrainers.com/dashboard&quot;</li>
+</ul>
+
+<p>It&#39;s common practice to use the &#39;<em>path&#39; option rather than the &#39;</em>url&#39; option so dashboard<em>index</em>path gives us our URL. </p>
+
+<p>At this stage you may be wondering why go to all the bother of using named paths ? What&#39;s the problem with hard-coding the string &#39;/dashboard&#39; ? Well, a bit like our controllers, we&#39;ve only just begun and we&#39;ll be moving-on to much more complicated URLs and nested resources as we develop this application (don&#39;t worry if you&#39;re not sure what &#39;nested resource&#39; means we&#39;ll be covering it in detail later). A nested resource we may well be using could have the URL /users/123/games/17/comments/2 meaning that our user 123 has a game with id 17 that game has a comment with id 2. We can get this as a named path with code like:</p>
+<div class="highlight"><pre><span class="n">users_games_comments_path</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">game</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span>
+</pre></div>
+
+<p>Rather than building the string &quot;/users/123/games/17/comments/2&quot; in code. OK, we could write some kind of helper method that builds the many urls we would need in this app but that&#39;s just what a <strong>named path</strong> is, it&#39;s a helper method given to us by Rails for free. We get it for free because we&#39;ve stuck to the Rails conventions.</p>
+
+<h2>3. Time to write a test.</h2>
+
+<p>Let&#39;s write a similar test to the previous section</p>
+
+<h3>3.1 Inside the describe block in spec/views/dashboard/index.html.erb_spec.rb</h3>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should display Stinky Trainers Dashboard on the home page&#39;</span> <span class="k">do</span>
+    <span class="n">render</span>
+    <span class="n">rendered</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Stinky Trainers Dashboard&quot;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<h3>3.2 Run the test</h3>
+<div class="highlight"><pre><span class="go">bundle exec rspec</span>
+</pre></div>
+
+<p>You should see something like:</p>
+<div class="highlight"><pre><span class="go">*.*</span>
+
+<span class="go">Pending:</span>
+<span class="go">  DashboardHelper add some examples to (or delete) /Users/stephencreedon/devel/stinkytrainers/spec/helpers/dashboard_helper_spec.rb</span>
+<span class="go">    # No reason given</span>
+<span class="go">    # ./spec/helpers/dashboard_helper_spec.rb:14</span>
+<span class="go">  dashboard/index.html.erb add some examples to (or delete) /Users/stephencreedon/devel/stinkytrainers/spec/views/dashboard/index.html.erb_spec.rb</span>
+<span class="go">    # No reason given</span>
+<span class="go">    # ./spec/views/dashboard/index.html.erb_spec.rb:4</span>
+
+<span class="go">Finished in 0.12117 seconds</span>
+<span class="go">4 examples, 0 failures, 2 pending</span>
+</pre></div>
+
+<p>Pending tests are empty tests that the generators have created for us but we haven&#39;t coded yet. The important thing is there are no failures. Take a look at the first and the last lines last lines:</p>
+<div class="highlight"><pre><span class="go">*.*</span>
+
+<span class="go">---</span>
+
+<span class="go">4 examples, 0 failures, 2 pending</span>
+</pre></div>

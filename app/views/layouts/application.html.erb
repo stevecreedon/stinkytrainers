@@ -19,7 +19,7 @@
     <link href="images/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114">
   </head>
   <body>
-
+		
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
@@ -31,15 +31,20 @@
           <a class="brand" href="#">Stinkytrainers</a>
           <div class="container nav-collapse">
             <ul class="nav">
-              <li><%= link_to "Link1", "/path1"  %></li>
+              <li><%= link_to "dashboard", dashboard_index_path  %></li>
               <li><%= link_to "Link2", "/path2"  %></li>
               <li><%= link_to "Link3", "/path3"  %></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
       </div>
+	  
+	 <% if user_signed_in? %>
+	   		<div style="text-align: right;"><%= link_to "sign-out", destroy_user_session_path, :method => :delete  %></div>
+	 <% end %>
+	
     </div>
-
+	
     <div class="container">
       <div class="content">
         <div class="row">

@@ -95,7 +95,7 @@ Generally we'll be very explicit about what versions of gem we need in this tuto
 Add these lines to the Gemfile in the root of your application. Note that we're putting them into a group called 'test' because we don't need these gems on our production server, just the cumputer we're using to test the application, typically this will be your development machine.
 
 ~~~ruby
-group :test do
+group :development, :test do
   gem 'rspec-rails', '=2.11.0'
   gem 'capybara', '=1.1.2'
   gem 'launchy', '=2.1.2'

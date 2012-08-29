@@ -110,3 +110,91 @@ Browse to __localhost:3000__. There's a problem. You can probably see the same p
 When a page or file is requested Rails always checks the public directory first to see if there is a real file there before it runs any code (it's always much quicker and easier to return a real file than to build one in code). If you look in the __/public__ folder you'll see an __index.html__ file. Rails is finding this page and just returning it instead calling of our __home_controller#index__ then __index.hrml.erb__. It's an easy fix; just delete public/index.html.erb, refresh the page in your browser and you should see some __stinky trainers__.
 
 ![Our first home page](/assets/3.2_first_home_page.png)
+
+## 4. Time to write a test. 
+One of the strengths of Ruby and Rails is the ease with which we can write expressive testing code. Ruby is scripted, not compiled, so we don't have an IDE or compiler to sanity check our code for us. That means we need to write lots of tests. If you're not used to Test Driven Development, it's one of those things that seems really alien at first but then you quickly begin to wonder how you ever managed without it.
+
+Our dashboard page doesn't do very much at this stage so let's start with just a very basic test:
+
+### 4.1 Inside the describe block in spec/views/home/index.html.erb_spec.rb
+
+~~~ruby
+it 'should display Welcome to Stinky Trainers on the home page' do
+    render
+    rendered.should have_content("Welcome to Stinky Trainers")
+end
+~~~
+
+
+### 4.2 Run the test
+
+~~~console
+bundle exec rspec
+~~~
+
+You should see something like:
+
+~~~console
+*.*
+
+Pending:
+  DashboardHelper add some examples to (or delete) /Users/stephencreedon/devel/stinkytrainers/spec/helpers/dashboard_helper_spec.rb
+    # No reason given
+    # ./spec/helpers/dashboard_helper_spec.rb:14
+  dashboard/index.html.erb add some examples to (or delete) /Users/stephencreedon/devel/stinkytrainers/spec/views/dashboard/index.html.erb_spec.rb
+    # No reason given
+    # ./spec/views/dashboard/index.html.erb_spec.rb:4
+
+Finished in 0.12117 seconds
+4 examples, 0 failures, 2 pending
+~~~
+
+Pending tests are empty tests that the generators have created for us but we haven't coded yet. The important thing is there are no failures. Take a look at the first and the last lines last lines:
+
+~~~console
+*.*
+
+---
+
+4 examples, 0 failures, 2 pending
+~~~
+
+The *.* is a Pending test, a passed test and a pending test.
+
+Let's experiment a little and confirm the test is working by breaking it. Change have_content test in __spec/views/home/index.html.erb_spec.rb__ to have_content("Welcome to Smelly Socks")
+
+~~~console
+bundle exec rspec
+~~~
+
+If you read the results in console you should see that test has failed with out put something like:
+
+~~~console
+**F
+
+Pending:
+  dashboard/index.html.erb add some examples to (or delete) /Users/stephencreedon/devel/stinkytrainers/spec/views/dashboard/index.html.erb_spec.rb
+    # No reason given
+    # ./spec/views/dashboard/index.html.erb_spec.rb:4
+  DashboardHelper add some examples to (or delete) /Users/stephencreedon/devel/stinkytrainers/spec/helpers/dashboard_helper_spec.rb
+    # No reason given
+    # ./spec/helpers/dashboard_helper_spec.rb:14
+
+Failures:
+
+  1) home/index.html.erb shows display welcome to stinky trainers on the home page
+     Failure/Error: rendered.should have_content("Welcome to Smelly Socks")
+       expected there to be content "Welcome to Smelly Socks" in "Welcome to Stinky Trainers"
+     # ./spec/views/home/index.html.erb_spec.rb:7:in `block (2 levels) in <top (required)>'
+
+Finished in 0.13094 seconds
+4 examples, 1 failure, 2 pending
+
+Failed examples:
+
+rspec ./spec/views/home/index.html.erb_spec.rb:5 # home/index.html.erb shows display welcome to stinky trainers on the home page
+~~~
+
+Note the **F in the first line (it may be a different). We now have two pending tests and a failing test.
+
+__DON"T FORGET TO GO BACK AND FIX THE TEST WE"VE JUST BROKEN__

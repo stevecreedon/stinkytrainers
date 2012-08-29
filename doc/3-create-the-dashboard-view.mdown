@@ -1,0 +1,229 @@
+# Create the Dashboard Page
+The home page is for anyone on the world wide web that happens to be passing by www.strinkytrainers.com but we're building a web application and we want it have logged-in users so that they can manage their games & their friends. We want our logged-in users to have their own personalised home page, let's call it a __dashboard__.
+
+In this section we'll create a controller and a view for this dashboard (though there won't be much to show in it for a while). Then in the next section we'll create a User model and secure the dashboard with the Devise gem that will give us lots of log-in and forgotten password functionality almost out of the box.
+
+## 1. The dashboard controller
+
+We want our users to have a dashboard page where they can easily see their friends, players and matches. Run the command
+
+~~~console
+bundle exec rails g controller dashboard index
+~~~
+
+and we should see:
+
+~~~console
+create  app/controllers/dashboard_controller.rb
+       route  get "dashboard/index"
+      invoke  erb
+      create    app/views/dashboard
+      create    app/views/dashboard/index.html.erb
+      invoke  rspec
+      create    spec/controllers/dashboard_controller_spec.rb
+      create    spec/views/dashboard
+      create    spec/views/dashboard/index.html.erb_spec.rb
+      invoke  helper
+      create    app/helpers/dashboard_helper.rb
+      invoke    rspec
+      create      spec/helpers/dashboard_helper_spec.rb
+      invoke  assets
+      invoke    coffee
+      create      app/assets/javascripts/dashboard.js.coffee
+      invoke    scss
+      create      app/assets/stylesheets/dashboard.css.scss
+~~~
+
+__What just happened ?__ 
+
+Rails has generated a controller called dashboard in app/controllers/dashbaord_controller.rb, it gave that controller an index action and created a view called app/views/index.html.erb. Remembering our Restful routing in section 2, 1.3 - when a browser calls www.stinkytrainers.com/dashboard, Rails will route this request to the index action of the dashboard controller, which in turn routes the request to the app/views/dashboard/index.html.erb:
+
+GET /dashboard  > app/controllers/dashboard_controller.rb#index > app/views/dashboard/index.html.erb
+
+Rails also created some helpers and spec files for us which we'll come to in a bit. In it's effort to be helpful Rails also created something for us that we __DON'T WANT__. If you look in __config/routes.rb__ you'll see the line:
+
+~~~ruby
+get "dashboard/index"
+~~~
+
+Up until now you've had to trust me when I say things like 'Rails will route this request to the index action' but I wasn't being up-front with you because didn't say how. It all happens in __config/routes.rb__. Rails provides us with a number of options for matching requests to controllers and actions. __get "dashboard/index"__ is a very literal mapping of the GET /dashboard request. We could use it but as our application grows we'll have many such routes and so we'd end up with very many of these lines. It's likely that __config/routes.rb__ will become a bit hard to handle.
+
+Remember again in Section 2 where we had Restful controllers that all had similar actions ? Going back to 1.3 in that section again, I didn't explain how Rails would match request to our nicely standardised Restful controller/actions in a standard way. We'll do that by using similar Rest concepts in our config/routes.rb. 
+
+First delete the line from config/routes.rb
+
+~~~ruby
+get "dashboard/index"
+~~~
+
+In it's place put: 
+
+~~~ruby
+resources :dashboard 
+~~~
+
+This tells Rails that we want dashboard to be a Restful resource. This one line - __resources :dashboard__ -  routes:
+
+<table style="margin: 20px; font-weight: bold;" cellpadding="5px">
+	<tr><td>GET</td><td>/dashboard</td><td>dashboard_controller#index</td></tr>
+	<tr><td>GET</td><td>/dashboard/new</td><td>dashboard_controller#new</td></tr>
+	<tr><td>POST</td><td>/dashboard</td><td>dashbaord_controller#create</td></tr>
+	<tr><td>GET</td><td>/dashboard/123</td><td>dashbaord_controller#show</td></tr>
+	<tr><td>GET</td><td>/dashboard/123/edit</td><td>dashbaord_controller#edit</td></tr>
+	<tr><td>PUT</td><td>/dashboard/123</td><td>dashbaord_controller#update</td></tr>
+	<tr><td>DELETE</td><td>/dashboard/123</td><td>dashbaord_controller#destroy</td></tr>
+</table>
+
+You can see these routes in the console by running:
+
+~~~console
+rake routes
+~~~
+
+which should return a list of requests and their matching controller#actions
+
+~~~console
+dashboard_index GET    /dashboard(.:format)              dashboard#index
+                POST   /dashboard(.:format)              dashboard#create
+  new_dashboard GET    /dashboard/new(.:format)          dashboard#new
+ edit_dashboard GET    /dashboard/:id/edit(.:format)     dashboard#edit
+      dashboard GET    /dashboard/:id(.:format)          dashboard#show
+                PUT    /dashboard/:id(.:format)          dashboard#update
+                DELETE /dashboard/:id(.:format)          dashboard#destroy
+           root        /                                 home#index                        home#index
+~~~
+
+We'll be using that same mechanism for all of the remaining controllers in this application. Of course, not every controller will need ALL of the above actions and our dashboard_controller is a prime example of that. In fact we only want the index action so amend the line:
+
+~~~ruby
+resources :dashboard
+~~~
+
+so that it becomes
+
+~~~ruby
+resources :dashboard, :only => [:index] 
+~~~
+
+Now run rake routes again:
+
+~~~console
+rake routes
+~~~
+
+and the output this time should be a much reduced:
+
+~~~console
+dashboard_index GET /dashboard(.:format)              dashboard#index
+           root     /                                 home#index
+~~~
+
+Rails Resources give us a simple and standard way to handle our routes and controllers.
+
+## 2. The dashboard view
+add this html to app/views/dashboard/index.html.erb
+
+~~~ruby
+<h1>Stinky Trainers Dashboard</h1>
+~~~
+
+### 2.1 Add a link from the home page to the dashboard
+
+We want to be able to get from the home page to the dashboard so let's just add a link. We could hard code a URL or relative path such as <a href="/dashboard">dashboard</a> into our navigation but instead we're going to return to rails routing again and use something called named paths.
+
+In the file app/views/layouts/application.html.erb change the line:
+
+~~~ruby
+<li><%= link_to "Link1", "/path1"  %></li>
+~~~
+
+to
+
+~~~ruby
+<li><%= link_to "dashboard", dashboard_index_path  %></li>
+~~~
+
+now start your application (if it isn't already running)
+
+~~~console
+rails s
+~~~
+
+and browse to localhost:3000 which should open our home page. At the top of the page you'll see our dashboard navigation link we created above. Click on it to see our dashboard page.
+
+__What just happened ?__ 
+
+Rails uses metaprogramming to create named paths. If you run __rake routes__ again
+
+~~~console
+rake routes
+~~~
+
+you see the line
+
+~~~
+dashboard_index GET /dashboard(.:format)              dashboard#index
+~~~
+
+The first part, __dashboard_index__ is a Rails named path which uses Ruby meta-programming to create two named paths:
+
+* dashboard_index_path = "/dashboard"
+* dashboard_index_url = "www.stinkytrainers.com/dashboard"
+
+It's common practice to use the '_path' option rather than the '_url' option so dashboard_index_path gives us our URL. 
+
+At this stage you may be wondering why go to all the bother of using named paths ? What's the problem with hard-coding the string '/dashboard' ? Well, a bit like our controllers, we've only just begun and we'll be moving-on to much more complicated URLs and nested resources as we develop this application (don't worry if you're not sure what 'nested resource' means we'll be covering it in detail later). A nested resource we may well be using could have the URL /users/123/games/17/comments/2 meaning that our user 123 has a game with id 17 that game has a comment with id 2. We can get this as a named path with code like:
+
+~~~ruby
+users_games_comments_path(user, game, comment)
+~~~
+
+Rather than building the string "/users/123/games/17/comments/2" in code. OK, we could write some kind of helper method that builds the many urls we would need in this app but that's just what a __named path__ is, it's a helper method given to us by Rails for free. We get it for free because we've stuck to the Rails conventions.
+
+## 3. Time to write a test. 
+Let's write a similar test to the previous section
+
+### 3.1 Inside the describe block in spec/views/dashboard/index.html.erb_spec.rb
+
+~~~ruby
+it 'should display Stinky Trainers Dashboard on the home page' do
+    render
+    rendered.should have_content("Stinky Trainers Dashboard")
+end
+~~~
+
+
+### 3.2 Run the test
+
+~~~console
+bundle exec rspec
+~~~
+
+You should see something like:
+
+~~~console
+*.*
+
+Pending:
+  DashboardHelper add some examples to (or delete) /Users/stephencreedon/devel/stinkytrainers/spec/helpers/dashboard_helper_spec.rb
+    # No reason given
+    # ./spec/helpers/dashboard_helper_spec.rb:14
+  dashboard/index.html.erb add some examples to (or delete) /Users/stephencreedon/devel/stinkytrainers/spec/views/dashboard/index.html.erb_spec.rb
+    # No reason given
+    # ./spec/views/dashboard/index.html.erb_spec.rb:4
+
+Finished in 0.12117 seconds
+4 examples, 0 failures, 2 pending
+~~~
+
+Pending tests are empty tests that the generators have created for us but we haven't coded yet. The important thing is there are no failures. Take a look at the first and the last lines last lines:
+
+~~~console
+*.*
+
+---
+
+4 examples, 0 failures, 2 pending
+~~~
+
+

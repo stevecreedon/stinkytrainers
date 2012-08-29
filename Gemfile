@@ -20,7 +20,7 @@ end
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
   gem 'coffee-rails', '~> 3.2.1'
-
+  
   # See https://github.com/sstephenson/execjs#readme for more supported runtimes
   # gem 'therubyracer', :platforms => :ruby
 
@@ -29,11 +29,13 @@ end
 
 gem "twitter-bootstrap-rails"
 gem 'jquery-rails'
+gem 'devise'
 
-group :test do
+group :development, :test do
   gem 'rspec-rails', '=2.11.0'
   gem 'capybara', '=1.1.2'
   gem 'launchy'
+  gem 'factory_girl_rails'
 end
 
 # To use ActiveModel has_secure_password

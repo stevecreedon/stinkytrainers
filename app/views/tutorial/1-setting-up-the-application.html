@@ -91,7 +91,7 @@
 <p>Generally we&#39;ll be very explicit about what versions of gem we need in this tutorial, probably more explicit than would be needed in a typical application but this will ensure you have the exact same gemset that we are using so you&#39;re less likely to encounter some unexpected versioining issue. Versioning problems are uncommon in Rails and easily resolved with a only little bit of experience but they&#39;re also a problem you just don&#39;t need at this stage.</p>
 
 <p>Add these lines to the Gemfile in the root of your application. Note that we&#39;re putting them into a group called &#39;test&#39; because we don&#39;t need these gems on our production server, just the cumputer we&#39;re using to test the application, typically this will be your development machine.</p>
-<div class="highlight"><pre><span class="n">group</span> <span class="ss">:test</span> <span class="k">do</span>
+<div class="highlight"><pre><span class="n">group</span> <span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span> <span class="k">do</span>
   <span class="n">gem</span> <span class="s1">&#39;rspec-rails&#39;</span><span class="p">,</span> <span class="s1">&#39;=2.11.0&#39;</span>
   <span class="n">gem</span> <span class="s1">&#39;capybara&#39;</span><span class="p">,</span> <span class="s1">&#39;=1.1.2&#39;</span>
   <span class="n">gem</span> <span class="s1">&#39;launchy&#39;</span><span class="p">,</span> <span class="s1">&#39;=2.1.2&#39;</span>

@@ -1,5 +1,11 @@
 Stinkytrainers::Application.routes.draw do
 
+  devise_for :users
+
+  get "dashboard/index"
+
+  resources :dashboard, :only => [:index] 
+  
   get "rails-tutorial(/*path)" => "tutorial#index"
   
   root :to => 'home#index'
