@@ -2,7 +2,11 @@
 
 To secure the dashboard we're going to need a user so that we are able to sign-up, store some password details, sign-out and then sign-in.
 
-INDEX
+1. [Add the Devise gem](#1-add-the-devise-gem)
+1. [Create the user model using devise generator ](#2-create-the-user-model-using-devise-generator)
+1. [Now let's secure the dashboard with Devise:](#3-now-let-s-secure-the-dashboard-with-devise)
+1. [Add some code so that we can sign out](#3-1-add-some-code-so-that-we-can-sign-out)
+1. [Testing our locked-down dashboard](#5-testing-our-locked-down-dashboard)
 
 ## 1. Add the Devise gem
 Devise gives us authentication out-of-the-box. We'll be getting devise to build us an authenticating user class

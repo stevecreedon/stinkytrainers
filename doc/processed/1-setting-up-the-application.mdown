@@ -4,7 +4,11 @@ Welcome to the stinky trainers tutorial where you'll learn how we built stinkytr
 
 Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout. 
 
-INDEX
+1. [a id="before_we_start"></a>Before we start:](#a-id-before-we-start-a-before-we-start)
+1. [a id="create_the_app"></a>1. Create the application:](#a-id-create-the-app-a-1-create-the-application)
+1. [a id="rspec_gem"></a>2. Rspec](#a-id-rspec-gem-a-2-rspec)
+1. [a id="twitter_bootstrap_gem"></a>3. Twitter Bootstrap](#a-id-twitter-bootstrap-gem-a-3-twitter-bootstrap)
+1. [a id="start_the_app"></a>4. Start the Application](#a-id-start-the-app-a-4-start-the-application)
  
 ## <a id="before_we_start"></a>Before we start:
 

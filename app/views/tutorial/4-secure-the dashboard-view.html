@@ -3,10 +3,15 @@
 <p>To secure the dashboard we&#39;re going to need a user so that we are able to sign-up, store some password details, sign-out and then sign-in.</p>
 
 <ol>
-<li>Add the Devise gem and install Devise</li>
-<li>Create a User model using the Devise generator</li>
-<li>Secure the dashboard controller using Devise authentication</li>
-<li>Test authentication of our Dashboard Controller </li>
+<li><a href="#1-add-the-devise-gem">Add the Devise gem</a></li>
+<li><a href="#2-create-the-user-model-using-devise-generator">Create the user model using devise generator </a></li>
+<li><a href="#3-now-let-s-secure-the-dashboard-with-devise">Now let&#39;s secure the dashboard with Devise:</a></li>
+<li><a href="#3-1-add-some-code-so-that-we-can-sign-out">Add some code so that we can sign out</a></li>
+<li><p><a href="#5-testing-our-locked-down-dashboard">Testing our locked-down dashboard</a></p></li>
+<li><p>Add the Devise gem and install Devise</p></li>
+<li><p>Create a User model using the Devise generator</p></li>
+<li><p>Secure the dashboard controller using Devise authentication</p></li>
+<li><p>Test authentication of our Dashboard Controller </p></li>
 </ol>
 
 <h2>1. Add the Devise gem</h2>
@@ -77,7 +82,7 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 <h3>Devise point 2.</h3>
 
-<p>We&#39;ve already done that in section 2.</p>
+<p>This is telling us to create a route to our home page. We&#39;ve already covered this in section 2.</p>
 
 <h3>Devise point 3.</h3>
 
@@ -96,7 +101,9 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 <h2>2. Create the user model using devise generator</h2>
 
-<h3>2.1 Create a User model using the Devise generator. This will give us a Rails model with extra authentication methods and attributes needed for Devise,</h3>
+<h3>2.1 Create a User model using the Devise generator.</h3>
+
+<p>This will give us a standard Rails model but with some extra authentication methods and attributes needed for Devise. Of course we could add these by hand ourselves but like all Rails &amp; Ruby coders I enjoy writing the business code for the application I&#39;m building and not system &#39;boilerplate&#39; code so I&#39;m happy to let Devise do this for me.</p>
 <div class="highlight"><pre><span class="go">rails generate devise user</span>
 </pre></div>
 
@@ -110,7 +117,7 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 <span class="go">      route  devise_for :users</span>
 </pre></div>
 
-<p>The line <code>create    db/migrate/20120629090415_devise_create_users.rb</code> gives us our first database migration db/migrate{timestamp}<em>devise</em>create_users.rb, a user model <code>app/models/user.rb</code> and a file for writing tests for our user <code>spec/app/models/user.rb</code>.</p>
+<p>The line <code>create    db/migrate/20120629090415_devise_create_users.rb</code> gives us our first database migration db/migrate/{timestamp}<em>devise</em>create_users.rb, a user model <code>app/models/user.rb</code> and a file for writing tests for our user <code>spec/app/models/user.rb</code>.</p>
 
 <h3>2.3 Our first migration</h3>
 
@@ -160,7 +167,7 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 <div class="highlight"><pre><span class="go">bundle exec rake db:rollback</span>
 </pre></div>
 
-<p>and you should see that your table has been dropped from the database. Don&#39;t forget to run <code>bundle exec rake db:migrate</code> so that we rebuild our dropped users table.</p>
+<p>and you should see some sql in your console that tells you your table has been dropped from the database. Don&#39;t forget to run <code>bundle exec rake db:migrate</code> so that we rebuild our dropped users table.</p>
 
 <h2>3. Now let&#39;s secure the dashboard with Devise:</h2>
 
