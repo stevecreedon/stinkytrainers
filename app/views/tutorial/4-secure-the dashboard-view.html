@@ -2,6 +2,13 @@
 
 <p>To secure the dashboard we&#39;re going to need a user so that we are able to sign-up, store some password details, sign-out and then sign-in.</p>
 
+<ol>
+<li>Add the Devise gem and install Devise</li>
+<li>Create a User model using the Devise generator</li>
+<li>Secure the dashboard controller using Devise authentication</li>
+<li>Test authentication of our Dashboard Controller </li>
+</ol>
+
 <h2>1. Add the Devise gem</h2>
 
 <p>Devise gives us authentication out-of-the-box. We&#39;ll be getting devise to build us an authenticating user class
@@ -107,7 +114,32 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 <h3>2.3 Our first migration</h3>
 
-<p>Take a look at the migration, it will be the only file in db/migrate and you&#39;ll see quite a bit of ruby code for creating the users table that will hold the data for the user model Devise has generated. <strong>Note</strong> that the table name is plural users for a singular model user. Rails is very good at connecting singular and plural words. For example, it will understand that the collection lesson.students will contain student objects. If you&#39;re thinking this is all a bit too constraining, all this is configurable but out of the box we get the functionality we&#39;re probably going to need.</p>
+<p>Rails Migrations are a very helpful tool for creating tables, renaming columns, dropping tables, creating indexes and pretty much anything else involving manipulating sql databases. Migrations are written in Ruby and converted to sql by Rails (or to be more precise the Rails database adapter we&#39;re using). </p>
+
+<p>For example, we could have 4 migrations that </p>
+
+<ol>
+<li>create a table called martians.</li>
+<li>add an integer column to the table called raygun power.</li>
+<li>create an index on the raygun column. </li>
+<li>rename the raygun column to number<em>of</em>arms.</li>
+</ol>
+
+<p>If we were to run</p>
+<div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rake</span> <span class="n">db</span><span class="ss">:migrate</span>
+</pre></div>
+
+<p>Then, in a timestamped sequence (each migration name has a timestamp embedded in it) the migrations would carry out those tasks.</p>
+
+<p>Running</p>
+<div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rake</span> <span class="n">db</span><span class="ss">:rollback</span>
+</pre></div>
+
+<p>Would rollback the migrations by one so the number<em>of</em>arms column would be named back to raygun. Running &#39;bundle exec rake db:rollback&#39; again would drop the indexes on the raygun columns etc..</p>
+
+<p>When I ran the devise generator above it created a migration for our user model <strong>db/migrate/20120629090415<em>devise</em>create_users.rb</strong>. Note that yours will be named a little different as the timestamp in the migration name will reflect when you created it. </p>
+
+<p>Take a look at the migration, it will be the only file in the folder <strong>db/migrate</strong> and you&#39;ll see quite a bit of ruby code for creating the users table that will hold the data for the user model Devise has generated. <strong>Note</strong> that the table name is plural users for a singular model user. Rails is very good at connecting singular and plural words. For example, it will understand that the collection lesson.students will contain student objects. If you&#39;re thinking this is all a bit too constraining, all this is configurable but out of the box we get the functionality we&#39;re probably going to need.</p>
 
 <p>Lets run the migration to create the table in our database:</p>
 <div class="highlight"><pre><span class="go">bundle exec rake db:migrate</span>
@@ -124,63 +156,103 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 <span class="go">==  DeviseCreateUsers: migrated (0.2106s) =====================================</span>
 </pre></div>
 
-<h2>3. Now let&#39;s secure the home page with Devise:</h2>
+<p>Just for fun let&#39;s rollback the migration</p>
+<div class="highlight"><pre><span class="go">bundle exec rake db:rollback</span>
+</pre></div>
 
-<p>add this line to the dashboard controller app/controllers/dashboard_controller.rb</p>
+<p>and you should see that your table has been dropped from the database. Don&#39;t forget to run <code>bundle exec rake db:migrate</code> so that we rebuild our dropped users table.</p>
+
+<h2>3. Now let&#39;s secure the dashboard with Devise:</h2>
+
+<p>To secure the dashboard we&#39;ll add some code to our dashboard<em>controller that checks to see if we have a user in session that&#39;s already logged-in. Add this line to the dashboard controller app/controllers/dashboard</em>controller.rb</p>
 <div class="highlight"><pre><span class="n">before_filter</span> <span class="ss">:authenticate_user!</span>
 </pre></div>
 
-<p>We&#39;ve added a <strong>before filter</strong> that calls the method Devise has created for us <strong>authenticate_user!</strong>. This method will run before each action in the dashboard controller to ensure we have an authenticated user in the application session.</p>
+<p>We&#39;ve added a <strong>before filter</strong> that calls a dynamic method that Devise will handle for us <strong>authenticate_user!</strong>. It&#39;s dynamic because there&#39;s no reason why the model we&#39;re authenticating against has to be a user. We could easily have created an admin model or even a martian model which would require us to authenticate<em>admin! or authenticate</em>martian!. Dynamic methods are a Ruby metaprogramming technique that allows our code (in this case Devise) to intercept calls to methods that don&#39;t exist - such as authenticate<em>user! - before Ruby throws a &#39;NoMethodError&#39;. Devise can then decide if it wants to act on this missing method so if our code calls authnticate</em>user (and we have a user) then Devise will do something. If our code calls authenticate_martian (and we have no martians in this application) then Devise will ignore it and we&#39;ll get the expected NoMethodError.  </p>
+
+<p>This method will run before each action in the dashboard controller to ensure we have an authenticated user in the application session.</p>
 
 <p>Now start the app <code>bundle exec rails s</code> browse to the home page <strong>localhost:3000</strong> and click the dashboard link. You should be redirected to a screen asking you to login or sign up. Just sign up as a new user and you should then be directed to the dashboard page. </p>
 
-<h2>4. Add some code so that we can sign out</h2>
+<h2>3.1. Add some code so that we can sign out</h2>
 
-<p>Add this line to app/layouts/application.html.erb so that it&#39;s at the bottom of the &lst;div class=&quot;navbar navbar-fixed-top&quot;&gt;. Forgive the inline style but this isn&#39;t a tutorial on css.</p>
+<p>Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  Add this line to app/layouts/application.html.erb so that it&#39;s at the bottom of</p>
+<div class="highlight"><pre> <span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;navbar navbar-fixed-top&quot;</span><span class="o">&gt;</span>
+</pre></div>
 
-<p>&lt;% if user<em>signed</em>in? %&gt;
-   <div  style="text-align: right;">
-    &lt;%= link<em>to &quot;sign-out&quot;, destroy</em>user<em>session</em>path, :method =&gt; :delete  %&gt;
-   </div>
-&lt;% end %&gt;          </p>
+<p>Forgive the inline style but this isn&#39;t a tutorial on css.</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="sx">% if </span><span class="n">user_signed_in?</span> <span class="sx">%&gt;</span>
+<span class="sx">   &lt;div  style=&quot;text-align: right;&quot;&gt;</span>
+    <span class="o">&lt;</span><span class="sx">%= link_to &quot;sign-out&quot;, destroy_user_session_path, :method =</span><span class="o">&gt;</span> <span class="ss">:delete</span>  <span class="sx">%&gt;</span>
+<span class="sx">   &lt;/div&gt;</span>
+<span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>          
+</pre></div>
 
-<p>user<em>signed</em>in? is a helper method generated by devise, link<em>to is a Rails helper for generating html links. In this case we&#39;re generating a link with text &#39;sign-out&#39; and a url generated by the devise route 
-destroy</em>user<em>session</em>path. We&#39;ll cover routes a bit more in the next section.</p>
+<p>user<em>signed</em>in? is a helper method generated by devise, link<em>to is a Rails helper for generating html links. In this case we&#39;re generating a link with text &#39;sign-out&#39; and a url generated by the devise named route 
+destroy</em>user<em>session</em>path. We&#39;ll cover Devise routes a bit more below.</p>
 
 <h2>5. Testing our locked-down dashboard</h2>
 
-<p>Now that we&#39;ve locked down our dashboard controller so that only authenticated users can access it, we&#39;ve probably broken any tests that use that controller. Try it:</p>
-<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
-</pre></div>
+<p>Typically with Test Driven Development you would write tests first and then make them pass but in this particular case I wanted you to see Devise in action so that the tests have some meaning. </p>
 
-<h3>5.1 Devise helpers</h3>
+<p>Let&#39;s test Devise by writing two tests for our dashboard controller:</p>
 
-<p>Fortunately Devise comes to the rescue again and has provided us with some helpers that lets us simulate users being logged in and out.</p>
+<ol>
+<li>A test that checks we are not allowed to see the dashboard index page and get redirected to the sign-in page if the user hasn&#39;t signed-in.</li>
+<li>A test that checks we are allowed to see the dashboard index page if the user has signed-in.</li>
+<li>A test that we can sign-up and go to the dashboard index page</li>
+</ol>
 
-<p>create the file spec/support/devise.rb (you&#39;ll probably have to create the spec/support folder) and add these lines:</p>
-<div class="highlight"><pre><span class="no">RSpec</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
- <span class="err"> </span><span class="n">config</span><span class="o">.</span><span class="n">include</span> <span class="no">Devise</span><span class="o">::</span><span class="no">TestHelpers</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:controller</span>
-<span class="k">end</span>
-</pre></div>
+<h3>5.1 Testing the redirect</h3>
 
-<h3>5.2 Test the redirect</h3>
-
-<p>Let&#39;s test that our dashboard controller redirects us to a sign in page when there is no signed-in user</p>
+<p>Let&#39;s test that our dashboard controller redirects us to a sign-in page when there is no signed-in user</p>
 
 <p>In spec/controllers/dashboard<em>controller</em>spec.rb</p>
 <div class="highlight"><pre><span class="n">it</span> <span class="s2">&quot;should redirect to the login page when the user is not signed-in&quot;</span> <span class="k">do</span>
   <span class="n">get</span> <span class="s1">&#39;index&#39;</span>
-  <span class="n">response</span><span class="o">.</span><span class="n">should</span> <span class="n">redirect_to</span><span class="p">(</span><span class="s1">&#39;/users/sign_in&#39;</span><span class="p">)</span>
+  <span class="n">response</span><span class="o">.</span><span class="n">should</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">new_user_session_path</span><span class="p">)</span>
 <span class="k">end</span>
 </pre></div>
 
-<p>and run the test</p>
+<p>and run the test.</p>
 <div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rake</span> <span class="n">spec</span>
 </pre></div>
 
 <p>You should see the test pass in console </p>
 
-<h3>5.3 Test signed-in users</h3>
+<p>NOTE that <strong>new<em>user</em>session_path</strong> is another named route. Open <strong>config/routes.rb</strong> and you&#39;ll see the line</p>
+<div class="highlight"><pre><span class="n">devise_for</span> <span class="ss">:users</span>
+</pre></div>
+
+<p>somewhere near the top. This is devise adding a bunch of new routes for creating and destroying use sessions. You can see them in console by running:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake routes</span>
+</pre></div>
+
+<p>which should return</p>
+<div class="highlight"><pre><span class="go"> new_user_session GET    /users/sign_in(.:format)          devise/sessions#new</span>
+<span class="go">            user_session POST   /users/sign_in(.:format)          devise/sessions#create</span>
+<span class="go">    destroy_user_session DELETE /users/sign_out(.:format)         devise/sessions#destroy</span>
+<span class="go">           user_password POST   /users/password(.:format)         devise/passwords#create</span>
+<span class="go">       new_user_password GET    /users/password/new(.:format)     devise/passwords#new</span>
+<span class="go">      edit_user_password GET    /users/password/edit(.:format)    devise/passwords#edit</span>
+<span class="go">                         PUT    /users/password(.:format)         devise/passwords#update</span>
+<span class="go">cancel_user_registration GET    /users/cancel(.:format)           devise/registrations#cancel</span>
+<span class="go">       user_registration POST   /users(.:format)                  devise/registrations#create</span>
+<span class="go">   new_user_registration GET    /users/sign_up(.:format)          devise/registrations#new</span>
+<span class="go">  edit_user_registration GET    /users/edit(.:format)             devise/registrations#edit</span>
+<span class="go">                         PUT    /users(.:format)                  devise/registrations#update</span>
+<span class="go">                         DELETE /users(.:format)                  devise/registrations#destroy</span>
+<span class="go">         dashboard_index GET    /dashboard/index(.:format)        dashboard#index</span>
+<span class="go">                         GET    /dashboard(.:format)              dashboard#index</span>
+<span class="go">                         GET    /rails-tutorial(/*path)(.:format) tutorial#index</span>
+<span class="go">                    root        /                                 home#index</span>
+</pre></div>
+
+<p>You can see that <strong>new<em>user</em>session</strong>_ returns the path <strong>/users/sign_in</strong> which points to the new method of a devise sessions controller. Remember that we use <strong>new<em>user</em>session</strong> by adding either _path or _url to the end depending on whether we want a full url or not.</p>
+
+<h3>5.2 Test signed-in users</h3>
+
+<p>Let&#39;s create a test that calls the index page of our secure dashboard_controller. </p>
 
 <p>add this test to spec/controllers/dashboard<em>controller</em>spec.rb beneath our passing test.</p>
 <div class="highlight"><pre><span class="n">it</span> <span class="s2">&quot;should render the index page when the user is signed-in&quot;</span> <span class="k">do</span>
@@ -189,7 +261,9 @@ destroy</em>user<em>session</em>path. We&#39;ll cover routes a bit more in the n
 <span class="k">end</span>
 </pre></div>
 
-<p>and run the test</p>
+<p>Note that we call <code>get &#39;index&#39;</code> in the same way as our first test but this time we expect it to succeed rather than redirect.</p>
+
+<p>Run the test</p>
 <div class="highlight"><pre><span class="go">bundle exec rake spec</span>
 </pre></div>
 
@@ -200,7 +274,15 @@ destroy</em>user<em>session</em>path. We&#39;ll cover routes a bit more in the n
    expected success? to return true, got false
     ./spec/controllers/dashboard</em>controller_spec.rb:13:in `block (3 levels) in <top (required)>&#39;</p>
 
-<p>That&#39;s because we haven&#39;t yet signed-in a user so we&#39;re being redirected away. Let&#39;s fix this by adding the <code>sign_in :user, User.create(:email =&gt; &#39;foo@domain.com&#39;, :password =&gt; &#39;simple&#39;)</code> line to our test:</p>
+<p>That&#39;s because we haven&#39;t yet signed-in a user so we&#39;re being redirected away in just the same way as our first test. Fortunately Devise provides us with some helpers methods that let us simulate a user being logged in before our test runs. We need to add these helpers so that RSpec knows that we want to use them:</p>
+
+<p>Create the file spec/support/devise.rb (you&#39;ll probably have to create the spec/support folder) and add these lines:</p>
+<div class="highlight"><pre><span class="no">RSpec</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">include</span> <span class="no">Devise</span><span class="o">::</span><span class="no">TestHelpers</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:controller</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Now let&#39;s fix our breaking test by adding <code>sign_in :user, User.create(:email =&gt; &#39;foo@domain.com&#39;, :password =&gt; &#39;simple&#39;)</code></p>
 <div class="highlight"><pre><span class="n">it</span> <span class="s2">&quot;should render the index page when the user is signed-in&quot;</span> <span class="k">do</span>
    <span class="n">sign_in</span> <span class="ss">:user</span><span class="p">,</span> <span class="no">User</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;foo@domain.com&#39;</span><span class="p">,</span> <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="s1">&#39;simple&#39;</span><span class="p">)</span>
    <span class="n">get</span> <span class="s1">&#39;index&#39;</span>
@@ -210,13 +292,11 @@ destroy</em>user<em>session</em>path. We&#39;ll cover routes a bit more in the n
 
 <p>The test should now pass when you run <code>bundle exec rake spec</code></p>
 
-<h2>6. Change the test to use FactoryGirl.</h2>
+<h3>5.4 Change the test to use FactoryGirl.</h3>
 
-<p>We&#39;ve got the test passing but it&#39;s not good practice to create a new user each time we want to run a test so we&#39;re going to use a gem called FactoryGirl that will create users for us on demand that we can use in our tests. As our user (and other objects) get more complex, FactoryGirl will become a very clear and convenient way to build objects for test rather than from scratch each time.</p>
+<p>We&#39;ve got the test passing but it feels wrong to create a new user each time we want to run a test so we&#39;re going to use a gem called FactoryGirl that will create users for us on demand that we can use in our tests. As our user (and other objects) get more complex, FactoryGirl will become a very clear and convenient way to build mock objects for testing rather than create new ones from scratch each time.</p>
 
-<h3>6.1 Install the FactoryGirl gem</h3>
-
-<p>add these lines to Gemfile&#39;s testing group:</p>
+<p>First let&#39;s add the FactoryGirl gem to our Gemfile&#39;s testing group:</p>
 <div class="highlight"><pre><span class="n">group</span> <span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span> <span class="k">do</span>
   <span class="n">gem</span> <span class="s1">&#39;rspec-rails&#39;</span>
   <span class="n">gem</span> <span class="s1">&#39;capybara&#39;</span>
@@ -224,11 +304,11 @@ destroy</em>user<em>session</em>path. We&#39;ll cover routes a bit more in the n
 <span class="k">end</span>
 </pre></div>
 
-<p>then install the gem</p>
+<p>then install the Factory Girl</p>
 <div class="highlight"><pre><span class="go">bundle install</span>
 </pre></div>
 
-<p>The first thing we need to do is create a factory file for our first User factory. Create spec/factories.rb then add these lines to the file:</p>
+<p>Factory Girl allows us to create Factories that define a typical test user so let&#39;s create a factory file for our first User factory. Create <strong>spec/factories.rb</strong> then add these lines to the file:</p>
 <div class="highlight"><pre><span class="no">FactoryGirl</span><span class="o">.</span><span class="n">define</span> <span class="k">do</span>
   <span class="n">sequence</span> <span class="ss">:email</span> <span class="k">do</span> <span class="o">|</span><span class="n">n</span><span class="o">|</span>
    <span class="s2">&quot;person</span><span class="si">#{</span><span class="n">n</span><span class="si">}</span><span class="s2">@domain.com&quot;</span>
@@ -241,7 +321,7 @@ destroy</em>user<em>session</em>path. We&#39;ll cover routes a bit more in the n
 <span class="k">end</span>
 </pre></div>
 
-<p>This factory will create a sequence of users on demand, each with unique emails &quot;person1@domain.com&quot;, &quot;person2@domain.com&quot; etc..</p>
+<p>This factory will create users on demand, each with a sequence of unique emails &quot;person1@domain.com&quot;, &quot;person2@domain.com&quot;, &quot;person3@domain.com&quot; etc..</p>
 
 <p>Now let&#39;s use FactoryGirl in our test:</p>
 
@@ -257,33 +337,85 @@ destroy</em>user<em>session</em>path. We&#39;ll cover routes a bit more in the n
 <div class="highlight"><pre><span class="go">bundle exec rake spec  </span>
 </pre></div>
 
-<p>So we&#39;ve created tests for controllers and views. Now we&#39;re going to use the capybara to create integration tests to see if it all ties together properly:</p>
+<p>We&#39;ve tested that we have to be signed-in to see the dashboard index page so now let&#39;s test that we CAN sign in. Create the folder and file spec/integration/dashboard/authentication_spec.rb and add these lines:</p>
+<div class="highlight"><pre><span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
 
-<h1>[IS IT BEST TO INSTALL THE CAPYBARA GEM HERE ?? (NEEDED FOR EARLIER VIEW TEST ??)]</h1>
+<span class="n">describe</span> <span class="s1">&#39;only registered users can access dashboard&#39;</span> <span class="k">do</span>
 
-<h1>Create the folder and file spec/integration/dashbaord/authentication_spec.rb and add these lines:</h1>
+  <span class="n">it</span> <span class="s1">&#39;should require users to sign in when they trying to access dashboard&#39;</span> <span class="k">do</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
 
-<p>require &#39;spec_helper&#39;</p>
+    <span class="n">visit</span> <span class="n">dashboard_index_url</span>
 
-<p>describe &#39;only registred users can access dashboard&#39; do</p>
+    <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">new_user_session_path</span>
 
-<p> it &#39;should require users to sign in when they trying to access dashboard&#39; do
-    user = FactoryGirl.create(:user)</p>
+    <span class="c1"># &#39;Email&#39; and &#39;Password&#39; are the text in the HTML labels on the sign in screen</span>
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Email&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Password&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-<p>   visit dashboard<em>index</em>url</p>
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Sign in&#39;</span><span class="p">)</span>
 
-<p>   page.current<em>path.should == new</em>user<em>session</em>path</p>
+    <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">dashboard_index_path</span>
+  <span class="k">end</span>
 
-<p>   fill<em>in(&#39;Email&#39;, :with =&gt; user.email)
-    fill</em>in(&#39;Password&#39;, :with =&gt; user.password)</p>
+<span class="k">end</span>
+</pre></div>
 
-<p>   click_button(&#39;Sign in&#39;)</p>
+<p>We&#39;re using the Capybara gem to journey through our application as if we were browsing. The test:</p>
 
-<p>   page.current<em>path.should == dashboard</em>index_path
-  end</p>
+<ol>
+<li>creates a user.</li>
+<li>tries the visit the dashboard index page.</li>
+<li>confirms that we are actually on the sign-in page.</li>
+<li>fills in the email and passowrd of the user Factory girl created for us.</li>
+<li>clicks sign-in,</li>
+<li>confirms that we are now on the dashboard index page.</li>
+</ol>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
 
-<p>end</p>
+<p>and it should pass.</p>
 
-<h1>run the spec</h1>
+<p>Lastly, we want users that aren&#39;t logged-in and don&#39;t have an account with us to be able to sign-up and then see the dashboard index page. Add this to spec/integration/dashboard/authentication_spec.rb</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should allow users without an account to sign-up then access the dashboard&#39;</span> <span class="k">do</span>
 
-<p>bundle exec rake spec</p>
+  <span class="n">visit</span> <span class="n">dashboard_index_url</span>
+
+  <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">new_user_session_path</span>
+
+  <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;Sign up&#39;</span><span class="p">)</span>
+
+  <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">new_user_registration_path</span>
+
+  <span class="c1"># &#39;Email&#39; and &#39;Password&#39; are the text in the HTML labels on the sign in screen</span>
+  <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Email&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="s1">&#39;joe@bloggsxyz.com&#39;</span><span class="p">)</span>
+  <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Password&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="s1">&#39;JoeBlogg1&#39;</span><span class="p">)</span>
+  <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Password confirmation&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="s1">&#39;JoeBlogg1&#39;</span><span class="p">)</span>
+
+  <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Sign up&#39;</span><span class="p">)</span>
+
+  <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">dashboard_index_path</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>This time the journey through our application is:</p>
+
+<ol>
+<li>try to visit the dashboard index page.</li>
+<li>confirm that we are actually on the sign-in page.</li>
+<li>click the &#39;Sign up&#39; link</li>
+<li>confirm we&#39;re on the sign-up page which is the named route <strong>new<em>user</em>registration_path</strong></li>
+<li>fill in the email, password and password confirmation.</li>
+<li>click &#39;Sign up&#39;,</li>
+<li>confirm that we are now on the dashboard index page.</li>
+</ol>
+
+<p>Each time we run this test we&#39;re creating a user with the same name and password. This brings us to a very important point about Rails testing. We already mentioned that Rails has development, testing and production environments. Each environment has its own database. Look at config/database.yml:</p>
+<div class="highlight"><pre><span class="nb">test</span><span class="p">:</span>
+  <span class="n">adapter</span><span class="p">:</span> <span class="n">sqlite3</span>
+  <span class="n">database</span><span class="p">:</span> <span class="n">db</span><span class="o">/</span><span class="nb">test</span><span class="o">.</span><span class="n">sqlite3</span>
+  <span class="n">pool</span><span class="p">:</span> <span class="mi">5</span>
+  <span class="n">timeout</span><span class="p">:</span> <span class="mi">5000</span>
+</pre></div>
+
+<p>We can see that for testing we have a database called db/test.sqlite3 so that we don&#39;t do anything to mess up the data we&#39;ve been using in development. Rails also runs each test inside a transaction that rolls back when each test is complete so we can run the test above a thousand times and it will never actually persisting the user we created to our test database. </p>
