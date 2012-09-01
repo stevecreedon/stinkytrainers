@@ -126,7 +126,7 @@ rails generate devise user
       route  devise_for :users
 ~~~
    
-The line `create    db/migrate/20120629090415_devise_create_users.rb` gives us our first database migration db/migrate{timestamp}_devise_create_users.rb, a user model `app/models/user.rb` and a file for writing tests for our user `spec/app/models/user.rb`.
+The line `create    db/migrate/20120629090415_devise_create_users.rb` gives us our first database migration db/migrate/{timestamp}_devise_create_users.rb, a user model `app/models/user.rb` and a file for writing tests for our user `spec/app/models/user.rb`.
 
 ### 2.3 Our first migration
 Rails Migrations are a very helpful tool for creating tables, renaming columns, dropping tables, creating indexes and pretty much anything else involving manipulating sql databases. Migrations are written in Ruby and converted to sql by Rails (or to be more precise the Rails database adapter we're using). 
