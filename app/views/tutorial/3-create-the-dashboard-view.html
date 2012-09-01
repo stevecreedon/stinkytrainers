@@ -1,10 +1,18 @@
-<h1>Create the Dashboard Page</h1>
+<h1>3. Create the Dashboard Page</h1>
 
 <p>The home page is for anyone on the world wide web that happens to be passing by www.strinkytrainers.com but we&#39;re building a web application and we want it have logged-in users so that they can manage their games &amp; their friends. We want our logged-in users to have their own personalised home page, let&#39;s call it a <strong>dashboard</strong>.</p>
 
+<ol>
+<li><a href="#the-dashboard-controller">The dashboard controller</a></li>
+<li><a href="#the-dashboard-view">The dashboard view</a></li>
+<li><a href="#time-to-write-a-test">Time to write a test. </a></li>
+</ol>
+
 <p>In this section we&#39;ll create a controller and a view for this dashboard (though there won&#39;t be much to show in it for a while). Then in the next section we&#39;ll create a User model and secure the dashboard with the Devise gem that will give us lots of log-in and forgotten password functionality almost out of the box.</p>
 
-<h2>1. The dashboard controller</h2>
+<p><a id='the-dashboard-controller'></a></p>
+
+<h2>3.1. The dashboard controller</h2>
 
 <p>We want our users to have a dashboard page where they can easily see their friends, players and matches. Run the command</p>
 <div class="highlight"><pre><span class="go">bundle exec rails g controller dashboard index</span>
@@ -99,13 +107,15 @@
 
 <p>Rails Resources give us a simple and standard way to handle our routes and controllers.</p>
 
-<h2>2. The dashboard view</h2>
+<p><a id='the-dashboard-view'></a></p>
+
+<h2>3.2. The dashboard view</h2>
 
 <p>add this html to app/views/dashboard/index.html.erb</p>
 <div class="highlight"><pre><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Stinky</span> <span class="no">Trainers</span> <span class="no">Dashboard</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
 </pre></div>
 
-<h3>2.1 Add a link from the home page to the dashboard</h3>
+<h3>3.2.1. Add a link from the home page to the dashboard</h3>
 
 <p>We want to be able to get from the home page to the dashboard so let&#39;s just add a link. We could hard code a URL or relative path such as <a href="/dashboard">dashboard</a> into our navigation but instead we&#39;re going to return to rails routing again and use something called named paths.</p>
 
@@ -146,18 +156,20 @@
 
 <p>Rather than building the string &quot;/users/123/games/17/comments/2&quot; in code. OK, we could write some kind of helper method that builds the many urls we would need in this app but that&#39;s just what a <strong>named path</strong> is, it&#39;s a helper method given to us by Rails for free. We get it for free because we&#39;ve stuck to the Rails conventions.</p>
 
-<h2>3. Time to write a test.</h2>
+<p><a id='time-to-write-a-test'></a></p>
+
+<h2>3.3. Time to write a test.</h2>
 
 <p>Let&#39;s write a similar test to the previous section</p>
 
-<h3>3.1 Inside the describe block in spec/views/dashboard/index.html.erb_spec.rb</h3>
+<h3>3.3.1. Inside the describe block in spec/views/dashboard/index.html.erb_spec.rb</h3>
 <div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should display Stinky Trainers Dashboard on the home page&#39;</span> <span class="k">do</span>
     <span class="n">render</span>
     <span class="n">rendered</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Stinky Trainers Dashboard&quot;</span><span class="p">)</span>
 <span class="k">end</span>
 </pre></div>
 
-<h3>3.2 Run the test</h3>
+<h3>3.3.2. Run the test</h3>
 <div class="highlight"><pre><span class="go">bundle exec rspec</span>
 </pre></div>
 

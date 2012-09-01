@@ -3,10 +3,10 @@ The home page is the entry point to our application. Everybody should be able to
 
 INDEX
 
-## 1. Rest, Controllers and Views in Rails
+## Rest, Controllers and Views in Rails
 Rails is an __MVC__ model-view-controller framework so we need a home controller __C__ that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a 'view' __V__ in Rails language. If you're new to MVC you're probably asking where the model __M__ is in MVC ? Well since this is our home page that doesn't do much we don't need a business model to do any fancy calculation for us.
 
-### 1.1 Rest
+### Rest
 The controllers in our application will all be Restful resources. The Rails website has [a fuller discussion of Rails and Rest](http://guides.rubyonrails.org/routing.html#resource-routing-the-rails-default) but in a nutshell we'll be building controllers for entity:
 
 * home
@@ -15,7 +15,7 @@ The controllers in our application will all be Restful resources. The Rails webs
 * results
 * friends
 
-### 1.2 Controllers 
+### Controllers 
 Because we're using Rest, each of our controllers will have very similar sets of actions (also known as methods) giving us a level of consistency that will make it easy for us to find our way around the application as it grows.
 
 1. __def index__ will list all of the objects that controller is responsible for e.g. __games_controller index___ will list all of the games.
@@ -26,7 +26,7 @@ Because we're using Rest, each of our controllers will have very similar sets of
 1. __def update__ will update an existing object with details submitted by the form in __def edit__
 1. __def destroy__ will destroy an existing object
 
-### 1.3 Rest: URLs > Controllers > Views  
+### Rest: URLs > Controllers > Views  
 The Rest convention allows Rails to automatically hook web requests to actions whuich then call controllers:
 
 1. __GET /games__ calls __games_controller#index__ method which displays the __games/index.html.erb__ view.
@@ -43,7 +43,7 @@ The Rest convention allows Rails to automatically hook web requests to actions w
 
 __GET__, __POST__, __PUT__ and __DELETE__ are all standard HTTP Verbs. You can find out more about HTTP verbs here. Those of you familiar with HTTP verbs will probably be aware that web browsers generally don't use __PUT__ and __DELETE__. Rails appends parameters to the request update and destroy requests that will be interpreted by Rails server as __PUT__ and __DELETE__.
 
-## 2. Create the home page controller
+## Create the home page controller
 OK so that's enough theory for now. Let's write some code. Ww'll create our first controller using one of the Rails generators:
 
 ~~~console
@@ -75,9 +75,9 @@ The rails generator created a controller __app/controllers/home_controller.rb___
     create   app/assets/stylesheets/home.css.scss
 ~~~
   
-## 3. Create the home page
+## Create the home page
 
-### 3.1 Link the root "/" path to home controller
+### Link the root "/" path to home controller
 Rails can't know that we want the home controller to manage the home page for our application so add this line to __config/routes.rb__
 
 ~~~ruby 
@@ -94,7 +94,7 @@ which was auto-generated for us.
 
 This tells rails that the root of our application is the __index__ action of the __home__ controller, i.e. __def index__ in __app/controllers/home_controller.rb__. Rails will call this action and then render the view __app/views/home/index.html.erb__ unless we specifically tell it not to (which we won't).
 
-### 3.2 Put something on the home page to look at:
+### Put something on the home page to look at:
 Add this line to the home page app/views/home/index.html.erb:
 
 ~~~ruby
@@ -113,12 +113,12 @@ When a page or file is requested Rails always checks the public directory first 
 
 ![Our first home page](/assets/3.2_first_home_page.png)
 
-## 4. Time to write a test. 
+## Time to write a test. 
 One of the strengths of Ruby and Rails is the ease with which we can write expressive testing code. Ruby is scripted, not compiled, so we don't have an IDE or compiler to sanity check our code for us. That means we need to write lots of tests. If you're not used to Test Driven Development, it's one of those things that seems really alien at first but then you quickly begin to wonder how you ever managed without it.
 
 Our dashboard page doesn't do very much at this stage so let's start with just a very basic test:
 
-### 4.1 Inside the describe block in spec/views/home/index.html.erb_spec.rb
+### Inside the describe block in spec/views/home/index.html.erb_spec.rb
 
 ~~~ruby
 it 'should display Welcome to Stinky Trainers on the home page' do
@@ -128,7 +128,7 @@ end
 ~~~
 
 
-### 4.2 Run the test
+### Run the test
 
 ~~~console
 bundle exec rspec

@@ -6,7 +6,7 @@ Rails development isn't just fast it's also fun with a very helpful and friendly
 
 INDEX
  
-## <a id="before_we_start"></a>Before we start:
+## Before we start:
 
 ### Make sure we have Ruby 1.9.3
 Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
@@ -43,7 +43,7 @@ If you do have bundler it's a good idea to ensure you have a reasonably recent v
 gem update bundler
 ~~~
 
-## <a id="create_the_app"></a>1. Create the application:
+## Create the application:
 ### Give it a home
 Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
 
@@ -72,9 +72,9 @@ the **app** folder is where all the code will go.
 **vendor** - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.  
 **script** - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.
 
-## <a id="rspec_gem"></a>2. Rspec
+## Rspec
 
-### 2.1 What is RSpec ?
+### What is RSpec ?
 We told the Rails generator to skip test unit but testing is going to be very central to building this app so we're going to use the Rspec gem. We're also going to use capybara, a gem that will let us simulate a web browser in our test and launchy, a gem to launch browsers.
 
 If you're wondering what we mean by Rspec being 'more expressive' than Test Unit then just compare these two ways of testing the same thing:
@@ -84,7 +84,7 @@ user.name.should == 'steve' # a typical rspec test.
 assert_equal('steve', user.name) # a typical test unit test.
 ~~~
 
-### 2.2 Add the Rspec gem to the bundler's Gemfile in the root of the application
+### Add the Rspec gem to the bundler's Gemfile in the root of the application
 Generally we'll be very explicit about what versions of gem we need in this tutorial, probably more explicit than would be needed in a typical application but this will ensure you have the exact same gemset that we are using so you're less likely to encounter some unexpected versioining issue. Versioning problems are uncommon in Rails and easily resolved with a only little bit of experience but they're also a problem you just don't need at this stage.
 
 Add these lines to the Gemfile in the root of your application. Note that we're putting them into a group called 'test' because we don't need these gems on our production server, just the cumputer we're using to test the application, typically this will be your development machine.
@@ -97,7 +97,7 @@ group :development, :test do
 end
 ~~~
 
-### 2.2 Download and install these gems
+### Download and install these gems
 
 ~~~console  
 bundle install
@@ -107,7 +107,7 @@ What just happened..
 
 bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. If the gem already existed on your computer it will use that gem.
   
-### 2.3 Run the RSpec generator
+### Run the RSpec generator
 Most gems don't need any special install instructions but Rspec needs to create some folders and files so run
 
 ~~~console
@@ -118,14 +118,14 @@ What just happened:
  
 The Rspec gem just created a __spec___ folder and a file  __spec/spec_helper.rb__. This file has some code that will help you run tests. We'll also be adding some of our own code here a little later as we write our own code to help us write tests.
 
-### 2.4 Configure Capybara
+### Configure Capybara
 The Capybara gem allows us to simulate browser interaction so that we can build this into our tests. Add the following line to __spec/spec_helper.rb__ after require __rspec/autorun__. This will load the capybara test methods. 
 
 ~~~ruby
 require 'capybara/rails'
 ~~~
 
-## <a id="twitter_bootstrap_gem"></a>3. Twitter Bootstrap
+## Twitter Bootstrap
 This is a Rails tutorial so we won't waste time on web design and layout but it's always nice when our application looks a little sexy so to make that happen and to save us loads of time we'll install Twitter Bootstrap - an HTML, CSS and Javascript library - to make Stinkytrainers. Twitter Bootstrap is intended for all kinds of website but we can install it using the twitter boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
 
 ~~~ruby
@@ -173,7 +173,7 @@ Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/applicati
        force  app/views/layouts/application.html.erb
 ~~~
 
-## <a id="start_the_app"></a>4. Start the Application
+## Start the Application
 Now we've installed all of the gems we need to get started. We'll be adding more gems as we go through but we've got our core testing gems plus the Twitter gem to give us a look & feel. It's time to start.
 
 Start the application on the command line with:

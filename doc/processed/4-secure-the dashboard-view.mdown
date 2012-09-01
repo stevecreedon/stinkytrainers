@@ -1,30 +1,31 @@
-# Secure the dashboard
+# 4. Secure the dashboard
 
 To secure the dashboard we're going to need a user so that we are able to sign-up, store some password details, sign-out and then sign-in.
 
-1. [Add the Devise gem](#1-add-the-devise-gem)
-1. [Create the user model using devise generator ](#2-create-the-user-model-using-devise-generator)
-1. [Now let's secure the dashboard with Devise:](#3-now-let-s-secure-the-dashboard-with-devise)
-1. [Add some code so that we can sign out](#3-1-add-some-code-so-that-we-can-sign-out)
-1. [Testing our locked-down dashboard](#5-testing-our-locked-down-dashboard)
+1. [Add the Devise gem](#add-the-devise-gem)
+1. [Create the user model using devise generator ](#create-the-user-model-using-devise-generator)
+1. [Now let's secure the dashboard with Devise:](#now-let-s-secure-the-dashboard-with-devise)
+1. [Add some code so that we can sign out](#add-some-code-so-that-we-can-sign-out)
+1. [Testing our locked-down dashboard](#testing-our-locked-down-dashboard)
 
-## 1. Add the Devise gem
+<a id='add-the-devise-gem'></a>
+## 4.1. Add the Devise gem
 Devise gives us authentication out-of-the-box. We'll be getting devise to build us an authenticating user class
 and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
-### 1.1 add the devise gem to bundlers Gemfile
+### 4.1.1. Add the devise gem to bundlers Gemfile
 
 ~~~ruby
 gem 'devise'
 ~~~
 	
-### 1.2 Install the devise gem
+### 4.1.2. Install the devise gem
 
 ~~~console
 bundle install
 ~~~
 	
-### 1.3 Add devise to our application
+### 4.1.3. Add devise to our application
 Most gems are libraries of code that our application will use as it's running. Some, like Devise, need to bind themselves to Rails as they load so that they can enhance or change existing functionality. Rails does this with initializers and we need to install Devise so that it will install it's initializer in the appropriate place in our Rails App.
  
 Run the installer
@@ -75,7 +76,7 @@ Some setup you must do manually if you haven't yet:
 ~~~
 
 
-### Devise point 1. 
+### 4.1.4. Devise point 1. 
 Setup action mailer so that devise can email us any forgotten passwords. To do this we need to tell Devise where the link in the email it will send should point to. Rails allows us to configure environments for __development__, __test__ and __production__ but for now we'll just set up the default actionmailer url for our development environment.
 
 In the file config/environments/development.rb add the line below anywhere after __Stinkytrainers::Application.configure do__
@@ -85,10 +86,10 @@ config.action_mailer.default_url_options = { :host => 'localhost:3000' }
 ~~~
 
 
-### Devise point 2.
+### 4.1.5. Devise point 2.
 This is telling us to create a route to our home page. We've already covered this in section 2.
 
-### Devise point 3.
+### 4.1.6. Devise point 3.
 Rails has a convenience system called 'Flash'. It has nothing to do with adobe Flash. Flash is a global variable that you can use at any point in your controller and assign a message to __notice__ or an __alert__ by writing something like:
 
 ~~~ruby
@@ -106,16 +107,17 @@ Add these line to app/views/layouts/application.html.erb before the line 'yield'
 
 It has to be said that Flash is very useful for quick applications like ours but less commonly used in bigger apps where this kind of user interaction is determined by the Look & Feel.
 
-## 2. Create the user model using devise generator 
+<a id='create-the-user-model-using-devise-generator'></a>
+## 4.2. Create the user model using devise generator 
 
-### 2.1 Create a User model using the Devise generator. 
+### 4.2.1. Create a User model using the Devise generator. 
 This will give us a standard Rails model but with some extra authentication methods and attributes needed for Devise. Of course we could add these by hand ourselves but like all Rails & Ruby coders I enjoy writing the business code for the application I'm building and not system 'boilerplate' code so I'm happy to let Devise do this for me.
 
 ~~~console
 rails generate devise user
 ~~~
 	
-### 2.2 Take a look at what it's created:
+### 4.2.2. Take a look at what it's created:
 
 ~~~console
     invoke  active_record
@@ -129,7 +131,7 @@ rails generate devise user
    
 The line `create    db/migrate/20120629090415_devise_create_users.rb` gives us our first database migration db/migrate/{timestamp}_devise_create_users.rb, a user model `app/models/user.rb` and a file for writing tests for our user `spec/app/models/user.rb`.
 
-### 2.3 Our first migration
+### 4.2.3. Our first migration
 Rails Migrations are a very helpful tool for creating tables, renaming columns, dropping tables, creating indexes and pretty much anything else involving manipulating sql databases. Migrations are written in Ruby and converted to sql by Rails (or to be more precise the Rails database adapter we're using). 
 
 For example, we could have 4 migrations that 
@@ -186,7 +188,8 @@ bundle exec rake db:rollback
 
 and you should see some sql in your console that tells you your table has been dropped from the database. Don't forget to run `bundle exec rake db:migrate` so that we rebuild our dropped users table.
 
-## 3. Now let's secure the dashboard with Devise:
+<a id='now-let-s-secure-the-dashboard-with-devise'></a>
+## 4.3. Now let's secure the dashboard with Devise:
 To secure the dashboard we'll add some code to our dashboard_controller that checks to see if we have a user in session that's already logged-in. Add this line to the dashboard controller app/controllers/dashboard_controller.rb
 
 ~~~ruby
@@ -199,7 +202,8 @@ This method will run before each action in the dashboard controller to ensure we
 	
 Now start the app `bundle exec rails s` browse to the home page __localhost:3000__ and click the dashboard link. You should be redirected to a screen asking you to login or sign up. Just sign up as a new user and you should then be directed to the dashboard page. 
 
-## 3.1. Add some code so that we can sign out
+<a id='add-some-code-so-that-we-can-sign-out'></a>
+## 4.4. Add some code so that we can sign out
 Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  Add this line to app/layouts/application.html.erb so that it's at the bottom of
 
 ~~~ruby
@@ -220,7 +224,8 @@ user_signed_in? is a helper method generated by devise, link_to is a Rails helpe
 destroy_user_session_path. We'll cover Devise routes a bit more below.
 
 
-## 5. Testing our locked-down dashboard
+<a id='testing-our-locked-down-dashboard'></a>
+## 4.5. Testing our locked-down dashboard
 Typically with Test Driven Development you would write tests first and then make them pass but in this particular case I wanted you to see Devise in action so that the tests have some meaning. 
 
 Let's test Devise by writing two tests for our dashboard controller:
@@ -231,7 +236,7 @@ Let's test Devise by writing two tests for our dashboard controller:
 
 
 
-### 5.1 Testing the redirect
+### 4.5.1. Testing the redirect
 Let's test that our dashboard controller redirects us to a sign-in page when there is no signed-in user
 
 In spec/controllers/dashboard_controller_spec.rb
@@ -287,7 +292,7 @@ cancel_user_registration GET    /users/cancel(.:format)           devise/registr
 
 You can see that __new_user_session___ returns the path __/users/sign_in__ which points to the new method of a devise sessions controller. Remember that we use __new_user_session__ by adding either _path or _url to the end depending on whether we want a full url or not.
 
-### 5.2 Test signed-in users
+### 4.5.2. Test signed-in users
 Let's create a test that calls the index page of our secure dashboard_controller. 
 
 add this test to spec/controllers/dashboard_controller_spec.rb beneath our passing test.
@@ -337,7 +342,7 @@ end
 
 The test should now pass when you run `bundle exec rake spec`
 
-### 5.4 Change the test to use FactoryGirl.
+### 4.5.3. Change the test to use FactoryGirl.
 We've got the test passing but it feels wrong to create a new user each time we want to run a test so we're going to use a gem called FactoryGirl that will create users for us on demand that we can use in our tests. As our user (and other objects) get more complex, FactoryGirl will become a very clear and convenient way to build mock objects for testing rather than create new ones from scratch each time.
 
 First let's add the FactoryGirl gem to our Gemfile's testing group:

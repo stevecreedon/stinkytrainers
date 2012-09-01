@@ -1,13 +1,14 @@
-# Create the Dashboard Page
+# 3. Create the Dashboard Page
 The home page is for anyone on the world wide web that happens to be passing by www.strinkytrainers.com but we're building a web application and we want it have logged-in users so that they can manage their games & their friends. We want our logged-in users to have their own personalised home page, let's call it a __dashboard__.
 
-1. [The dashboard controller](#1-the-dashboard-controller)
-1. [The dashboard view](#2-the-dashboard-view)
-1. [Time to write a test. ](#3-time-to-write-a-test)
+1. [The dashboard controller](#the-dashboard-controller)
+1. [The dashboard view](#the-dashboard-view)
+1. [Time to write a test. ](#time-to-write-a-test)
 
 In this section we'll create a controller and a view for this dashboard (though there won't be much to show in it for a while). Then in the next section we'll create a User model and secure the dashboard with the Devise gem that will give us lots of log-in and forgotten password functionality almost out of the box.
 
-## 1. The dashboard controller
+<a id='the-dashboard-controller'></a>
+## 3.1. The dashboard controller
 
 We want our users to have a dashboard page where they can easily see their friends, players and matches. Run the command
 
@@ -124,14 +125,15 @@ dashboard_index GET /dashboard(.:format)              dashboard#index
 
 Rails Resources give us a simple and standard way to handle our routes and controllers.
 
-## 2. The dashboard view
+<a id='the-dashboard-view'></a>
+## 3.2. The dashboard view
 add this html to app/views/dashboard/index.html.erb
 
 ~~~ruby
 <h1>Stinky Trainers Dashboard</h1>
 ~~~
 
-### 2.1 Add a link from the home page to the dashboard
+### 3.2.1. Add a link from the home page to the dashboard
 
 We want to be able to get from the home page to the dashboard so let's just add a link. We could hard code a URL or relative path such as <a href="/dashboard">dashboard</a> into our navigation but instead we're going to return to rails routing again and use something called named paths.
 
@@ -184,10 +186,11 @@ users_games_comments_path(user, game, comment)
 
 Rather than building the string "/users/123/games/17/comments/2" in code. OK, we could write some kind of helper method that builds the many urls we would need in this app but that's just what a __named path__ is, it's a helper method given to us by Rails for free. We get it for free because we've stuck to the Rails conventions.
 
-## 3. Time to write a test. 
+<a id='time-to-write-a-test'></a>
+## 3.3. Time to write a test. 
 Let's write a similar test to the previous section
 
-### 3.1 Inside the describe block in spec/views/dashboard/index.html.erb_spec.rb
+### 3.3.1. Inside the describe block in spec/views/dashboard/index.html.erb_spec.rb
 
 ~~~ruby
 it 'should display Stinky Trainers Dashboard on the home page' do
@@ -197,7 +200,7 @@ end
 ~~~
 
 
-### 3.2 Run the test
+### 3.3.2. Run the test
 
 ~~~console
 bundle exec rspec

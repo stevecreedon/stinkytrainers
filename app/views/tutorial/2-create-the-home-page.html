@@ -1,19 +1,21 @@
-<h1>Create the home page</h1>
+<h1>2. Create the home page</h1>
 
 <p>The home page is the entry point to our application. Everybody should be able to access this page whether they&#39;re logged on or not making this the best place to start.</p>
 
 <ol>
-<li><a href="#1-rest-controllers-and-views-in-rails">Rest, Controllers and Views in Rails</a></li>
-<li><a href="#2-create-the-home-page-controller">Create the home page controller</a></li>
-<li><a href="#3-create-the-home-page">Create the home page</a></li>
-<li><a href="#4-time-to-write-a-test">Time to write a test. </a></li>
+<li><a href="#rest-controllers-and-views-in-rails">Rest, Controllers and Views in Rails</a></li>
+<li><a href="#create-the-home-page-controller">Create the home page controller</a></li>
+<li><a href="#create-the-home-page">Create the home page</a></li>
+<li><a href="#time-to-write-a-test">Time to write a test. </a></li>
 </ol>
 
-<h2>1. Rest, Controllers and Views in Rails</h2>
+<p><a id='rest-controllers-and-views-in-rails'></a></p>
+
+<h2>2.1. Rest, Controllers and Views in Rails</h2>
 
 <p>Rails is an <strong>MVC</strong> model-view-controller framework so we need a home controller <strong>C</strong> that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a &#39;view&#39; <strong>V</strong> in Rails language. If you&#39;re new to MVC you&#39;re probably asking where the model <strong>M</strong> is in MVC ? Well since this is our home page that doesn&#39;t do much we don&#39;t need a business model to do any fancy calculation for us.</p>
 
-<h3>1.1 Rest</h3>
+<h3>2.1.1. Rest</h3>
 
 <p>The controllers in our application will all be Restful resources. The Rails website has <a href="http://guides.rubyonrails.org/routing.html#resource-routing-the-rails-default">a fuller discussion of Rails and Rest</a> but in a nutshell we&#39;ll be building controllers for entity:</p>
 
@@ -25,7 +27,7 @@
 <li>friends</li>
 </ul>
 
-<h3>1.2 Controllers</h3>
+<h3>2.1.2. Controllers</h3>
 
 <p>Because we&#39;re using Rest, each of our controllers will have very similar sets of actions (also known as methods) giving us a level of consistency that will make it easy for us to find our way around the application as it grows.</p>
 
@@ -39,7 +41,7 @@
 <li><strong>def destroy</strong> will destroy an existing object</li>
 </ol>
 
-<h3>1.3 Rest: URLs &gt; Controllers &gt; Views</h3>
+<h3>2.1.3. Rest: URLs &gt; Controllers &gt; Views</h3>
 
 <p>The Rest convention allows Rails to automatically hook web requests to actions whuich then call controllers:</p>
 
@@ -65,7 +67,9 @@
 
 <p><strong>GET</strong>, <strong>POST</strong>, <strong>PUT</strong> and <strong>DELETE</strong> are all standard HTTP Verbs. You can find out more about HTTP verbs here. Those of you familiar with HTTP verbs will probably be aware that web browsers generally don&#39;t use <strong>PUT</strong> and <strong>DELETE</strong>. Rails appends parameters to the request update and destroy requests that will be interpreted by Rails server as <strong>PUT</strong> and <strong>DELETE</strong>.</p>
 
-<h2>2. Create the home page controller</h2>
+<p><a id='create-the-home-page-controller'></a></p>
+
+<h2>2.2. Create the home page controller</h2>
 
 <p>OK so that&#39;s enough theory for now. Let&#39;s write some code. Ww&#39;ll create our first controller using one of the Rails generators:</p>
 <div class="highlight"><pre><span class="go">  bundle exec rails g controller home index</span>
@@ -94,9 +98,11 @@
 <span class="go">    create   app/assets/stylesheets/home.css.scss</span>
 </pre></div>
 
-<h2>3. Create the home page</h2>
+<p><a id='create-the-home-page'></a></p>
 
-<h3>3.1 Link the root &quot;/&quot; path to home controller</h3>
+<h2>2.3. Create the home page</h2>
+
+<h3>2.3.1. Link the root &quot;/&quot; path to home controller</h3>
 
 <p>Rails can&#39;t know that we want the home controller to manage the home page for our application so add this line to <strong>config/routes.rb</strong></p>
 <div class="highlight"><pre><span class="n">root</span> <span class="ss">:to</span> <span class="o">=&gt;</span> <span class="s1">&#39;home#index&#39;</span>
@@ -110,7 +116,7 @@
 
 <p>This tells rails that the root of our application is the <strong>index</strong> action of the <strong>home</strong> controller, i.e. <strong>def index</strong> in <strong>app/controllers/home_controller.rb</strong>. Rails will call this action and then render the view <strong>app/views/home/index.html.erb</strong> unless we specifically tell it not to (which we won&#39;t).</p>
 
-<h3>3.2 Put something on the home page to look at:</h3>
+<h3>2.3.2. Put something on the home page to look at:</h3>
 
 <p>Add this line to the home page app/views/home/index.html.erb:</p>
 <div class="highlight"><pre>  <span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Welcome</span> <span class="n">to</span> <span class="no">Stinky</span> <span class="no">Trainers</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
@@ -126,20 +132,22 @@
 
 <p><img src="/assets/3.2_first_home_page.png" alt="Our first home page"></p>
 
-<h2>4. Time to write a test.</h2>
+<p><a id='time-to-write-a-test'></a></p>
+
+<h2>2.4. Time to write a test.</h2>
 
 <p>One of the strengths of Ruby and Rails is the ease with which we can write expressive testing code. Ruby is scripted, not compiled, so we don&#39;t have an IDE or compiler to sanity check our code for us. That means we need to write lots of tests. If you&#39;re not used to Test Driven Development, it&#39;s one of those things that seems really alien at first but then you quickly begin to wonder how you ever managed without it.</p>
 
 <p>Our dashboard page doesn&#39;t do very much at this stage so let&#39;s start with just a very basic test:</p>
 
-<h3>4.1 Inside the describe block in spec/views/home/index.html.erb_spec.rb</h3>
+<h3>2.4.1. Inside the describe block in spec/views/home/index.html.erb_spec.rb</h3>
 <div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should display Welcome to Stinky Trainers on the home page&#39;</span> <span class="k">do</span>
     <span class="n">render</span>
     <span class="n">rendered</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Welcome to Stinky Trainers&quot;</span><span class="p">)</span>
 <span class="k">end</span>
 </pre></div>
 
-<h3>4.2 Run the test</h3>
+<h3>2.4.2. Run the test</h3>
 <div class="highlight"><pre><span class="go">bundle exec rspec</span>
 </pre></div>
 
