@@ -1,17 +1,13 @@
 # Create the Sports Model
 This application will have three core models, Sport, User and Games.
 
-![Stinky Trainers User Sport](/assets/stinky%20trainers%20user%20sport.png)
+
 
 Even simple class diagrams quickly end up looking complex so we'll just focus this explanation on sport. Sport does just what it says on the tin. It represents a sport such as tennis, soccer or cricket. Our user will, hopefully, have many sports but then so will our other users too so the relationship between Sport and User is 'many to many'.
 
 Obviously sport is connected to things like games too but we only have a user object to connect our sport to at this point. In this section we're going to:
 
-1. Generate a Sport model
-1. Run the migration to add the sports (note the plural) table
-1. Add a simple validation
-1. Create a test for the validation
-1. Create a sports_users many to many table and join sports sports to user
+INDEX
 
 ## Generate the Sport model
 We created our User model using a generator provided by Devise because we wanted our User to have Devise authentication functionality baked-in. Our Sport model is going to be a 'plain old Rails model' so we'll create it using the rails generator and passing it the argument `name:string` so that it creates the name attribute in our migration.
@@ -289,7 +285,7 @@ bundle exec rake db:migrate
 
 you should see
 
-~~~
+~~~console
 ==  CreateSportsUsersJoinTable: migrating =====================================
 -- create_table(:sports_users, {:id=>false})
    -> 0.0433s

@@ -1,6 +1,8 @@
 namespace :tutorial do
   desc "Builds tutorial pages"
   task :build => :environment do
+    require 'pygmentize_html'
+
     options = { :fenced_code_blocks => true }
 
     markdown = Redcarpet::Markdown.new( PygmentizeHTML.new, options )
@@ -20,13 +22,5 @@ namespace :tutorial do
         f.write(html)
       end
     end
-  end
-end
-
-
-class PygmentizeHTML < Redcarpet::Render::HTML
-  def block_code(code, language)
-    require 'pygmentize'
-    Pygmentize.process(code, language)
   end
 end
