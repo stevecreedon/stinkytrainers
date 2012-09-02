@@ -66,7 +66,7 @@ you should see something like:
 ==  CreateSports: migrated (0.0010s) ==========================================
 ~~~
 
-### Add a Validation
+### Add a Validation to our Model
 We want to make sure that our sport has a name before it can be persisted to our database. We'll do this using Active Model validations that will check the data in the instance of Sport we are trying to save and populate that instances errors collection if it finds any. Where did this magical errors collection come from ? Take a look at our app/models/sport.rb class file:
 
 ~~~ruby
