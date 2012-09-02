@@ -1,0 +1,345 @@
+# Create the Sports Model
+This application will have three core models, Sport, User and Games.
+
+![Stinky Trainers User Sport](/assets/stinky%20trainers%20user%20sport.png)
+
+Even simple class diagrams quickly end up looking complex so we'll just focus this explanation on sport. Sport does just what it says on the tin. It represents a sport such as tennis, soccer or cricket. Our user will, hopefully, have many sports but then so will our other users too so the relationship between Sport and User is 'many to many'.
+
+Obviously sport is connected to things like games too but we only have a user object to connect our sport to at this point. In this section we're going to:
+
+1. Generate a Sport model
+1. Run the migration to add the sports (note the plural) table
+1. Add a simple validation
+1. Create a test for the validation
+1. Create a sports_users many to many table and join sports sports to user
+
+## Generate the Sport model
+We created our User model using a generator provided by Devise because we wanted our User to have Devise authentication functionality baked-in. Our Sport model is going to be a 'plain old Rails model' so we'll create it using the rails generator and passing it the argument `name:string` so that it creates the name attribute in our migration.
+
+~~~console
+bundle exec rails g model sports name:string
+~~~   
+
+This should produce:
+
+~~~console
+invoke  active_record
+     create    db/migrate/20120902122638_create_sport.rb
+     create    app/models/sport.rb
+     invoke    rspec
+     create      spec/models/sport_spec.rb
+     invoke      factory_girl
+     create        spec/factories/sport.rb
+~~~
+
+We can see that we have a migration `db/migrate/20120902122638_create_sport.rb` to create the sports table, a model `app/models/sport.rb`, a spec for testing `spec/models/sport_spec.rb` and even a FactoryGirl factory `spec/factories/sport.rb`
+
+### Run the migration
+Take a look at the migration for our sports database table in the file db/migrate/xxxxxxxxxxxxxx_create_sport.rb.
+
+~~~ruby
+class CreateSports < ActiveRecord::Migration
+  def change
+    create_table :sports do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+~~~
+
+You can see that the generator has added the line `t.string :name` for us so that the sports table will have a name column.
+
+Let's run the migration.
+
+~~~console
+bundle exec rake db:migrate
+~~~
+
+you should see something like:
+
+~~~console
+==  CreateSports: migrating ===================================================
+-- create_table(:sports)
+-> 0.0009s
+==  CreateSports: migrated (0.0010s) ==========================================
+~~~
+
+### Add a Validation
+We want to make sure that our sport has a name before it can be persisted to our database. We'll do this using Active Model validations that will check the data in the instance of Sport we are trying to save and populate that instances errors collection if it finds any. Where did this magical errors collection come from ? Take a look at our app/models/sport.rb class file:
+
+~~~ruby
+class Sport < ActiveRecord::Base
+  attr_accessible :name
+end
+~~~
+
+The line `class Sport < ActiveRecord::Base` means that Sport extends ActiveRecord::Base and ActiveRecord::Base includes ActiveModel validations and their associated errors collection.
+
+So let's start doing Test Driven Development properly and write a test that will expect our sport to be invalid if the name is nil or an empty string.
+
+Add this test in the file `spec/models/sport_spec.rb` where it says `pending "add some examples to (or delete) #{__FILE__}"`
+
+~~~ruby
+# spec/models/sport_spec.rb
+require 'spec_helper'
+
+describe Sport do
+  
+  it 'should not be valid if the name is nil' do
+    sport = Sport.new(:name => nil)
+    sport.valid?.should be_false
+    sport.errors.to_a.should include("Name can't be blank")
+  end
+
+end
+~~~
+
+We're creating a new instance of Sport & explicitly setting the name to nil. We could have left out the `:name => nil` argument and the name would implicitly be nil but I like tests to be explicit.
+
+Run the tests:
+
+~~~console
+bundle exec rake spec   
+~~~
+
+And you should see our test has failed with `expected: false value, got: true`. 
+
+~~~console
+  Failures:
+
+  1) Sport should not be valid if the name is nil
+     Failure/Error: sport.valid?.should be_false
+       expected: false value
+            got: true
+~~~  
+
+This is because we've called `.valid?` on our sports model which has returned true instead of our desired false. `.valid?` is a method in ActiveRecord::Base that runs any validations we've place into our model. Once the validations have run the method returns true or false depending on whether the `.errors` collection has any errors. In our case we haven't yet added any validations yet so the `.errors` collection will always be empty and `.valid?` will always return true.
+
+To make this test pass we need to add an appropriate validation. The `.errors` collection will then be populated with something like __"Name can't be blank"__ and `.valid?` will return false.
+
+Let's add the validations to our model `app/models/sport.rb`
+
+~~~ruby
+class Sport < ActiveRecord::Base
+  attr_accessible :name
+
+  validates :name,   :presence => true
+end
+~~~
+
+In case you're wondering what the attr_accessible :name line is doing - and if you're from a Java or C# type background - then it's helpful to understand that ActiveRecord models don't have getters or setters. The attributes are the columns in its underlying database table. In the old world of Rails 2 all of these attributes would be public so we could have had a class file as simple as this: 
+
+~~~
+class Sport < ActiveRecord::Base
+
+end
+~~~
+
+This simple class looks like it's empty but, in fact, would contain all of its attributes from the underlying data columns. Rails 3 is a bit more secure and ActiveRecord attributes are not public until we explicitly say so in `attr_accessible :name`.
+
+OK, back to validations. We've add the line `validates :name,   :presence => true`. When `.valid?` is called, ActiveModel will check for the presence of the :name attribute and populate the `.errors` collection with the message `Name can't be blank` if it doesn't find one. Note the word 'blank' not 'nil'. Blank in Rails means nil, an empty string, false or an empty array so our validation will work if we use a name like '' not nil. 
+
+Let's try it. Add this test to spec/models/sport.rb
+
+~~~ruby
+it 'should not be valid if the name is an empty string' do
+ sport = Sport.new(:name => '')
+ sport.valid?.should be_false
+ sport.errors.to_a.should include("Name can't be blank")
+end
+~~~ 
+
+Run the tests:
+
+~~~console
+bundle exec rake spec   
+~~~
+
+and they should all still pass.
+
+## Add the Many to Many relationship beiween User and Sport
+We established at the beginning of this section that the association between User and Sport is many to many. ActiveRecord handles this with a slightly more descriptive method `has_and_belongs_to_many`. We'll add this method to Sport and to User then join them by creating a __sports_users__ table.
+
+We've spent a lot of time with Sport so let's start with User. Add `has_and_belongs_to_many :sports` to the bottom of app/models/user.rb:
+
+~~~ruby
+class User < ActiveRecord::Base
+  # Include default devise modules. Others available are:
+  # :token_authenticatable, :confirmable,
+  # :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+
+  # Setup accessible (or protected) attributes for your model
+  attr_accessible :email, :password, :password_confirmation, :remember_me
+  # attr_accessible :title, :body
+
+  has_and_belongs_to_many :sports
+end
+~~~
+
+then add `has_and_belongs_to_many :users` to app/models/sport.rb
+
+~~~ruby
+class Sport < ActiveRecord::Base
+  attr_accessible :name
+
+  has_and_belongs_to_many :users
+
+  validates :name,   :presence => true
+end
+~~~
+
+We need a sports_users table to join these two classes together. Changes to our database mean a migration so let's create one.
+
+~~~console
+bundle exec rails g migration CreateSportsUsersJoinTable
+~~~
+
+which should create a migration file for us.
+
+~~~console
+      invoke  active_record
+      create    db/migrate/20120816150136_create_sports_users_join_table.rb
+~~~
+
+Open the file `db/migrate/xxxxxxxxxxxxxx_create_sports_users_join_table.rb` and you should see
+
+~~~ruby
+class CreateSportsUsersJoinTable < ActiveRecord::Migration
+  def up
+  end
+
+  def down
+  end
+end
+~~~
+
+The `def up` runs when we call `bndle exec rake db:migrate` and the `def down` runs when we call `bndle exec rake db:rollback` - but only if this is the next migration to rollback.
+
+We need to a sport_id column and a user_id column to our table. The User association `has_and_belongs_to_many :sports` will look for a column called user_id and the Sport association `has_and_belongs_to_many :users` will look for a :sport_id column. If we have a user instance with id 77 then `user.sports` will query the sports_users table for all records with userd_id 77 and thus return a list of sport_id's for that user. The association works in reverse so for a sport with id 35, calling `sport.users` will query the sports_users table for every row containg sport_id 35 thus returning a list of user_id's for that sport.    
+
+Let's add these columns. Change or new migration to look like this:
+
+~~~ruby
+class CreateSportsUsersJoinTable < ActiveRecord::Migration
+  def up
+	create_table :sports_users, :id => false do |t|
+	  t.integer :user_id
+	  t.integer :sport_id
+	end
+  end
+
+  def down
+	drop_table :sports
+  end
+end
+~~~
+
+We haven't quite finished. If we don't index our sport_id and user_id columns the association will start to get a bit slow and have an impact on the running of our site. Let's add the indexes:
+
+~~~ruby
+class CreateSportsUsersJoinTable < ActiveRecord::Migration
+  def up
+	create_table :sports_users, :id => false do |t|
+	  t.integer :user_id
+	  t.integer :sport_id
+	end
+	
+	add_index :sports_users, :sport_id
+	add_index :sports_users, :user_id
+  end
+
+  def down
+	drop_table :sports
+	
+	remove_index :sports_users, :sport_id
+	remove_index :sports_users, :user_id
+  end
+end
+~~~
+
+One last thing to note. Our migration uses the very explicit `def up` and `def down` but if you look at our previous migrations that created the user and sports tables they both use a single method `def change`. `def change` is a recent addition to Rails migrations. It's simple for Rails to understand that migrations like `create table :xyz`  should have `drop table :xyz` as the rollback action so `def change` allows us to handle these simple changes in a single method. That said, you can put any Ruby code in a migration and some are too complex for Rails to deduce the rollback action so `def up` and `def down` have been kept for that purpose.
+
+In fact we could just change the above migration to:
+
+~~~ruby
+class CreateSportsUsersJoinTable < ActiveRecord::Migration
+  def change
+  	create_table :sports_users, :id => false do |t|
+  	  t.integer :user_id
+  	  t.integer :sport_id
+  	end
+
+  	add_index :sports_users, :sport_id
+  	add_index :sports_users, :user_id
+  end
+end
+~~~
+
+and Rails is smart enough to be able to roll back the two indexes and the create table. 
+
+We have our migration. Time to run it.
+
+~~~console
+bundle exec rake db:migrate
+~~~
+
+you should see
+
+~~~
+==  CreateSportsUsersJoinTable: migrating =====================================
+-- create_table(:sports_users, {:id=>false})
+   -> 0.0433s
+-- add_index(:sports_users, :sport_id)
+   -> 0.0007s
+-- add_index(:sports_users, :user_id)
+   -> 0.0008s
+==  CreateSportsUsersJoinTable: migrated (0.0451s) ============================
+~~~
+
+Now we have our relationship let's add some data using the db/seeds.rb
+
+~~~ruby
+# db/seeds.rb
+
+# This file should contain all the record creation needed to seed the database with its default values.
+# The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
+#
+# Examples:
+#
+#   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
+#   Mayor.create(name: 'Emanuel', city: cities.first)
+
+['Tennis', 'Badminton', 'Golf', 'Squash', 'Ping Pong'].each do | name |
+  Sport.create!(:name => name) unless Sport.find_by_name(name)
+end
+~~~
+
+and run the command:
+
+~~~console
+bundle exec rake db:seed
+~~~
+
+on the assumption that you have a user in your database we can now test this association in the rails console:
+
+~~~console
+rails c
+~~~
+
+wait a few moments for the Rails console to open then:
+
+~~~console
+user = User.first
+
+user.sports << Sport.first
+user.sports << Sport.last
+
+user.sports
+~~~
+
+the last line should return two sports.
+

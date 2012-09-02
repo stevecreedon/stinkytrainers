@@ -5,3 +5,7 @@
 #
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
+
+['Tennis', 'Badminton', 'Golf', 'Squash', 'Ping Pong'].each do | name |
+  Sport.create!(:name => name) unless Sport.find_by_name(name)
+end
