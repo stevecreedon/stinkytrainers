@@ -11,3 +11,12 @@
  *= require_self
  *= require_tree .
  */
+
+body.stinky {
+	background-image: url(stinky-home-page.jpg);
+}
+
+h1.banner{
+	font-family: 'Sonsie One', cursive;
+}
+
