@@ -65,8 +65,9 @@ Dir.glob("#{dir}/*.mdown").each do |path|
         elsif line =~ /^###\s/
           pf.write line.gsub(/###\s/, "### #{numbering.nextH3}. ") 
         elsif h2s.has_key?(line)
-          pf.write "<br/>\n<br/>\n<br/>\n<br/><a href='#top'>back to top</a>\n"
+          pf.write "<br/>\n<br/>\n<br/>\n<br/>\n"
           pf.write "<a id='#{h2s[line][1]}'></a>\n"
+          pf.write "<a href='#top'>back to top</a>\n"
           pf.write line.gsub(/^##\s/, "## #{numbering.nextH2}. ")
         else
           pf.write line

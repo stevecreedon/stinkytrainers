@@ -12,8 +12,9 @@ In this section we'll create a controller and a view for this dashboard (though 
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='the-dashboard-controller'></a>
+<a href='#top'>back to top</a>
 ## 3.1. The dashboard controller
 
 We want our users to have a dashboard page where they can easily see their friends, players and matches. Run the command
@@ -134,8 +135,9 @@ Rails Resources give us a simple and standard way to handle our routes and contr
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='the-dashboard-view'></a>
+<a href='#top'>back to top</a>
 ## 3.2. The dashboard view
 add this html to app/views/dashboard/index.html.erb
 
@@ -199,8 +201,9 @@ Rather than building the string "/users/123/games/17/comments/2" in code. OK, we
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='time-to-write-a-test'></a>
+<a href='#top'>back to top</a>
 ## 3.3. Time to write a test. 
 Let's write a similar test to the previous section
 

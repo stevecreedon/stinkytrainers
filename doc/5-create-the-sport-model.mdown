@@ -1,7 +1,7 @@
 # Create the Sports Model
 This application will have three core models, Sport, User and Games.
 
-
+![Stinky Trainers Users & Sports Diagram](/assets/stinky trainers user sport.png)
 
 Even simple class diagrams quickly end up looking complex so we'll just focus this explanation on sport. Sport does just what it says on the tin. It represents a sport such as tennis, soccer or cricket. Our user will, hopefully, have many sports but then so will our other users too so the relationship between Sport and User is 'many to many'.
 
@@ -156,7 +156,10 @@ bundle exec rake spec
 and they should all still pass.
 
 ## Add the Many to Many relationship between User and Sport
-We established at the beginning of this section that the association between User and Sport is many to many. ActiveRecord handles this with a slightly more descriptive method `has_and_belongs_to_many`. We'll add this method to Sport and to User then join them by creating a __sports_users__ table.
+We established at the beginning of this section that the association between User and Sport is many to many. 
+
+### Active Record Associations
+ActiveRecord handles this with a slightly more descriptive method `has_and_belongs_to_many`. We'll add this method to Sport and to User then join them by creating a __sports_users__ table.
 
 We've spent a lot of time with Sport so let's start with User. Add `has_and_belongs_to_many :sports` to the bottom of app/models/user.rb:
 
@@ -187,6 +190,8 @@ class Sport < ActiveRecord::Base
   validates :name,   :presence => true
 end
 ~~~
+
+### Create the many-to-many join table
 
 We need a sports_users table to join these two classes together. Changes to our database mean a migration so let's create one.
 
@@ -233,6 +238,8 @@ class CreateSportsUsersJoinTable < ActiveRecord::Migration
   end
 end
 ~~~
+
+In case you're wondering why we chose 'sports_users' and not 'users_sports' it's because Rails just chooses the natural sort order of the two words. In theory this would be the result of sorting this array: ["sports", "users"].sort. In practice it's alphabetical order.
 
 We haven't quite finished. If we don't index our sport_id and user_id columns the association will start to get a bit slow and have an impact on the running of our site. Let's add the indexes:
 

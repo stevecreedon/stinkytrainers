@@ -13,8 +13,9 @@ To secure the dashboard we're going to need a user so that we are able to sign-u
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='add-the-devise-gem'></a>
+<a href='#top'>back to top</a>
 ## 4.1. Add the Devise gem
 Devise gives us authentication out-of-the-box. We'll be getting devise to build us an authenticating user class
 and the views to allow users to sign up, sign-in and handle forgotten passwords.
@@ -116,8 +117,9 @@ It has to be said that Flash is very useful for quick applications like ours but
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='create-the-user-model-using-devise-generator'></a>
+<a href='#top'>back to top</a>
 ## 4.2. Create the user model using devise generator 
 
 ### 4.2.1. Create a User model using the Devise generator. 
@@ -201,8 +203,9 @@ and you should see some sql in your console that tells you your table has been d
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='now-let-s-secure-the-dashboard-with-devise'></a>
+<a href='#top'>back to top</a>
 ## 4.3. Now let's secure the dashboard with Devise:
 To secure the dashboard we'll add some code to our dashboard_controller that checks to see if we have a user in session that's already logged-in. Add this line to the dashboard controller app/controllers/dashboard_controller.rb
 
@@ -219,8 +222,9 @@ Now start the app `bundle exec rails s` browse to the home page __localhost:3000
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='add-some-code-so-that-we-can-sign-out'></a>
+<a href='#top'>back to top</a>
 ## 4.4. Add some code so that we can sign out
 Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  Add this line to app/layouts/application.html.erb so that it's at the bottom of
 
@@ -245,8 +249,9 @@ destroy_user_session_path. We'll cover Devise routes a bit more below.
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='testing-our-locked-down-dashboard'></a>
+<a href='#top'>back to top</a>
 ## 4.5. Testing our locked-down dashboard
 Typically with Test Driven Development you would write tests first and then make them pass but in this particular case I wanted you to see Devise in action so that the tests have some meaning. 
 

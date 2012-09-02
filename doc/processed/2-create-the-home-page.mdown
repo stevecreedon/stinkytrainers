@@ -11,8 +11,9 @@ The home page is the entry point to our application. Everybody should be able to
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='rest-controllers-and-views-in-rails'></a>
+<a href='#top'>back to top</a>
 ## 2.1. Rest, Controllers and Views in Rails
 Rails is an __MVC__ model-view-controller framework so we need a home controller __C__ that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a 'view' __V__ in Rails language. If you're new to MVC you're probably asking where the model __M__ is in MVC ? Well since this is our home page that doesn't do much we don't need a business model to do any fancy calculation for us.
 
@@ -56,8 +57,9 @@ __GET__, __POST__, __PUT__ and __DELETE__ are all standard HTTP Verbs. You can f
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='create-the-home-page-controller'></a>
+<a href='#top'>back to top</a>
 ## 2.2. Create the home page controller
 OK so that's enough theory for now. Let's write some code. Ww'll create our first controller using one of the Rails generators:
 
@@ -93,8 +95,9 @@ The rails generator created a controller __app/controllers/home_controller.rb___
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='create-the-home-page'></a>
+<a href='#top'>back to top</a>
 ## 2.3. Create the home page
 
 ### 2.3.1. Link the root "/" path to home controller
@@ -136,8 +139,9 @@ When a page or file is requested Rails always checks the public directory first 
 <br/>
 <br/>
 <br/>
-<br/><a href='#top'>back to top</a>
+<br/>
 <a id='time-to-write-a-test'></a>
+<a href='#top'>back to top</a>
 ## 2.4. Time to write a test. 
 One of the strengths of Ruby and Rails is the ease with which we can write expressive testing code. Ruby is scripted, not compiled, so we don't have an IDE or compiler to sanity check our code for us. That means we need to write lots of tests. If you're not used to Test Driven Development, it's one of those things that seems really alien at first but then you quickly begin to wonder how you ever managed without it.
 
