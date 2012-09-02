@@ -1,0 +1,311 @@
+<h1>5. Create the Sports Model</h1>
+
+<p>This application will have three core models, Sport, User and Games.</p>
+
+<p>Even simple class diagrams quickly end up looking complex so we&#39;ll just focus this explanation on sport. Sport does just what it says on the tin. It represents a sport such as tennis, soccer or cricket. Our user will, hopefully, have many sports but then so will our other users too so the relationship between Sport and User is &#39;many to many&#39;.</p>
+
+<p>Obviously sport is connected to things like games too but we only have a user object to connect our sport to at this point. In this section we&#39;re going to:</p>
+
+<p><a id='top'></a></p>
+
+<ol>
+<li><a href="#generate-the-sport-model">Generate the Sport model</a></li>
+<li><a href="#add-a-validation-to-our-model">Add a Validation to our Model</a></li>
+<li><a href="#add-the-many-to-many-relationship-between-user-and-sport">Add the Many to Many relationship between User and Sport</a></li>
+</ol>
+
+<p><br/>
+<br/>
+<br/>
+<br/><a href='#top'>back to top</a>
+<a id='generate-the-sport-model'></a></p>
+
+<h2>5.1. Generate the Sport model</h2>
+
+<p>We created our User model using a generator provided by Devise because we wanted our User to have Devise authentication functionality baked-in. Our Sport model is going to be a &#39;plain old Rails model&#39; so we&#39;ll create it using the rails generator and passing it the argument <code>name:string</code> so that it creates the name attribute in our migration.</p>
+<div class="highlight"><pre><span class="go">bundle exec rails g model sports name:string</span>
+</pre></div>
+
+<p>This should produce:</p>
+<div class="highlight"><pre><span class="go">invoke  active_record</span>
+<span class="go">     create    db/migrate/20120902122638_create_sport.rb</span>
+<span class="go">     create    app/models/sport.rb</span>
+<span class="go">     invoke    rspec</span>
+<span class="go">     create      spec/models/sport_spec.rb</span>
+<span class="go">     invoke      factory_girl</span>
+<span class="go">     create        spec/factories/sport.rb</span>
+</pre></div>
+
+<p>We can see that we have a migration <code>db/migrate/20120902122638_create_sport.rb</code> to create the sports table, a model <code>app/models/sport.rb</code>, a spec for testing <code>spec/models/sport_spec.rb</code> and even a FactoryGirl factory <code>spec/factories/sport.rb</code></p>
+
+<h3>5.1.1. Run the migration</h3>
+
+<p>Take a look at the migration for our sports database table in the file db/migrate/xxxxxxxxxxxxxx<em>create</em>sport.rb.</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">CreateSports</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:sports</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="o">.</span><span class="n">string</span> <span class="ss">:name</span>
+
+      <span class="n">t</span><span class="o">.</span><span class="n">timestamps</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>You can see that the generator has added the line <code>t.string :name</code> for us so that the sports table will have a name column.</p>
+
+<p>Let&#39;s run the migration.</p>
+<div class="highlight"><pre><span class="go">bundle exec rake db:migrate</span>
+</pre></div>
+
+<p>you should see something like:</p>
+<div class="highlight"><pre><span class="go">==  CreateSports: migrating ===================================================</span>
+<span class="go">-- create_table(:sports)</span>
+<span class="go">-&gt; 0.0009s</span>
+<span class="go">==  CreateSports: migrated (0.0010s) ==========================================</span>
+</pre></div>
+
+<p><br/>
+<br/>
+<br/>
+<br/><a href='#top'>back to top</a>
+<a id='add-a-validation-to-our-model'></a></p>
+
+<h2>5.2. Add a Validation to our Model</h2>
+
+<p>We want to make sure that our sport has a name before it can be persisted to our database. We&#39;ll do this using Active Model validations that will check the data in the instance of Sport we are trying to save and populate that instances errors collection if it finds any. Where did this magical errors collection come from ? Take a look at our app/models/sport.rb class file:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Sport</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The line <code>class Sport &lt; ActiveRecord::Base</code> means that Sport extends ActiveRecord::Base and ActiveRecord::Base includes ActiveModel validations and their associated errors collection.</p>
+
+<p>So let&#39;s start doing Test Driven Development properly and write a test that will expect our sport to be invalid if the name is nil or an empty string.</p>
+
+<p>Add this test in the file <code>spec/models/sport_spec.rb</code> where it says <code>pending &quot;add some examples to (or delete) #{__FILE__}&quot;</code></p>
+<div class="highlight"><pre><span class="c1"># 6. spec/models/sport_spec.rb</span>
+<span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
+
+<span class="n">describe</span> <span class="no">Sport</span> <span class="k">do</span>
+
+  <span class="n">it</span> <span class="s1">&#39;should not be valid if the name is nil&#39;</span> <span class="k">do</span>
+    <span class="n">sport</span> <span class="o">=</span> <span class="no">Sport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="kp">nil</span><span class="p">)</span>
+    <span class="n">sport</span><span class="o">.</span><span class="n">valid?</span><span class="o">.</span><span class="n">should</span> <span class="n">be_false</span>
+    <span class="n">sport</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">to_a</span><span class="o">.</span><span class="n">should</span> <span class="kp">include</span><span class="p">(</span><span class="s2">&quot;Name can&#39;t be blank&quot;</span><span class="p">)</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>We&#39;re creating a new instance of Sport &amp; explicitly setting the name to nil. We could have left out the <code>:name =&gt; nil</code> argument and the name would implicitly be nil but I like tests to be explicit.</p>
+
+<p>Run the tests:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec   </span>
+</pre></div>
+
+<p>And you should see our test has failed with <code>expected: false value, got: true</code>. </p>
+<div class="highlight"><pre><span class="go">  Failures:</span>
+
+<span class="go">  1) Sport should not be valid if the name is nil</span>
+<span class="go">     Failure/Error: sport.valid?.should be_false</span>
+<span class="go">       expected: false value</span>
+<span class="go">            got: true</span>
+</pre></div>
+
+<p>This is because we&#39;ve called <code>.valid?</code> on our sports model which has returned true instead of our desired false. <code>.valid?</code> is a method in ActiveRecord::Base that runs any validations we&#39;ve place into our model. Once the validations have run the method returns true or false depending on whether the <code>.errors</code> collection has any errors. In our case we haven&#39;t yet added any validations yet so the <code>.errors</code> collection will always be empty and <code>.valid?</code> will always return true.</p>
+
+<p>To make this test pass we need to add an appropriate validation. The <code>.errors</code> collection will then be populated with something like <strong>&quot;Name can&#39;t be blank&quot;</strong> and <code>.valid?</code> will return false.</p>
+
+<p>Let&#39;s add the validations to our model <code>app/models/sport.rb</code></p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Sport</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+
+  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span>   <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>In case you&#39;re wondering what the attr_accessible :name line is doing - and if you&#39;re from a Java or C# type background - then it&#39;s helpful to understand that ActiveRecord models don&#39;t have getters or setters. The attributes are the columns in its underlying database table. In the old world of Rails 2 all of these attributes would be public so we could have had a class file as simple as this: </p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Sport</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>This simple class looks like it&#39;s empty but, in fact, would contain all of its attributes from the underlying data columns. Rails 3 is a bit more secure and ActiveRecord attributes are not public until we explicitly say so in <code>attr_accessible :name</code>.</p>
+
+<p>OK, back to validations. We&#39;ve add the line <code>validates :name,   :presence =&gt; true</code>. When <code>.valid?</code> is called, ActiveModel will check for the presence of the :name attribute and populate the <code>.errors</code> collection with the message <code>Name can&#39;t be blank</code> if it doesn&#39;t find one. Note the word &#39;blank&#39; not &#39;nil&#39;. Blank in Rails means nil, an empty string, false or an empty array so our validation will work if we use a name like &#39;&#39; not nil. </p>
+
+<p>Let&#39;s try it. Add this test to spec/models/sport.rb</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should not be valid if the name is an empty string&#39;</span> <span class="k">do</span>
+ <span class="n">sport</span> <span class="o">=</span> <span class="no">Sport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+ <span class="n">sport</span><span class="o">.</span><span class="n">valid?</span><span class="o">.</span><span class="n">should</span> <span class="n">be_false</span>
+ <span class="n">sport</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">to_a</span><span class="o">.</span><span class="n">should</span> <span class="kp">include</span><span class="p">(</span><span class="s2">&quot;Name can&#39;t be blank&quot;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Run the tests:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec   </span>
+</pre></div>
+
+<p>and they should all still pass.</p>
+
+<p><br/>
+<br/>
+<br/>
+<br/><a href='#top'>back to top</a>
+<a id='add-the-many-to-many-relationship-between-user-and-sport'></a></p>
+
+<h2>6.1. Add the Many to Many relationship between User and Sport</h2>
+
+<p>We established at the beginning of this section that the association between User and Sport is many to many. ActiveRecord handles this with a slightly more descriptive method <code>has_and_belongs_to_many</code>. We&#39;ll add this method to Sport and to User then join them by creating a <strong>sports_users</strong> table.</p>
+
+<p>We&#39;ve spent a lot of time with Sport so let&#39;s start with User. Add <code>has_and_belongs_to_many :sports</code> to the bottom of app/models/user.rb:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="c1"># Include default devise modules. Others available are:</span>
+  <span class="c1"># :token_authenticatable, :confirmable,</span>
+  <span class="c1"># :lockable, :timeoutable and :omniauthable</span>
+  <span class="n">devise</span> <span class="ss">:database_authenticatable</span><span class="p">,</span> <span class="ss">:registerable</span><span class="p">,</span>
+         <span class="ss">:recoverable</span><span class="p">,</span> <span class="ss">:rememberable</span><span class="p">,</span> <span class="ss">:trackable</span><span class="p">,</span> <span class="ss">:validatable</span>
+
+  <span class="c1"># Setup accessible (or protected) attributes for your model</span>
+  <span class="n">attr_accessible</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:password</span><span class="p">,</span> <span class="ss">:password_confirmation</span><span class="p">,</span> <span class="ss">:remember_me</span>
+  <span class="c1"># attr_accessible :title, :body</span>
+
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:sports</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>then add <code>has_and_belongs_to_many :users</code> to app/models/sport.rb</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Sport</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:users</span>
+
+  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span>   <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>We need a sports_users table to join these two classes together. Changes to our database mean a migration so let&#39;s create one.</p>
+<div class="highlight"><pre><span class="go">bundle exec rails g migration CreateSportsUsersJoinTable</span>
+</pre></div>
+
+<p>which should create a migration file for us.</p>
+<div class="highlight"><pre><span class="go">      invoke  active_record</span>
+<span class="go">      create    db/migrate/20120816150136_create_sports_users_join_table.rb</span>
+</pre></div>
+
+<p>Open the file <code>db/migrate/xxxxxxxxxxxxxx_create_sports_users_join_table.rb</code> and you should see</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">CreateSportsUsersJoinTable</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+  <span class="k">def</span> <span class="nf">up</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">down</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The <code>def up</code> runs when we call <code>bndle exec rake db:migrate</code> and the <code>def down</code> runs when we call <code>bndle exec rake db:rollback</code> - but only if this is the next migration to rollback.</p>
+
+<p>We need to a sport<em>id column and a user</em>id column to our table. The User association <code>has_and_belongs_to_many :sports</code> will look for a column called user<em>id and the Sport association <code>has_and_belongs_to_many :users</code> will look for a :sport</em>id column. If we have a user instance with id 77 then <code>user.sports</code> will query the sports<em>users table for all records with userd</em>id 77 and thus return a list of sport<em>id&#39;s for that user. The association works in reverse so for a sport with id 35, calling <code>sport.users</code> will query the sports</em>users table for every row containg sport<em>id 35 thus returning a list of user</em>id&#39;s for that sport.    </p>
+
+<p>Let&#39;s add these columns. Change or new migration to look like this:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">CreateSportsUsersJoinTable</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+  <span class="k">def</span> <span class="nf">up</span>
+    <span class="n">create_table</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:id</span> <span class="o">=&gt;</span> <span class="kp">false</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:user_id</span>
+      <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:sport_id</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">down</span>
+    <span class="n">drop_table</span> <span class="ss">:sports</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>We haven&#39;t quite finished. If we don&#39;t index our sport<em>id and user</em>id columns the association will start to get a bit slow and have an impact on the running of our site. Let&#39;s add the indexes:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">CreateSportsUsersJoinTable</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+  <span class="k">def</span> <span class="nf">up</span>
+    <span class="n">create_table</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:id</span> <span class="o">=&gt;</span> <span class="kp">false</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:user_id</span>
+      <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:sport_id</span>
+    <span class="k">end</span>
+
+    <span class="n">add_index</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:sport_id</span>
+    <span class="n">add_index</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:user_id</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">down</span>
+    <span class="n">drop_table</span> <span class="ss">:sports</span>
+
+    <span class="n">remove_index</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:sport_id</span>
+    <span class="n">remove_index</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:user_id</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>One last thing to note. Our migration uses the very explicit <code>def up</code> and <code>def down</code> but if you look at our previous migrations that created the user and sports tables they both use a single method <code>def change</code>. <code>def change</code> is a recent addition to Rails migrations. It&#39;s simple for Rails to understand that migrations like <code>create table :xyz</code>  should have <code>drop table :xyz</code> as the rollback action so <code>def change</code> allows us to handle these simple changes in a single method. That said, you can put any Ruby code in a migration and some are too complex for Rails to deduce the rollback action so <code>def up</code> and <code>def down</code> have been kept for that purpose.</p>
+
+<p>In fact we could just change the above migration to:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">CreateSportsUsersJoinTable</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:id</span> <span class="o">=&gt;</span> <span class="kp">false</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:user_id</span>
+      <span class="n">t</span><span class="o">.</span><span class="n">integer</span> <span class="ss">:sport_id</span>
+    <span class="k">end</span>
+
+    <span class="n">add_index</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:sport_id</span>
+    <span class="n">add_index</span> <span class="ss">:sports_users</span><span class="p">,</span> <span class="ss">:user_id</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>and Rails is smart enough to be able to roll back the two indexes and the create table. </p>
+
+<p>We have our migration. Time to run it.</p>
+<div class="highlight"><pre><span class="go">bundle exec rake db:migrate</span>
+</pre></div>
+
+<p>you should see</p>
+<div class="highlight"><pre><span class="go">==  CreateSportsUsersJoinTable: migrating =====================================</span>
+<span class="go">-- create_table(:sports_users, {:id=&gt;false})</span>
+<span class="go">   -&gt; 0.0433s</span>
+<span class="go">-- add_index(:sports_users, :sport_id)</span>
+<span class="go">   -&gt; 0.0007s</span>
+<span class="go">-- add_index(:sports_users, :user_id)</span>
+<span class="go">   -&gt; 0.0008s</span>
+<span class="go">==  CreateSportsUsersJoinTable: migrated (0.0451s) ============================</span>
+</pre></div>
+
+<p>Now we have our relationship let&#39;s add some data using the db/seeds.rb</p>
+<div class="highlight"><pre><span class="c1"># 7. db/seeds.rb</span>
+
+<span class="c1"># 8. This file should contain all the record creation needed to seed the database with its default values.</span>
+<span class="c1"># 9. The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).</span>
+<span class="c1"># 10. # 11. Examples:</span>
+<span class="c1"># 12. # 13.   cities = City.create([{ name: &#39;Chicago&#39; }, { name: &#39;Copenhagen&#39; }])</span>
+<span class="c1"># 14.   Mayor.create(name: &#39;Emanuel&#39;, city: cities.first)</span>
+
+<span class="o">[</span><span class="s1">&#39;Tennis&#39;</span><span class="p">,</span> <span class="s1">&#39;Badminton&#39;</span><span class="p">,</span> <span class="s1">&#39;Golf&#39;</span><span class="p">,</span> <span class="s1">&#39;Squash&#39;</span><span class="p">,</span> <span class="s1">&#39;Ping Pong&#39;</span><span class="o">].</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span> <span class="nb">name</span> <span class="o">|</span>
+  <span class="no">Sport</span><span class="o">.</span><span class="n">create!</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="nb">name</span><span class="p">)</span> <span class="k">unless</span> <span class="no">Sport</span><span class="o">.</span><span class="n">find_by_name</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>and run the command:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake db:seed</span>
+</pre></div>
+
+<p>on the assumption that you have a user in your database we can now test this association in the rails console:</p>
+<div class="highlight"><pre><span class="go">rails c</span>
+</pre></div>
+
+<p>wait a few moments for the Rails console to open then:</p>
+<div class="highlight"><pre><span class="go">user = User.first</span>
+
+<span class="go">user.sports &lt;&lt; Sport.first</span>
+<span class="go">user.sports &lt;&lt; Sport.last</span>
+
+<span class="go">user.sports</span>
+</pre></div>
+
+<p>the last line should return two sports.</p>
