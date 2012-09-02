@@ -177,7 +177,7 @@ rake routes
 
 you see the line
 
-~~~
+~~~console
 dashboard_index GET /dashboard(.:format)              dashboard#index
 ~~~
 

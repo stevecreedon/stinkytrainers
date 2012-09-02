@@ -62,7 +62,7 @@ you should see something like:
 ==  CreateSports: migrated (0.0010s) ==========================================
 ~~~
 
-### Add a Validation to our Model
+## Add a Validation to our Model
 We want to make sure that our sport has a name before it can be persisted to our database. We'll do this using Active Model validations that will check the data in the instance of Sport we are trying to save and populate that instances errors collection if it finds any. Where did this magical errors collection come from ? Take a look at our app/models/sport.rb class file:
 
 ~~~ruby
@@ -127,7 +127,7 @@ end
 
 In case you're wondering what the attr_accessible :name line is doing - and if you're from a Java or C# type background - then it's helpful to understand that ActiveRecord models don't have getters or setters. The attributes are the columns in its underlying database table. In the old world of Rails 2 all of these attributes would be public so we could have had a class file as simple as this: 
 
-~~~
+~~~ruby
 class Sport < ActiveRecord::Base
 
 end
@@ -155,7 +155,7 @@ bundle exec rake spec
 
 and they should all still pass.
 
-## Add the Many to Many relationship beiween User and Sport
+## Add the Many to Many relationship between User and Sport
 We established at the beginning of this section that the association between User and Sport is many to many. ActiveRecord handles this with a slightly more descriptive method `has_and_belongs_to_many`. We'll add this method to Sport and to User then join them by creating a __sports_users__ table.
 
 We've spent a lot of time with Sport so let's start with User. Add `has_and_belongs_to_many :sports` to the bottom of app/models/user.rb:
