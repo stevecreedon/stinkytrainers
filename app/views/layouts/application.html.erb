@@ -19,6 +19,8 @@
     <link href="images/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114">
 
     <link href='http://fonts.googleapis.com/css?family=Sonsie+One|Vast+Shadow' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'>
+ 
   </head>
   <body class="stinky">
     <%= render 'shared/google_analytics' %>
@@ -30,12 +32,10 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="#">Stinkytrainers</a>
+          <a class="brand" href="/">Stinkytrainers</a>
           <div class="container nav-collapse">
             <ul class="nav">
               <li><%= link_to "dashboard", dashboard_index_path  %></li>
-              <li><%= link_to "Link2", "/path2"  %></li>
-              <li><%= link_to "Link3", "/path3"  %></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -47,22 +47,18 @@
 	
     </div>
 	
+    <h1 class="banner"><%= yield :title %></h1>
+	
     <div class="container">
       <div class="content">
         <div class="row">
            <div class="span9">
-              <%= yield %>
+			
+				<%= yield %>
+			
             </div>
             <div class="span3">
-              <div class="well sidebar-nav">
-                <h3>Sidebar</h3>
-                <ul class="nav nav-list">
-                  <li class="nav-header">Sidebar</li>
-                  <li><%= link_to "Link1", "/path1"  %></li>
-                  <li><%= link_to "Link2", "/path2"  %></li>
-                  <li><%= link_to "Link3", "/path3"  %></li>
-                </ul>
-              </div><!--/.well -->
+				&nbsp;
             </div><!--/span-->
         </div><!--/row-->
       </div><!--/content-->

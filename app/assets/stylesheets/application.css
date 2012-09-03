@@ -18,5 +18,16 @@ body.stinky {
 
 h1.banner{
 	font-family: 'Sonsie One', cursive;
+	padding: 0 0 20px 20px;
 }
 
+.well{
+	background-color: white;
+	opacity: 0.85;
+}
+
+.well p, .well li{
+	font-family: 'Vollkorn', serif;
+	font-size: 1.4em;
+	line-height: 1.5em;
+}

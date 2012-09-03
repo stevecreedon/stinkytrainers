@@ -6,7 +6,7 @@ Stinkytrainers::Application.routes.draw do
 
   resources :dashboard, :only => [:index] 
   
-  get "rails-tutorial(/*path)" => "tutorial#index"
+  get "ruby-on-rails-tutorial(/*path)" => "tutorial#index"
   
   root :to => 'home#index'
 
