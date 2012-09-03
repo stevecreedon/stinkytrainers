@@ -162,7 +162,11 @@
 
 <h2>6.1. Add the Many to Many relationship between User and Sport</h2>
 
-<p>We established at the beginning of this section that the association between User and Sport is many to many. ActiveRecord handles this with a slightly more descriptive method <code>has_and_belongs_to_many</code>. We&#39;ll add this method to Sport and to User then join them by creating a <strong>sports_users</strong> table.</p>
+<p>We established at the beginning of this section that the association between User and Sport is many to many. </p>
+
+<h3>6.1.1. Active Record Associations</h3>
+
+<p>ActiveRecord handles this with a slightly more descriptive method <code>has_and_belongs_to_many</code>. We&#39;ll add this method to Sport and to User then join them by creating a <strong>sports_users</strong> table.</p>
 
 <p>We&#39;ve spent a lot of time with Sport so let&#39;s start with User. Add <code>has_and_belongs_to_many :sports</code> to the bottom of app/models/user.rb:</p>
 <div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
@@ -189,6 +193,8 @@
   <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span>   <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
 <span class="k">end</span>
 </pre></div>
+
+<h3>6.1.2. Create the many-to-many join table</h3>
 
 <p>We need a sports_users table to join these two classes together. Changes to our database mean a migration so let&#39;s create one.</p>
 <div class="highlight"><pre><span class="go">bundle exec rails g migration CreateSportsUsersJoinTable</span>
@@ -227,6 +233,8 @@
   <span class="k">end</span>
 <span class="k">end</span>
 </pre></div>
+
+<p>In case you&#39;re wondering why we chose &#39;sports<em>users&#39; and not &#39;users</em>sports&#39; it&#39;s because Rails just chooses the natural sort order of the two words. In theory this would be the result of sorting this array: [&quot;sports&quot;, &quot;users&quot;].sort. In practice it&#39;s alphabetical order.</p>
 
 <p>We haven&#39;t quite finished. If we don&#39;t index our sport<em>id and user</em>id columns the association will start to get a bit slow and have an impact on the running of our site. Let&#39;s add the indexes:</p>
 <div class="highlight"><pre><span class="k">class</span> <span class="nc">CreateSportsUsersJoinTable</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
