@@ -62,6 +62,8 @@ you should see something like:
 ==  CreateSports: migrated (0.0010s) ==========================================
 ~~~
 
+COMMENTS
+
 ## Add a Validation to our Model
 We want to make sure that our sport has a name before it can be persisted to our database. We'll do this using Active Model validations that will check the data in the instance of Sport we are trying to save and populate that instances errors collection if it finds any. Where did this magical errors collection come from ? Take a look at our app/models/sport.rb class file:
 
@@ -154,6 +156,8 @@ bundle exec rake spec
 ~~~
 
 and they should all still pass.
+
+COMMENTS
 
 ## Add the Many to Many relationship between User and Sport
 We established at the beginning of this section that the association between User and Sport is many to many. 
@@ -346,3 +350,4 @@ user.sports
 
 the last line should return two sports.
 
+COMMENTS

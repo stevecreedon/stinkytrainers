@@ -9,11 +9,6 @@ The home page is for anyone on the world wide web that happens to be passing by 
 
 In this section we'll create a controller and a view for this dashboard (though there won't be much to show in it for a while). Then in the next section we'll create a User model and secure the dashboard with the Devise gem that will give us lots of log-in and forgotten password functionality almost out of the box.
 
-
-
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#time-to-write-a-test" data-num-posts="2" data-width="auto"></div>
-
-[back to top](#top)
 ##<a id='the-dashboard-controller'></a> 3.1. The dashboard controller
 
 We want our users to have a dashboard page where they can easily see their friends, players and matches. Run the command
@@ -133,7 +128,12 @@ Rails Resources give us a simple and standard way to handle our routes and contr
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-controller" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-controller"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='the-dashboard-view'></a> 3.2. The dashboard view
@@ -198,7 +198,12 @@ Rather than building the string "/users/123/games/17/comments/2" in code. OK, we
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-view" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-view"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='time-to-write-a-test'></a> 3.3. Time to write a test. 
@@ -247,4 +252,11 @@ Pending tests are empty tests that the generators have created for us but we hav
 4 examples, 0 failures, 2 pending
 ~~~
 
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#time-to-write-a-test"
+     data-num-posts="2"
+     data-width="auto">
+</div>
 

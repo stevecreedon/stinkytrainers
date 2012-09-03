@@ -122,6 +122,8 @@ dashboard_index GET /dashboard(.:format)              dashboard#index
 
 Rails Resources give us a simple and standard way to handle our routes and controllers.
 
+COMMENTS
+
 ## The dashboard view
 add this html to app/views/dashboard/index.html.erb
 
@@ -182,6 +184,8 @@ users_games_comments_path(user, game, comment)
 
 Rather than building the string "/users/123/games/17/comments/2" in code. OK, we could write some kind of helper method that builds the many urls we would need in this app but that's just what a __named path__ is, it's a helper method given to us by Rails for free. We get it for free because we've stuck to the Rails conventions.
 
+COMMENTS
+
 ## Time to write a test. 
 Let's write a similar test to the previous section
 
@@ -228,4 +232,4 @@ Pending tests are empty tests that the generators have created for us but we hav
 4 examples, 0 failures, 2 pending
 ~~~
 
-
+COMMENTS

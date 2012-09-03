@@ -10,11 +10,6 @@ To secure the dashboard we're going to need a user so that we are able to sign-u
 1. [Add some code so that we can sign out](#add-some-code-so-that-we-can-sign-out)
 1. [Testing our locked-down dashboard](#testing-our-locked-down-dashboard)
 
-
-
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#testing-our-locked-down-dashboard" data-num-posts="2" data-width="auto"></div>
-
-[back to top](#top)
 ##<a id='add-the-devise-gem'></a> 4.1. Add the Devise gem
 Devise gives us authentication out-of-the-box. We'll be getting devise to build us an authenticating user class
 and the views to allow users to sign up, sign-in and handle forgotten passwords.
@@ -115,7 +110,12 @@ It has to be said that Flash is very useful for quick applications like ours but
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#add-the-devise-gem" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#add-the-devise-gem"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='create-the-user-model-using-devise-generator'></a> 4.2. Create the user model using devise generator 
@@ -200,7 +200,12 @@ and you should see some sql in your console that tells you your table has been d
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#create-the-user-model-using-devise-generator" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#create-the-user-model-using-devise-generator"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='now-let-s-secure-the-dashboard-with-devise'></a> 4.3. Now let's secure the dashboard with Devise:
@@ -218,7 +223,12 @@ Now start the app `bundle exec rails s` browse to the home page __localhost:3000
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#now-let-s-secure-the-dashboard-with-devise" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#now-let-s-secure-the-dashboard-with-devise"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='add-some-code-so-that-we-can-sign-out'></a> 4.4. Add some code so that we can sign out
@@ -244,7 +254,12 @@ destroy_user_session_path. We'll cover Devise routes a bit more below.
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#add-some-code-so-that-we-can-sign-out" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#add-some-code-so-that-we-can-sign-out"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='testing-our-locked-down-dashboard'></a> 4.5. Testing our locked-down dashboard
@@ -507,6 +522,14 @@ test:
 
 We can see that for testing we have a database called db/test.sqlite3 so that we don't do anything to mess up the data we've been using in development. Rails also runs each test inside a transaction that rolls back when each test is complete so we can run the test above a thousand times and it will never actually persisting the user we created to our test database. 
 
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#testing-our-locked-down-dashboard"
+     data-num-posts="2"
+     data-width="auto">
+</div>
 
  
 

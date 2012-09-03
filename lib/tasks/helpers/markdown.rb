@@ -58,17 +58,22 @@ module Tasks
                 h2s.each do |h2|
                   pf.write "1. [#{h2[1]}](##{h2[2]})\n"
                 end
+              elsif line =~ /^COMMENTS/
+                pf.write %Q{
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/#{target.gsub(to, "").gsub('mdown', '')}html##{h2s[numbering.h2-1][2]}"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+}
               elsif line =~ /^#\s/
                 pf.write line.gsub(/#\s/, "# #{numbering.nextH1}. ")
               elsif line =~ /^###\s/
                 pf.write line.gsub(/###\s/, "### #{numbering.nextH3}. ") 
               elsif h2s.size > numbering.h2 && h2s[numbering.h2][0] == line
-                pf.write %Q{
-
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/#{target.gsub(to, "").gsub('mdown', '')}html##{h2s[numbering.h2-1][2]}" data-num-posts="2" data-width="auto"></div>
-
-}
-                pf.write "[back to top](#top)\n"
+                pf.write "[back to top](#top)\n" unless numbering.h2 == 0
                 pf.write line.gsub(/^##\s/, "##<a id='#{h2s[numbering.h2][2]}'></a> #{numbering.nextH2}. ")
               else
                 pf.write line

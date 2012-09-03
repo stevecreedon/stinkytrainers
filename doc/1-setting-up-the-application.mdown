@@ -43,6 +43,8 @@ If you do have bundler it's a good idea to ensure you have a reasonably recent v
 gem update bundler
 ~~~
 
+COMMENTS
+
 ## Create the application:
 ### Give it a home
 Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
@@ -71,6 +73,8 @@ the **app** folder is where all the code will go.
 **tmp** - used by rails for storing temp files like session data, cookie data, PIDs etc.
 **vendor** - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.  
 **script** - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.
+
+COMMENTS
 
 ## Rspec
 
@@ -125,6 +129,8 @@ The Capybara gem allows us to simulate browser interaction so that we can build 
 require 'capybara/rails'
 ~~~
 
+COMMENTS
+
 ## Twitter Bootstrap
 This is a Rails tutorial so we won't waste time on web design and layout but it's always nice when our application looks a little sexy so to make that happen and to save us loads of time we'll install Twitter Bootstrap - an HTML, CSS and Javascript library - to make Stinkytrainers. Twitter Bootstrap is intended for all kinds of website but we can install it using the twitter boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
 
@@ -173,6 +179,8 @@ Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/applicati
        force  app/views/layouts/application.html.erb
 ~~~
 
+COMMENTS
+
 ## Start the Application
 Now we've installed all of the gems we need to get started. We'll be adding more gems as we go through but we've got our core testing gems plus the Twitter gem to give us a look & feel. It's time to start.
 
@@ -185,3 +193,5 @@ bundle exec rails s
 Now open a browser and go to localhost:3000. If all is well you should see a colourful page saying __Welcome Aboard__
 
 That's the end of the first section. In the next section we will start building the application.
+
+COMMENTS

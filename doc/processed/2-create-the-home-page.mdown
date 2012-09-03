@@ -8,11 +8,6 @@ The home page is the entry point to our application. Everybody should be able to
 1. [Create the home page](#create-the-home-page)
 1. [Time to write a test. ](#time-to-write-a-test)
 
-
-
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#time-to-write-a-test" data-num-posts="2" data-width="auto"></div>
-
-[back to top](#top)
 ##<a id='rest-controllers-and-views-in-rails'></a> 2.1. Rest, Controllers and Views in Rails
 Rails is an __MVC__ model-view-controller framework so we need a home controller __C__ that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a 'view' __V__ in Rails language. If you're new to MVC you're probably asking where the model __M__ is in MVC ? Well since this is our home page that doesn't do much we don't need a business model to do any fancy calculation for us.
 
@@ -55,7 +50,12 @@ __GET__, __POST__, __PUT__ and __DELETE__ are all standard HTTP Verbs. You can f
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#rest-controllers-and-views-in-rails" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#rest-controllers-and-views-in-rails"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='create-the-home-page-controller'></a> 2.2. Create the home page controller
@@ -92,7 +92,12 @@ The rails generator created a controller __app/controllers/home_controller.rb___
   
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#create-the-home-page-controller" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#create-the-home-page-controller"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='create-the-home-page'></a> 2.3. Create the home page
@@ -135,7 +140,12 @@ When a page or file is requested Rails always checks the public directory first 
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#create-the-home-page" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#create-the-home-page"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='time-to-write-a-test'></a> 2.4. Time to write a test. 
@@ -225,3 +235,12 @@ rspec ./spec/views/home/index.html.erb_spec.rb:5 # home/index.html.erb shows dis
 Note the **F in the first line (it may be a different). We now have two pending tests and a failing test.
 
 __DON"T FORGET TO GO BACK AND FIX THE TEST WE"VE JUST BROKEN__
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#time-to-write-a-test"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+

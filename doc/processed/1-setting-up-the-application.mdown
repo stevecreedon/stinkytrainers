@@ -12,11 +12,6 @@ Rails development isn't just fast it's also fun with a very helpful and friendly
 1. [Twitter Bootstrap](#twitter-bootstrap)
 1. [Start the Application](#start-the-application)
  
-
-
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#start-the-application" data-num-posts="2" data-width="auto"></div>
-
-[back to top](#top)
 ##<a id='before-we-start'></a> 1.1. Before we start:
 
 ### 1.1.1. Make sure we have Ruby 1.9.3
@@ -56,7 +51,12 @@ gem update bundler
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#before-we-start" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#before-we-start"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='create-the-application'></a> 1.2. Create the application:
@@ -90,7 +90,12 @@ the **app** folder is where all the code will go.
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#create-the-application" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#create-the-application"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='rspec'></a> 1.3. Rspec
@@ -148,7 +153,12 @@ require 'capybara/rails'
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#rspec" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#rspec"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='twitter-bootstrap'></a> 1.4. Twitter Bootstrap
@@ -201,7 +211,12 @@ Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/applicati
 
 
 
-<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#twitter-bootstrap" data-num-posts="2" data-width="auto"></div>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#twitter-bootstrap"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='start-the-application'></a> 1.5. Start the Application
@@ -216,3 +231,12 @@ bundle exec rails s
 Now open a browser and go to localhost:3000. If all is well you should see a colourful page saying __Welcome Aboard__
 
 That's the end of the first section. In the next section we will start building the application.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#start-the-application"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
