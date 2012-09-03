@@ -36,10 +36,12 @@
               <% if user_signed_in? %>
                 <li><%= link_to "dashboard", dashboard_index_path  %></li>
 	   		        <li><%= link_to "sign-out", destroy_user_session_path, :method => :delete  %></li>
+              <% else %>
+	   		        <li><%= link_to "Sign In", new_user_session_path %></li>
               <% end %>
             </ul>
             <ul class="nav pull-right">
-              <li><%= link_to "Ruby On Rails Tutorial", :controller => :tutorial, :action => :index  %></li>
+              <li><%= link_to "Ruby On Rails Tutorial", :controller => '/tutorial' %></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
