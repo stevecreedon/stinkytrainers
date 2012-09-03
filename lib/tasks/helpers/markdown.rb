@@ -27,7 +27,45 @@ module Tasks
         end
       end
 
-      def preprocess(from, to)
+      def build_slidebar(from, url_prefix)
+        html = %Q{
+<div class="well sidebar-nav">
+  <h4>Index</h4>
+  <!--<ul class="nav nav-list">
+    <li class="nav-header">Get redy to roll</li>
+    <li><%= link_to "Install Ruby", "#"  %></li>
+    <li><%= link_to "Install RVM", "#"  %></li>
+    <li><%= link_to "Install RBenv", "#"  %></li>
+    <li><%= link_to "Install bundle and rails gems", "#"  %></li>
+  </ul>-->
+  <ul class="nav nav-list">
+    <li class="nav-header">Building Application</li>
+    #{
+          Dir.glob("#{from}**/*.mdown").map do |file_name|
+            name = ''
+            File.open(file_name, "r").readlines.each do |line|
+              if line =~ /^#[^#]/
+                name = line.gsub(/^#[^a-zA-Z0-9\.]+/,"").gsub("\n","")
+                break
+              end
+            end
+            
+            if name
+              %Q{<li><%= link_to "#{name}", "#{url_prefix}#{file_name.gsub(from, "").gsub('mdown', '')}html"  %></li>}
+            else
+              ''
+            end
+          end.join("\n    ")
+        }
+  </ul>
+</div><!--/.well -->
+        }
+        File.open('app/views/shared/tutorial/_slidebar.html.erb',"w") do |f|
+          f.write(html)
+        end
+      end
+
+      def preprocess(from, to, url_prefix)
         require 'tasks/helpers/string'
         require 'tasks/helpers/header_numbering'
 
@@ -62,7 +100,7 @@ module Tasks
                 pf.write %Q{
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/#{target.gsub(to, "").gsub('mdown', '')}html##{h2s[numbering.h2-1][2]}"
+     data-href="http://www.stinkytrainers.co.uk#{url_prefix}#{target.gsub(to, "").gsub('mdown', '')}html##{h2s[numbering.h2-1][2]}"
      data-num-posts="2"
      data-width="auto">
 </div>
