@@ -1,10 +1,10 @@
+<a id='top'></a>
+
 # 1. Stinky Trainers
 
 Welcome to the stinky trainers tutorial where you'll learn how we built stinkytrainers.co.uk. Unlike many Rails tutorials we won't be building an application in 15 minutes, Stinky Trainers will take some time but at the end of it you'll have a built a full Rails app and have learned enbough to start building your own web applications in Rails.
 
 Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout. 
-
-<a id='top'></a>
 
 1. [Before we start:](#before-we-start)
 1. [Create the application:](#create-the-application)
@@ -12,13 +12,12 @@ Rails development isn't just fast it's also fun with a very helpful and friendly
 1. [Twitter Bootstrap](#twitter-bootstrap)
 1. [Start the Application](#start-the-application)
  
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='before-we-start'></a>
-<a href='#top'>back to top</a>
-## 1.1. Before we start:
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#start-the-application" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='before-we-start'></a> 1.1. Before we start:
 
 ### 1.1.1. Make sure we have Ruby 1.9.3
 Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
@@ -55,13 +54,12 @@ If you do have bundler it's a good idea to ensure you have a reasonably recent v
 gem update bundler
 ~~~
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='create-the-application'></a>
-<a href='#top'>back to top</a>
-## 1.2. Create the application:
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#before-we-start" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='create-the-application'></a> 1.2. Create the application:
 ### 1.2.1. Give it a home
 Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
 
@@ -90,13 +88,12 @@ the **app** folder is where all the code will go.
 **vendor** - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.  
 **script** - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='rspec'></a>
-<a href='#top'>back to top</a>
-## 1.3. Rspec
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#create-the-application" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='rspec'></a> 1.3. Rspec
 
 ### 1.3.1. What is RSpec ?
 We told the Rails generator to skip test unit but testing is going to be very central to building this app so we're going to use the Rspec gem. We're also going to use capybara, a gem that will let us simulate a web browser in our test and launchy, a gem to launch browsers.
@@ -149,13 +146,12 @@ The Capybara gem allows us to simulate browser interaction so that we can build 
 require 'capybara/rails'
 ~~~
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='twitter-bootstrap'></a>
-<a href='#top'>back to top</a>
-## 1.4. Twitter Bootstrap
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#rspec" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='twitter-bootstrap'></a> 1.4. Twitter Bootstrap
 This is a Rails tutorial so we won't waste time on web design and layout but it's always nice when our application looks a little sexy so to make that happen and to save us loads of time we'll install Twitter Bootstrap - an HTML, CSS and Javascript library - to make Stinkytrainers. Twitter Bootstrap is intended for all kinds of website but we can install it using the twitter boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
 
 ~~~ruby
@@ -203,13 +199,12 @@ Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/applicati
        force  app/views/layouts/application.html.erb
 ~~~
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='start-the-application'></a>
-<a href='#top'>back to top</a>
-## 1.5. Start the Application
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#twitter-bootstrap" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='start-the-application'></a> 1.5. Start the Application
 Now we've installed all of the gems we need to get started. We'll be adding more gems as we go through but we've got our core testing gems plus the Twitter gem to give us a look & feel. It's time to start.
 
 Start the application on the command line with:

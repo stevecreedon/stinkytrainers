@@ -1,20 +1,19 @@
+<a id='top'></a>
+
 # 2. Create the home page
 The home page is the entry point to our application. Everybody should be able to access this page whether they're logged on or not making this the best place to start.
-
-<a id='top'></a>
 
 1. [Rest, Controllers and Views in Rails](#rest-controllers-and-views-in-rails)
 1. [Create the home page controller](#create-the-home-page-controller)
 1. [Create the home page](#create-the-home-page)
 1. [Time to write a test. ](#time-to-write-a-test)
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='rest-controllers-and-views-in-rails'></a>
-<a href='#top'>back to top</a>
-## 2.1. Rest, Controllers and Views in Rails
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#time-to-write-a-test" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='rest-controllers-and-views-in-rails'></a> 2.1. Rest, Controllers and Views in Rails
 Rails is an __MVC__ model-view-controller framework so we need a home controller __C__ that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a 'view' __V__ in Rails language. If you're new to MVC you're probably asking where the model __M__ is in MVC ? Well since this is our home page that doesn't do much we don't need a business model to do any fancy calculation for us.
 
 ### 2.1.1. Rest
@@ -54,13 +53,12 @@ The Rest convention allows Rails to automatically hook web requests to actions w
 
 __GET__, __POST__, __PUT__ and __DELETE__ are all standard HTTP Verbs. You can find out more about HTTP verbs here. Those of you familiar with HTTP verbs will probably be aware that web browsers generally don't use __PUT__ and __DELETE__. Rails appends parameters to the request update and destroy requests that will be interpreted by Rails server as __PUT__ and __DELETE__.
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='create-the-home-page-controller'></a>
-<a href='#top'>back to top</a>
-## 2.2. Create the home page controller
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#rest-controllers-and-views-in-rails" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='create-the-home-page-controller'></a> 2.2. Create the home page controller
 OK so that's enough theory for now. Let's write some code. Ww'll create our first controller using one of the Rails generators:
 
 ~~~console
@@ -92,13 +90,12 @@ The rails generator created a controller __app/controllers/home_controller.rb___
     create   app/assets/stylesheets/home.css.scss
 ~~~
   
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='create-the-home-page'></a>
-<a href='#top'>back to top</a>
-## 2.3. Create the home page
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#create-the-home-page-controller" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='create-the-home-page'></a> 2.3. Create the home page
 
 ### 2.3.1. Link the root "/" path to home controller
 Rails can't know that we want the home controller to manage the home page for our application so add this line to __config/routes.rb__
@@ -136,13 +133,12 @@ When a page or file is requested Rails always checks the public directory first 
 
 ![Our first home page](/assets/3.2_first_home_page.png)
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='time-to-write-a-test'></a>
-<a href='#top'>back to top</a>
-## 2.4. Time to write a test. 
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#create-the-home-page" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='time-to-write-a-test'></a> 2.4. Time to write a test. 
 One of the strengths of Ruby and Rails is the ease with which we can write expressive testing code. Ruby is scripted, not compiled, so we don't have an IDE or compiler to sanity check our code for us. That means we need to write lots of tests. If you're not used to Test Driven Development, it's one of those things that seems really alien at first but then you quickly begin to wonder how you ever managed without it.
 
 Our dashboard page doesn't do very much at this stage so let's start with just a very basic test:

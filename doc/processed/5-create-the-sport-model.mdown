@@ -1,3 +1,5 @@
+<a id='top'></a>
+
 # 5. Create the Sports Model
 This application will have three core models, Sport, User and Games.
 
@@ -7,19 +9,16 @@ Even simple class diagrams quickly end up looking complex so we'll just focus th
 
 Obviously sport is connected to things like games too but we only have a user object to connect our sport to at this point. In this section we're going to:
 
-<a id='top'></a>
-
 1. [Generate the Sport model](#generate-the-sport-model)
 1. [Add a Validation to our Model](#add-a-validation-to-our-model)
 1. [Add the Many to Many relationship between User and Sport](#add-the-many-to-many-relationship-between-user-and-sport)
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='generate-the-sport-model'></a>
-<a href='#top'>back to top</a>
-## 5.1. Generate the Sport model
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/5-create-the-sport-model.html#add-the-many-to-many-relationship-between-user-and-sport" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='generate-the-sport-model'></a> 5.1. Generate the Sport model
 We created our User model using a generator provided by Devise because we wanted our User to have Devise authentication functionality baked-in. Our Sport model is going to be a 'plain old Rails model' so we'll create it using the rails generator and passing it the argument `name:string` so that it creates the name attribute in our migration.
 
 ~~~console
@@ -72,13 +71,12 @@ you should see something like:
 ==  CreateSports: migrated (0.0010s) ==========================================
 ~~~
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='add-a-validation-to-our-model'></a>
-<a href='#top'>back to top</a>
-## 5.2. Add a Validation to our Model
+
+
+<div class="fb-comments" data-href="http://www.stinkytrainers.co.uk/rails-tutorial/5-create-the-sport-model.html#generate-the-sport-model" data-num-posts="2" data-width="auto"></div>
+
+[back to top](#top)
+##<a id='add-a-validation-to-our-model'></a> 5.2. Add a Validation to our Model
 We want to make sure that our sport has a name before it can be persisted to our database. We'll do this using Active Model validations that will check the data in the instance of Sport we are trying to save and populate that instances errors collection if it finds any. Where did this magical errors collection come from ? Take a look at our app/models/sport.rb class file:
 
 ~~~ruby
@@ -171,16 +169,10 @@ bundle exec rake spec
 
 and they should all still pass.
 
-<br/>
-<br/>
-<br/>
-<br/>
-<a id='add-the-many-to-many-relationship-between-user-and-sport'></a>
-<a href='#top'>back to top</a>
-## 6.1. Add the Many to Many relationship between User and Sport
+## Add the Many to Many relationship between User and Sport
 We established at the beginning of this section that the association between User and Sport is many to many. 
 
-### 6.1.1. Active Record Associations
+### 6.0.1. Active Record Associations
 ActiveRecord handles this with a slightly more descriptive method `has_and_belongs_to_many`. We'll add this method to Sport and to User then join them by creating a __sports_users__ table.
 
 We've spent a lot of time with Sport so let's start with User. Add `has_and_belongs_to_many :sports` to the bottom of app/models/user.rb:
@@ -213,7 +205,7 @@ class Sport < ActiveRecord::Base
 end
 ~~~
 
-### 6.1.2. Create the many-to-many join table
+### 6.0.2. Create the many-to-many join table
 
 We need a sports_users table to join these two classes together. Changes to our database mean a migration so let's create one.
 
