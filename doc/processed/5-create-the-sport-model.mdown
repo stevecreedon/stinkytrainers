@@ -69,7 +69,7 @@ you should see something like:
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/5-create-the-sport-model.html#generate-the-sport-model"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/5-create-the-sport-model.html#generate-the-sport-model"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -172,7 +172,7 @@ and they should all still pass.
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/5-create-the-sport-model.html#add-the-many-to-many-relationship-between-user-and-sport"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/5-create-the-sport-model.html#add-the-many-to-many-relationship-between-user-and-sport"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -370,7 +370,7 @@ the last line should return two sports.
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/5-create-the-sport-model.html#add-the-many-to-many-relationship-between-user-and-sport"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/5-create-the-sport-model.html#add-the-many-to-many-relationship-between-user-and-sport"
      data-num-posts="2"
      data-width="auto">
 </div>
