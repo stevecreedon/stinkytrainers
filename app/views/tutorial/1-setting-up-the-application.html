@@ -22,17 +22,11 @@
 <div class="highlight"><pre><span class="go">ruby -v</span>
 </pre></div>
 
-<h3>1.1.2. Make sure we have Rails</h3>
+<h3>1.1.2. Make sure we have Rails 3.2.8</h3>
 
 <p>We need Rails so that we can use the Rails command line to generate a new Rails App for us. Run the command line:</p>
-<div class="highlight"><pre><span class="go">gem list</span>
+<div class="highlight"><pre><span class="go">gem install rails -v 3.2.8</span>
 </pre></div>
-
-<p>and if you don&#39;t see something like:</p>
-
-<p>rails (3.2.8, 3.2.6, 3.2.3, 3.0.11) </p>
-
-<p>Note that 3.2.8, 3.2.6, 3.2.3, 3.0.11 are the versions of the Rails gem on the machine so they&#39;ll almost certainly be different on yours.</p>
 
 <h3>1.1.3. Make sure we have Bundler</h3>
 
@@ -56,8 +50,6 @@
 
 <h2><a id='create-the-application'></a> 1.2. Create the application:</h2>
 
-<h3>1.2.1. Give it a home</h3>
-
 <p>Choose a folder where you&#39;d like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:</p>
 <div class="highlight"><pre><span class="go">rails new stinkytrainers --skip-test-unit</span>
 </pre></div>
@@ -66,7 +58,7 @@
 
 <p>You&#39;ll see that rails has created a lot of files and folders for you.</p>
 
-<h3>1.2.2. Important Files &amp; Folders:</h3>
+<h3>1.2.1. Important Files &amp; Folders:</h3>
 
 <p>the <strong>app</strong> folder is where all the code will go.</p>
 
@@ -79,7 +71,7 @@
 <strong>lib</strong> is for code not specific to our application.
 <strong>log</strong> is where the Rails logger writes to</p>
 
-<h3>1.2.3. Less Important Files &amp; Folders:</h3>
+<h3>1.2.2. Less Important Files &amp; Folders:</h3>
 
 <p><strong>tmp</strong> - used by rails for storing temp files like session data, cookie data, PIDs etc.
 <strong>vendor</strong> - we can ignore this. it&#39;s used for the obsolete rails plugins used before gems were invented.<br>

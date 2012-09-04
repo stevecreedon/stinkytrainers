@@ -6,7 +6,7 @@
 
 <ol>
 <li><a href="#add-the-devise-gem">Add the Devise gem</a></li>
-<li><a href="#create-the-user-model-using-devise-generator">Create the user model using devise generator </a></li>
+<li><a href="#create-the-user-model">Create the User model</a></li>
 <li><a href="#now-let-s-secure-the-dashboard-with-devise">Now let&#39;s secure the dashboard with Devise:</a></li>
 <li><a href="#add-some-code-so-that-we-can-sign-out">Add some code so that we can sign out</a></li>
 <li><a href="#testing-our-locked-down-dashboard">Testing our locked-down dashboard</a></li>
@@ -97,6 +97,12 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 <p>It has to be said that Flash is very useful for quick applications like ours but less commonly used in bigger apps where this kind of user interaction is determined by the Look &amp; Feel.</p>
 
+<h3>4.1.7. Install the Devise views</h3>
+
+<p>Out of the box Devise will provide the application with views for signing-up, signing-in and forgot-password. These views are contained inside the gem where we can&#39;t change or style them which isn&#39;t that helpful. Luckily Devise gives us a generator that will copy it&#39;s views into our application&#39;s app/views folder where we can make whatever changes we want.</p>
+<div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rails</span> <span class="n">generate</span> <span class="n">devise</span><span class="ss">:views</span>
+</pre></div>
+
 <div class="fb-comments"
      data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#add-the-devise-gem"
      data-num-posts="2"
@@ -105,11 +111,11 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='create-the-user-model-using-devise-generator'></a> 4.2. Create the user model using devise generator</h2>
+<h2><a id='create-the-user-model'></a> 4.2. Create the User model</h2>
 
 <h3>4.2.1. Create a User model using the Devise generator.</h3>
 
-<p>This will give us a standard Rails model but with some extra authentication methods and attributes needed for Devise. Of course we could add these by hand ourselves but like all Rails &amp; Ruby coders I enjoy writing the business code for the application I&#39;m building and not system &#39;boilerplate&#39; code so I&#39;m happy to let Devise do this for me.</p>
+<p>This will give us a standard Rails ActiveeRcord model but with some extra authentication methods and attributes needed for Devise. Of course we could add these extra bits by hand ourselves but we&#39;re here to write an application not a framework so we&#39;ll let Devise do this boring stuff for us.</p>
 <div class="highlight"><pre><span class="go">rails generate devise user</span>
 </pre></div>
 
@@ -176,7 +182,7 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 <p>and you should see some sql in your console that tells you your table has been dropped from the database. Don&#39;t forget to run <code>bundle exec rake db:migrate</code> so that we rebuild our dropped users table.</p>
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#create-the-user-model-using-devise-generator"
+     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#create-the-user-model"
      data-num-posts="2"
      data-width="auto">
 </div>

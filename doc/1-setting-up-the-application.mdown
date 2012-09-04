@@ -15,18 +15,12 @@ Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9
 ruby -v
 ~~~
 
-### Make sure we have Rails
+### Make sure we have Rails 3.2.8
 We need Rails so that we can use the Rails command line to generate a new Rails App for us. Run the command line:
 
 ~~~console
-gem list
+gem install rails -v 3.2.8
 ~~~
-
-and if you don't see something like:
-
-rails (3.2.8, 3.2.6, 3.2.3, 3.0.11) 
-
-Note that 3.2.8, 3.2.6, 3.2.3, 3.0.11 are the versions of the Rails gem on the machine so they'll almost certainly be different on yours.
 
 ### Make sure we have Bundler
 Bundler is a ruby gem that manages other gems in a single application, a bit like having a package manager but just for your application and not the entire system.
@@ -46,7 +40,6 @@ gem update bundler
 COMMENTS
 
 ## Create the application:
-### Give it a home
 Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
 
 ~~~console
