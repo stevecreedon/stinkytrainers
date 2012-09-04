@@ -111,7 +111,7 @@ It has to be said that Flash is very useful for quick applications like ours but
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#add-the-devise-gem"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#add-the-devise-gem"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -201,7 +201,7 @@ and you should see some sql in your console that tells you your table has been d
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#create-the-user-model-using-devise-generator"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#create-the-user-model-using-devise-generator"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -224,7 +224,7 @@ Now start the app `bundle exec rails s` browse to the home page __localhost:3000
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#now-let-s-secure-the-dashboard-with-devise"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#now-let-s-secure-the-dashboard-with-devise"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -255,7 +255,7 @@ destroy_user_session_path. We'll cover Devise routes a bit more below.
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#add-some-code-so-that-we-can-sign-out"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#add-some-code-so-that-we-can-sign-out"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -526,7 +526,7 @@ We can see that for testing we have a database called db/test.sqlite3 so that we
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/4-secure-the-dashboard-view.html#testing-our-locked-down-dashboard"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#testing-our-locked-down-dashboard"
      data-num-posts="2"
      data-width="auto">
 </div>

@@ -8,11 +8,11 @@ namespace :tutorial do
 
   desc "Preprocesses tutorial pages"
   task :preprocess => :environment do
-    Tasks::Helpers::Markdown.preprocess('doc/', 'doc/processed/', '/rails-tutorial/')
+    Tasks::Helpers::Markdown.preprocess('doc/', 'doc/processed/', '/ruby-on-rails-tutorial/')
   end
 
   desc "Builds slidebar"
   task :build_slidebar => :environment do
-    Tasks::Helpers::Markdown.build_slidebar('doc/processed/', '/rails-tutorial/')
+    Tasks::Helpers::Markdown.build_slidebar('doc/processed/', '/ruby-on-rails-tutorial/')
   end
 end

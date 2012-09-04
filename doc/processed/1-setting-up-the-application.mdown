@@ -52,7 +52,7 @@ gem update bundler
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#before-we-start"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/1-setting-up-the-application.html#before-we-start"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -91,7 +91,7 @@ the **app** folder is where all the code will go.
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#create-the-application"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/1-setting-up-the-application.html#create-the-application"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -154,7 +154,7 @@ require 'capybara/rails'
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#rspec"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/1-setting-up-the-application.html#rspec"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -212,7 +212,7 @@ Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/applicati
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#twitter-bootstrap"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/1-setting-up-the-application.html#twitter-bootstrap"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -235,7 +235,7 @@ That's the end of the first section. In the next section we will start building 
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/1-setting-up-the-application.html#start-the-application"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/1-setting-up-the-application.html#start-the-application"
      data-num-posts="2"
      data-width="auto">
 </div>

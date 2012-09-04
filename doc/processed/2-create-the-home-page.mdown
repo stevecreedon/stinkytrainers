@@ -51,7 +51,7 @@ __GET__, __POST__, __PUT__ and __DELETE__ are all standard HTTP Verbs. You can f
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#rest-controllers-and-views-in-rails"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#rest-controllers-and-views-in-rails"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -93,7 +93,7 @@ The rails generator created a controller __app/controllers/home_controller.rb___
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#create-the-home-page-controller"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#create-the-home-page-controller"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -141,7 +141,7 @@ When a page or file is requested Rails always checks the public directory first 
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#create-the-home-page"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#create-the-home-page"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -239,7 +239,7 @@ __DON"T FORGET TO GO BACK AND FIX THE TEST WE"VE JUST BROKEN__
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/2-create-the-home-page.html#time-to-write-a-test"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#time-to-write-a-test"
      data-num-posts="2"
      data-width="auto">
 </div>

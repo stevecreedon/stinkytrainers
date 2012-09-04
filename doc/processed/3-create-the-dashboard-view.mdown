@@ -129,7 +129,7 @@ Rails Resources give us a simple and standard way to handle our routes and contr
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-controller"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-controller"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -199,7 +199,7 @@ Rather than building the string "/users/123/games/17/comments/2" in code. OK, we
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-view"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-view"
      data-num-posts="2"
      data-width="auto">
 </div>
@@ -255,7 +255,7 @@ Pending tests are empty tests that the generators have created for us but we hav
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/rails-tutorial/3-create-the-dashboard-view.html#time-to-write-a-test"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/3-create-the-dashboard-view.html#time-to-write-a-test"
      data-num-posts="2"
      data-width="auto">
 </div>
