@@ -14,7 +14,7 @@
 
 <h2><a id='the-dashboard-controller'></a> 3.1. The dashboard controller</h2>
 
-<p>We want our users to have a dashboard page where they can easily see their friends, players and matches. Run the command</p>
+<p>We want our users to have a dashboard page where they can easily see their friends, players and matches. Because Rails is an MVC framework the first thing we must do is create a controller. When our users make a request, Rails will then match the request to an action in our controller that will then run the appropriate view. Run the command</p>
 <div class="highlight"><pre><span class="go">bundle exec rails g controller dashboard index</span>
 </pre></div>
 
@@ -41,15 +41,22 @@
 
 <p><strong>What just happened ?</strong> </p>
 
-<p>Rails has generated a controller called dashboard in app/controllers/dashbaord_controller.rb, it gave that controller an index action and created a view called app/views/index.html.erb. Remembering our Restful routing in section 2, 1.3 - when a browser calls www.stinkytrainers.com/dashboard, Rails will route this request to the index action of the dashboard controller, which in turn routes the request to the app/views/dashboard/index.html.erb:</p>
+<p>Rails has generated a controller called dashboard and gave it an index action.</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">DashboardController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>  
+  <span class="k">def</span> <span class="nf">index</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
 
-<p>GET /dashboard  &gt; app/controllers/dashboard_controller.rb#index &gt; app/views/dashboard/index.html.erb</p>
+<p>It then created a view called app/views/index.html.erb. Remembering our Restful routing in section 2, 1.3 - when a browser calls www.stinkytrainers.com/dashboard, Rails will route this request to the index action of the dashboard controller, which in turn renders the view app/views/dashboard/index.html.erb:</p>
+
+<p><strong>GET /dashboard  &gt; app/controllers/dashboard_controller.rb#index &gt; app/views/dashboard/index.html.erb</strong></p>
 
 <p>Rails also created some helpers and spec files for us which we&#39;ll come to in a bit. In it&#39;s effort to be helpful Rails also created something for us that we <strong>DON&#39;T WANT</strong>. If you look in <strong>config/routes.rb</strong> you&#39;ll see the line:</p>
 <div class="highlight"><pre><span class="n">get</span> <span class="s2">&quot;dashboard/index&quot;</span>
 </pre></div>
 
-<p>Up until now you&#39;ve had to trust me when I say things like &#39;Rails will route this request to the index action&#39; but I wasn&#39;t being up-front with you because didn&#39;t say how. It all happens in <strong>config/routes.rb</strong>. Rails provides us with a number of options for matching requests to controllers and actions. <strong>get &quot;dashboard/index&quot;</strong> is a very literal mapping of the GET /dashboard request. We could use it but as our application grows we&#39;ll have many such routes and so we&#39;d end up with very many of these lines. It&#39;s likely that <strong>config/routes.rb</strong> will become a bit hard to handle.</p>
+<p>Up until now you&#39;ve had to trust me when I say things like &#39;Rails will route this request to the index action&#39; but I didn&#39;t say how. It all happens in <strong>config/routes.rb</strong>. Rails provides us with a number of options for matching requests to controllers and actions. <strong>get &quot;dashboard/index&quot;</strong> is a very literal mapping of the GET /dashboard request. We could use it but as our application grows we&#39;ll have many such routes and so we&#39;d end up with very many of these lines. This approach to <strong>config/routes.rb</strong> will become hard to handle.</p>
 
 <p>Remember again in Section 2 where we had Restful controllers that all had similar actions ? Going back to 1.3 in that section again, I didn&#39;t explain how Rails would match request to our nicely standardised Restful controller/actions in a standard way. We&#39;ll do that by using similar Rest concepts in our config/routes.rb. </p>
 
@@ -61,7 +68,7 @@
 <div class="highlight"><pre><span class="n">resources</span> <span class="ss">:dashboard</span> 
 </pre></div>
 
-<p>This tells Rails that we want dashboard to be a Restful resource. This one line - <strong>resources :dashboard</strong> -  routes:</p>
+<p>This tells Rails that we want dashboard to be a Restful resource. This one line - <strong>resources :dashboard</strong> -  does the job of seven routes:</p>
 
 <table style="margin: 20px; font-weight: bold;" cellpadding="5px">
     <tr><td>GET</td><td>/dashboard</td><td>dashboard_controller#index</td></tr>
@@ -88,7 +95,7 @@
 <span class="go">           root        /                                 home#index                        home#index</span>
 </pre></div>
 
-<p>We&#39;ll be using that same mechanism for all of the remaining controllers in this application. Of course, not every controller will need ALL of the above actions and our dashboard_controller is a prime example of that. In fact we only want the index action so amend the line:</p>
+<p>We&#39;ll be using that same mechanism for all of the remaining controllers in this application. Of course, not every controller will need ALL of the above actions. We may not want to be able to edit something or destroy something and our dashboard_controller is a prime example of that. We only want the index action so amend the line:</p>
 <div class="highlight"><pre><span class="n">resources</span> <span class="ss">:dashboard</span>
 </pre></div>
 
@@ -123,7 +130,7 @@
 
 <h3>3.2.1. Add a link from the home page to the dashboard</h3>
 
-<p>We want to be able to get from the home page to the dashboard so let&#39;s just add a link. We could hard code a URL or relative path such as <a href="/dashboard">dashboard</a> into our navigation but instead we&#39;re going to return to rails routing again and use something called named paths.</p>
+<p>We want to be able to get from the home page to the dashboard so let&#39;s just add a navigation link. We could hard code a URL or relative path such as <a href="/dashboard">dashboard</a> into our navigation but instead we&#39;re going to turn to rails routing again and use something called named paths.</p>
 
 <p>In the file app/views/layouts/application.html.erb change the line:</p>
 <div class="highlight"><pre><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;&lt;%=</span> <span class="n">link_to</span> <span class="s2">&quot;Link1&quot;</span><span class="p">,</span> <span class="s2">&quot;/path1&quot;</span>  <span class="sx">%&gt;&lt;/li&gt;</span>
@@ -149,7 +156,7 @@
 <div class="highlight"><pre><span class="go">dashboard_index GET /dashboard(.:format)              dashboard#index</span>
 </pre></div>
 
-<p>The first part, <strong>dashboard_index</strong> is a Rails named path which uses Ruby meta-programming to create two named paths:</p>
+<p>The first part, <strong>dashboard_index</strong> is a Rails named path which uses Ruby meta-programming. We have the options to create two kinds of named path:</p>
 
 <ul>
 <li>dashboard<em>index</em>path = &quot;/dashboard&quot;</li>
@@ -158,11 +165,11 @@
 
 <p>It&#39;s common practice to use the &#39;<em>path&#39; option rather than the &#39;</em>url&#39; option so dashboard<em>index</em>path gives us our URL. </p>
 
-<p>At this stage you may be wondering why go to all the bother of using named paths ? What&#39;s the problem with hard-coding the string &#39;/dashboard&#39; ? Well, a bit like our controllers, we&#39;ve only just begun and we&#39;ll be moving-on to much more complicated URLs and nested resources as we develop this application (don&#39;t worry if you&#39;re not sure what &#39;nested resource&#39; means we&#39;ll be covering it in detail later). A nested resource we may well be using could have the URL /users/123/games/17/comments/2 meaning that our user 123 has a game with id 17 that game has a comment with id 2. We can get this as a named path with code like:</p>
+<p>Why go to the bother of using named paths ? What&#39;s the problem with hard-coding the string &#39;/dashboard&#39; ? Well, a bit like our controllers, we&#39;ve only just begun and we&#39;ll be moving-on to much more complicated URLs and to nested resources. Don&#39;t worry if you&#39;re not sure what &#39;nested resource&#39; means we&#39;ll be covering it in detail later but, in brief, a nested resource will have a URL something like /users/123/games/17/comments/2 meaning that our user 123 has a game with id 17 &amp; that game has a comment with id 2. We can get this as a named path with code like:</p>
 <div class="highlight"><pre><span class="n">users_games_comments_path</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">game</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span>
 </pre></div>
 
-<p>Rather than building the string &quot;/users/123/games/17/comments/2&quot; in code. OK, we could write some kind of helper method that builds the many urls we would need in this app but that&#39;s just what a <strong>named path</strong> is, it&#39;s a helper method given to us by Rails for free. We get it for free because we&#39;ve stuck to the Rails conventions.</p>
+<p>Rather than building the string &quot;/users/123/games/17/comments/2&quot; in code. OK, we could write some kind of helper method that builds the many urls we would need in this app but that&#39;s just what a <strong>named path</strong> is, it&#39;s a helper method given to us by Rails for free &amp; we get it for free because we&#39;ve stuck to the Rails conventions.</p>
 
 <div class="fb-comments"
      data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/3-create-the-dashboard-view.html#the-dashboard-view"

@@ -8,8 +8,8 @@ INDEX
  
 ## Before we start:
 
-### Make sure we have Ruby 1.9.3
-Stinky Trainers is built on Rails 3.2 and Ruby 1.9.3. If you don't have Ruby 1.9.3 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
+### Make sure we have Ruby  1.9.2
+Stinky Trainers is built on Rails 3.2 and Ruby  1.9.2. If you don't have Ruby  1.9.2 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
 
 ~~~console
 ruby -v
@@ -51,21 +51,23 @@ If you're wondering what __--skip-test-unit__ does, it just tells the Rails gene
 You'll see that rails has created a lot of files and folders for you.
 
 ### Important Files & Folders:
-the **app** folder is where all the code will go.
 
-**config/database.yaml** - database connection (by default sqlite3). Note that Rails assumes three environments, Development, Test, Production 
-**config/routes.rb** - connecting web requests to controllers and actions.  
-**db** is where our database migrations will go when we create them.
-**doc** is for documentation.
-**public** contains static html files (including the default home page index.html).
-**public/system** - used by rails for local storage of files like the uploaded images we'll be adding later with paperclip.
-**lib** is for code not specific to our application.
-**log** is where the Rails logger writes to
+1. the **app** folder is where all the code will go.
+
+1. **config/database.yaml** - database connection (by default sqlite3). Note that Rails assumes three environments, Development, Test, Production 
+1. **config/routes.rb** - connecting web requests to controllers and actions.  
+1. **db** is where our database migrations will go when we create them.
+1. **doc** is for documentation.
+1. **public** contains static html files (including the default home page index.html).
+1. **public/system** - used by rails for local storage of files like the uploaded images we'll be adding later with paperclip.
+1. **lib** is for code not specific to our application.
+1. **log** is where the Rails logger writes to
 
 ### Less Important Files & Folders:
-**tmp** - used by rails for storing temp files like session data, cookie data, PIDs etc.
-**vendor** - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.  
-**script** - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.
+
+1. **tmp** - used by rails for storing temp files like session data, cookie data, PIDs etc.
+1. **vendor** - we can ignore this. it's used for the obsolete rails plugins used before gems were invented.  
+1. **script** - scripts provided by Rails and other gems we install to start the app, generate code etc. Typically we don't add or edit things in this folder. We certainly DON'T want to put things like our javascript files here.
 
 COMMENTS
 
@@ -82,7 +84,7 @@ assert_equal('steve', user.name) # a typical test unit test.
 ~~~
 
 ### Add the Rspec gem to the bundler's Gemfile in the root of the application
-Generally we'll be very explicit about what versions of gem we need in this tutorial, probably more explicit than would be needed in a typical application but this will ensure you have the exact same gemset that we are using so you're less likely to encounter some unexpected versioining issue. Versioning problems are uncommon in Rails and easily resolved with a only little bit of experience but they're also a problem you just don't need at this stage.
+Generally we'll be very explicit about what versions of gem we need in this tutorial, probably more explicit than would be needed in a typical application but this will ensure you have the exact same gemset that we are using so you're less likely to encounter some unexpected issue. Versioning problems between gems are not common in Rails and easily resolved with a only little bit of experience but it's a problem we just don't need at this stage.
 
 Add these lines to the Gemfile in the root of your application. Note that we're putting them into a group called 'test' because we don't need these gems on our production server, just the cumputer we're using to test the application, typically this will be your development machine.
 
@@ -102,7 +104,7 @@ bundle install
   
 What just happened..
 
-bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. If the gem already existed on your computer it will use that gem.
+bundler looked at our Gemfile and downloaded the Rspec and Capybara gems plus any other gems that Rspec and Capybara depend upon. If the gem already existed on your computer it will use it otherwise it will download and install it.
   
 ### Run the RSpec generator
 Most gems don't need any special install instructions but Rspec needs to create some folders and files so run
@@ -125,7 +127,7 @@ require 'capybara/rails'
 COMMENTS
 
 ## Twitter Bootstrap
-This is a Rails tutorial so we won't waste time on web design and layout but it's always nice when our application looks a little sexy so to make that happen and to save us loads of time we'll install Twitter Bootstrap - an HTML, CSS and Javascript library - to make Stinkytrainers. Twitter Bootstrap is intended for all kinds of website but we can install it using the twitter boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
+This is a Rails tutorial so we won't waste time on web design and layout but it's always nice when our application looks a little sexy so we'll install Twitter Bootstrap; an integrated HTML, CSS and Javascript library. Twitter Bootstrap is intended for all kinds of web technologies but we can install it using the Twitter Boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
 
 ~~~ruby
 gem "twitter-bootstrap-rails", "=2.0.7"
@@ -154,7 +156,7 @@ create  app/assets/stylesheets/bootstrap_and_overrides.css.less
   gsub  app/assets/stylesheets/application.css
 ~~~
 
-The Twitter Boostrap gem has created the files __bootstrap.js.coffee__ and __bootstrap_and_overrides.css.less__ then added itself to __app/assets/javascripts/application.js__
+The Twitter Boostrap gem has created the files __bootstrap.js.coffee__ and __bootstrap\_and\_overrides.css.less__ then added itself to __app/assets/javascripts/application.js__
 
 Now we're going to use Twitter Boostrap to create a new layout. Take a look at the file __app/views/layouts/application.html.erb__. This is a Rails layout, basically a wrapper that will 'top & tail' every page that we create. Typically we would put common elements such as html head and our site navigation into application.html.erb. The file you're looking at is the standard one created by Rails but we are going to replace it with a fixed-width layout generated by Twitter Bootstrap that will also contain lots of nice examples like a default navigation.
 
