@@ -92,7 +92,7 @@ So let's start doing Test Driven Development properly and write a test that will
 Add this test in the file `spec/models/sport_spec.rb` where it says `pending "add some examples to (or delete) #{__FILE__}"`
 
 ~~~ruby
-# 6. spec/models/sport_spec.rb
+# spec/models/sport_spec.rb
 require 'spec_helper'
 
 describe Sport do
@@ -172,16 +172,18 @@ and they should all still pass.
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/5-create-the-sport-model.html#add-the-many-to-many-relationship-between-user-and-sport"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/5-create-the-sport-model.html#add-a-validation-to-our-model"
      data-num-posts="2"
      data-width="auto">
 </div>
 
 
-## Add the Many to Many relationship between User and Sport
+[back to top](#top)
+##<a id='add-the-many-to-many-relationship-between-user-and-sport'></a> 5.3. Add the Many to Many relationship between User and Sport
+
 We established at the beginning of this section that the association between User and Sport is many to many. 
 
-### 6.0.1. Active Record Associations
+### 5.3.1. Active Record Associations
 ActiveRecord handles this with a slightly more descriptive method `has_and_belongs_to_many`. We'll add this method to Sport and to User then join them by creating a __sports_users__ table.
 
 We've spent a lot of time with Sport so let's start with User. Add `has_and_belongs_to_many :sports` to the bottom of app/models/user.rb:
@@ -214,7 +216,7 @@ class Sport < ActiveRecord::Base
 end
 ~~~
 
-### 6.0.2. Create the many-to-many join table
+### 5.3.2. Create the many-to-many join table
 
 We need a sports_users table to join these two classes together. Changes to our database mean a migration so let's create one.
 
@@ -329,13 +331,15 @@ you should see
 Now we have our relationship let's add some data using the db/seeds.rb
 
 ~~~ruby
-# 7. db/seeds.rb
+# db/seeds.rb
 
-# 8. This file should contain all the record creation needed to seed the database with its default values.
-# 9. The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
-# 10. # 11. Examples:
-# 12. # 13.   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
-# 14.   Mayor.create(name: 'Emanuel', city: cities.first)
+# This file should contain all the record creation needed to seed the database with its default values.
+# The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
+#
+# Examples:
+#
+#   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
+#   Mayor.create(name: 'Emanuel', city: cities.first)
 
 ['Tennis', 'Badminton', 'Golf', 'Squash', 'Ping Pong'].each do | name |
   Sport.create!(:name => name) unless Sport.find_by_name(name)
