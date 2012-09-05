@@ -2,11 +2,13 @@
 
 Welcome to the stinky trainers tutorial where you'll learn how we built stinkytrainers.co.uk. Unlike many Rails tutorials we won't be building an application in 15 minutes, Stinky Trainers will take some time but at the end of it you'll have a built a full Rails app and have learned enbough to start building your own web applications in Rails.
 
-Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout. 
+Rails development isn't just fast it's also fun with a very helpful and friendly community. Take your time over this tutorial, enjoy learning Rails and feel free to ask any questions in the comments boxes you'll find throughout.
+
+In this section: 
 
 INDEX
  
-## Before we start:
+## Get the right version of Ruby, Rails and Bundler
 
 ### Make sure we have Ruby  1.9.2
 Stinky Trainers is built on Rails 3.2 and Ruby  1.9.2. If you don't have Ruby  1.9.2 then we recommend installing it using RBenv; a command-line tool that let's you run multiple versions of Ruby on one machine. You can easily check what version of ruby you have by running the command:
@@ -39,7 +41,7 @@ gem update bundler
 
 COMMENTS
 
-## Create the application:
+## Create the Rails application 
 Choose a folder where you'd like to create your applications. I used ~/devel/rails. Open a terminal and cd through to this folder then generate the application from the command line:
 
 ~~~console
@@ -71,7 +73,7 @@ You'll see that rails has created a lot of files and folders for you.
 
 COMMENTS
 
-## Rspec
+## Testing - install RSpec & Capybara
 
 ### What is RSpec ?
 We told the Rails generator to skip test unit but testing is going to be very central to building this app so we're going to use the Rspec gem. We're also going to use capybara, a gem that will let us simulate a web browser in our test and launchy, a gem to launch browsers.
@@ -126,7 +128,7 @@ require 'capybara/rails'
 
 COMMENTS
 
-## Twitter Bootstrap
+## Make the application a little sexy with Twitter Bootstrap
 This is a Rails tutorial so we won't waste time on web design and layout but it's always nice when our application looks a little sexy so we'll install Twitter Bootstrap; an integrated HTML, CSS and Javascript library. Twitter Bootstrap is intended for all kinds of web technologies but we can install it using the Twitter Boostrap gem. Add this lines to our Gemfile just above the line `gem 'jquery-rails'`:
 
 ~~~ruby
@@ -176,7 +178,7 @@ Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/applicati
 
 COMMENTS
 
-## Start the Application
+## Start the application for the first time
 Now we've installed all of the gems we need to get started. We'll be adding more gems as we go through but we've got our core testing gems plus the Twitter gem to give us a look & feel. It's time to start.
 
 Start the application on the command line with:

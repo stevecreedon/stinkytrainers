@@ -3,7 +3,7 @@ The home page is the entry point to our application. Everybody should be able to
 
 INDEX
 
-## Rest, Controllers and Views in Rails
+## Using REST with Controllers and Views in Rails
 Rails is an __MVC__ model-view-controller framework so we need a home controller __C__ that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a 'view' __V__ in Rails language. If you're new to MVC you're probably asking where the model __M__ is in MVC ? Well since this is our home page that doesn't do much we don't need a business model to do any fancy calculation for us.
 
 ### Rest
@@ -45,7 +45,7 @@ __GET__, __POST__, __PUT__ and __DELETE__ are all standard HTTP Verbs. You can f
 
 COMMENTS
 
-## Create the home page controller
+## Controller for the Home Page
 OK so that's enough theory for now. Let's write some code. Ww'll create our first controller using one of the Rails generators:
 
 ~~~console
@@ -76,10 +76,6 @@ The rails generator created a controller __app/controllers/home_controller.rb___
     invoke  scss
     create   app/assets/stylesheets/home.css.scss
 ~~~
-  
-COMMENTS
-
-## Create the home page
 
 ### Link the root "/" path to home controller
 Rails can't know that we want the home controller to manage the home page for our application so add this line to __config/routes.rb__
@@ -97,15 +93,19 @@ get "home/index"
 which was auto-generated for us.
 
 This tells rails that the root of our application is the __index__ action of the __home__ controller, i.e. __def index__ in __app/controllers/home_controller.rb__. Rails will call this action and then render the view __app/views/home/index.html.erb__ unless we specifically tell it not to (which we won't).
+  
+COMMENTS
+
+## View for the Home Page
 
 ### Put something on the home page to look at:
-Add this line to the home page app/views/home/index.html.erb:
+The home page `app/views/home/index.html.erb` was already created for us when we generated the controller. Add this line to the home page:
 
 ~~~ruby
   <h1>Welcome to Stinky Trainers</h1>
 ~~~
   
-We have a controller a method and a view so now we're ready to start our application.
+We have a controller method and a view so now we're ready to start our application.
 
 ~~~console
 bundle exec rails s
@@ -119,12 +119,12 @@ When a page or file is requested Rails always checks the public directory first 
 
 COMMENTS
 
-## Time to write a test. 
+## Testing - make sure the Home Page displays the right text.
 One of the strengths of Ruby and Rails is the ease with which we can write expressive testing code. Ruby is scripted, not compiled, so we don't have an IDE or compiler to sanity check our code for us. That means we need to write lots of tests. If you're not used to Test Driven Development, it's one of those things that seems really alien at first but then you quickly begin to wonder how you ever managed without it.
 
 Our dashboard page doesn't do very much at this stage so let's start with just a very basic test:
 
-### Inside the describe block in spec/views/home/index.html.erb_spec.rb
+### Inside the describe block in spec/views/home/index.html.erb\_spec.rb
 
 ~~~ruby
 it 'should display Welcome to Stinky Trainers on the home page' do
@@ -169,7 +169,7 @@ Pending tests are empty tests that the generators have created for us but we hav
 
 The *.* is a Pending test, a passed test and a pending test.
 
-Let's experiment a little and confirm the test is working by breaking it. Change have_content test in __spec/views/home/index.html.erb_spec.rb__ to have_content("Welcome to Smelly Socks")
+Let's experiment a little and confirm the test is working by breaking it. Change have_content test in __spec/views/home/index.html.erb\_spec.rb__ to have\_content("Welcome to Smelly Socks")
 
 ~~~console
 bundle exec rspec

@@ -3,12 +3,12 @@
 # 2. Create the home page
 The home page is the entry point to our application. Everybody should be able to access this page whether they're logged on or not making this the best place to start.
 
-1. [Rest, Controllers and Views in Rails](#rest-controllers-and-views-in-rails)
-1. [Create the home page controller](#create-the-home-page-controller)
-1. [Create the home page](#create-the-home-page)
-1. [Time to write a test. ](#time-to-write-a-test)
+1. [Using REST with Controllers and Views in Rails](#using-rest-with-controllers-and-views-in-rails)
+1. [Controller for the Home Page](#controller-for-the-home-page)
+1. [View for the Home Page](#view-for-the-home-page)
+1. [Testing - make sure the Home Page displays the right text.](#testing-make-sure-the-home-page-displays-the-right-text)
 
-##<a id='rest-controllers-and-views-in-rails'></a> 2.1. Rest, Controllers and Views in Rails
+##<a id='using-rest-with-controllers-and-views-in-rails'></a> 2.1. Using REST with Controllers and Views in Rails
 Rails is an __MVC__ model-view-controller framework so we need a home controller __C__ that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a 'view' __V__ in Rails language. If you're new to MVC you're probably asking where the model __M__ is in MVC ? Well since this is our home page that doesn't do much we don't need a business model to do any fancy calculation for us.
 
 ### 2.1.1. Rest
@@ -51,14 +51,14 @@ __GET__, __POST__, __PUT__ and __DELETE__ are all standard HTTP Verbs. You can f
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#rest-controllers-and-views-in-rails"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#using-rest-with-controllers-and-views-in-rails"
      data-num-posts="2"
      data-width="auto">
 </div>
 
 
 [back to top](#top)
-##<a id='create-the-home-page-controller'></a> 2.2. Create the home page controller
+##<a id='controller-for-the-home-page'></a> 2.2. Controller for the Home Page
 OK so that's enough theory for now. Let's write some code. Ww'll create our first controller using one of the Rails generators:
 
 ~~~console
@@ -89,20 +89,8 @@ The rails generator created a controller __app/controllers/home_controller.rb___
     invoke  scss
     create   app/assets/stylesheets/home.css.scss
 ~~~
-  
 
-
-<div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#create-the-home-page-controller"
-     data-num-posts="2"
-     data-width="auto">
-</div>
-
-
-[back to top](#top)
-##<a id='create-the-home-page'></a> 2.3. Create the home page
-
-### 2.3.1. Link the root "/" path to home controller
+### 2.2.1. Link the root "/" path to home controller
 Rails can't know that we want the home controller to manage the home page for our application so add this line to __config/routes.rb__
 
 ~~~ruby 
@@ -118,15 +106,27 @@ get "home/index"
 which was auto-generated for us.
 
 This tells rails that the root of our application is the __index__ action of the __home__ controller, i.e. __def index__ in __app/controllers/home_controller.rb__. Rails will call this action and then render the view __app/views/home/index.html.erb__ unless we specifically tell it not to (which we won't).
+  
 
-### 2.3.2. Put something on the home page to look at:
-Add this line to the home page app/views/home/index.html.erb:
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#controller-for-the-home-page"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='view-for-the-home-page'></a> 2.3. View for the Home Page
+
+### 2.3.1. Put something on the home page to look at:
+The home page `app/views/home/index.html.erb` was already created for us when we generated the controller. Add this line to the home page:
 
 ~~~ruby
   <h1>Welcome to Stinky Trainers</h1>
 ~~~
   
-We have a controller a method and a view so now we're ready to start our application.
+We have a controller method and a view so now we're ready to start our application.
 
 ~~~console
 bundle exec rails s
@@ -141,19 +141,19 @@ When a page or file is requested Rails always checks the public directory first 
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#create-the-home-page"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#view-for-the-home-page"
      data-num-posts="2"
      data-width="auto">
 </div>
 
 
 [back to top](#top)
-##<a id='time-to-write-a-test'></a> 2.4. Time to write a test. 
+##<a id='testing-make-sure-the-home-page-displays-the-right-text'></a> 2.4. Testing - make sure the Home Page displays the right text.
 One of the strengths of Ruby and Rails is the ease with which we can write expressive testing code. Ruby is scripted, not compiled, so we don't have an IDE or compiler to sanity check our code for us. That means we need to write lots of tests. If you're not used to Test Driven Development, it's one of those things that seems really alien at first but then you quickly begin to wonder how you ever managed without it.
 
 Our dashboard page doesn't do very much at this stage so let's start with just a very basic test:
 
-### 2.4.1. Inside the describe block in spec/views/home/index.html.erb_spec.rb
+### 2.4.1. Inside the describe block in spec/views/home/index.html.erb\_spec.rb
 
 ~~~ruby
 it 'should display Welcome to Stinky Trainers on the home page' do
@@ -198,7 +198,7 @@ Pending tests are empty tests that the generators have created for us but we hav
 
 The *.* is a Pending test, a passed test and a pending test.
 
-Let's experiment a little and confirm the test is working by breaking it. Change have_content test in __spec/views/home/index.html.erb_spec.rb__ to have_content("Welcome to Smelly Socks")
+Let's experiment a little and confirm the test is working by breaking it. Change have_content test in __spec/views/home/index.html.erb\_spec.rb__ to have\_content("Welcome to Smelly Socks")
 
 ~~~console
 bundle exec rspec
@@ -239,7 +239,7 @@ __DON"T FORGET TO GO BACK AND FIX THE TEST WE"VE JUST BROKEN__
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#time-to-write-a-test"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#testing-make-sure-the-home-page-displays-the-right-text"
      data-num-posts="2"
      data-width="auto">
 </div>

@@ -5,13 +5,13 @@
 <p>The home page is the entry point to our application. Everybody should be able to access this page whether they&#39;re logged on or not making this the best place to start.</p>
 
 <ol>
-<li><a href="#rest-controllers-and-views-in-rails">Rest, Controllers and Views in Rails</a></li>
-<li><a href="#create-the-home-page-controller">Create the home page controller</a></li>
-<li><a href="#create-the-home-page">Create the home page</a></li>
-<li><a href="#time-to-write-a-test">Time to write a test. </a></li>
+<li><a href="#using-rest-with-controllers-and-views-in-rails">Using REST with Controllers and Views in Rails</a></li>
+<li><a href="#controller-for-the-home-page">Controller for the Home Page</a></li>
+<li><a href="#view-for-the-home-page">View for the Home Page</a></li>
+<li><a href="#testing-make-sure-the-home-page-displays-the-right-text">Testing - make sure the Home Page displays the right text.</a></li>
 </ol>
 
-<h2><a id='rest-controllers-and-views-in-rails'></a> 2.1. Rest, Controllers and Views in Rails</h2>
+<h2><a id='using-rest-with-controllers-and-views-in-rails'></a> 2.1. Using REST with Controllers and Views in Rails</h2>
 
 <p>Rails is an <strong>MVC</strong> model-view-controller framework so we need a home controller <strong>C</strong> that will handle the request http://www.stinkytrainers.com and route this request through to our home page, commonly known as a &#39;view&#39; <strong>V</strong> in Rails language. If you&#39;re new to MVC you&#39;re probably asking where the model <strong>M</strong> is in MVC ? Well since this is our home page that doesn&#39;t do much we don&#39;t need a business model to do any fancy calculation for us.</p>
 
@@ -68,14 +68,14 @@
 <p><strong>GET</strong>, <strong>POST</strong>, <strong>PUT</strong> and <strong>DELETE</strong> are all standard HTTP Verbs. You can find out more about HTTP verbs here. Those of you familiar with HTTP verbs will probably be aware that web browsers generally don&#39;t use <strong>PUT</strong> and <strong>DELETE</strong>. Rails appends parameters to the request update and destroy requests that will be interpreted by Rails server as <strong>PUT</strong> and <strong>DELETE</strong>.</p>
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#rest-controllers-and-views-in-rails"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#using-rest-with-controllers-and-views-in-rails"
      data-num-posts="2"
      data-width="auto">
 </div>
 
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='create-the-home-page-controller'></a> 2.2. Create the home page controller</h2>
+<h2><a id='controller-for-the-home-page'></a> 2.2. Controller for the Home Page</h2>
 
 <p>OK so that&#39;s enough theory for now. Let&#39;s write some code. Ww&#39;ll create our first controller using one of the Rails generators:</p>
 <div class="highlight"><pre><span class="go">  bundle exec rails g controller home index</span>
@@ -104,17 +104,7 @@
 <span class="go">    create   app/assets/stylesheets/home.css.scss</span>
 </pre></div>
 
-<div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#create-the-home-page-controller"
-     data-num-posts="2"
-     data-width="auto">
-</div>
-
-<p><a href="#top">back to top</a></p>
-
-<h2><a id='create-the-home-page'></a> 2.3. Create the home page</h2>
-
-<h3>2.3.1. Link the root &quot;/&quot; path to home controller</h3>
+<h3>2.2.1. Link the root &quot;/&quot; path to home controller</h3>
 
 <p>Rails can&#39;t know that we want the home controller to manage the home page for our application so add this line to <strong>config/routes.rb</strong></p>
 <div class="highlight"><pre><span class="n">root</span> <span class="ss">:to</span> <span class="o">=&gt;</span> <span class="s1">&#39;home#index&#39;</span>
@@ -128,13 +118,23 @@
 
 <p>This tells rails that the root of our application is the <strong>index</strong> action of the <strong>home</strong> controller, i.e. <strong>def index</strong> in <strong>app/controllers/home_controller.rb</strong>. Rails will call this action and then render the view <strong>app/views/home/index.html.erb</strong> unless we specifically tell it not to (which we won&#39;t).</p>
 
-<h3>2.3.2. Put something on the home page to look at:</h3>
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#controller-for-the-home-page"
+     data-num-posts="2"
+     data-width="auto">
+</div>
 
-<p>Add this line to the home page app/views/home/index.html.erb:</p>
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='view-for-the-home-page'></a> 2.3. View for the Home Page</h2>
+
+<h3>2.3.1. Put something on the home page to look at:</h3>
+
+<p>The home page <code>app/views/home/index.html.erb</code> was already created for us when we generated the controller. Add this line to the home page:</p>
 <div class="highlight"><pre>  <span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Welcome</span> <span class="n">to</span> <span class="no">Stinky</span> <span class="no">Trainers</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
 </pre></div>
 
-<p>We have a controller a method and a view so now we&#39;re ready to start our application.</p>
+<p>We have a controller method and a view so now we&#39;re ready to start our application.</p>
 <div class="highlight"><pre><span class="go">bundle exec rails s</span>
 </pre></div>
 
@@ -145,14 +145,14 @@
 <p><img src="/assets/3.2_first_home_page.png" alt="Our first home page"></p>
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#create-the-home-page"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#view-for-the-home-page"
      data-num-posts="2"
      data-width="auto">
 </div>
 
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='time-to-write-a-test'></a> 2.4. Time to write a test.</h2>
+<h2><a id='testing-make-sure-the-home-page-displays-the-right-text'></a> 2.4. Testing - make sure the Home Page displays the right text.</h2>
 
 <p>One of the strengths of Ruby and Rails is the ease with which we can write expressive testing code. Ruby is scripted, not compiled, so we don&#39;t have an IDE or compiler to sanity check our code for us. That means we need to write lots of tests. If you&#39;re not used to Test Driven Development, it&#39;s one of those things that seems really alien at first but then you quickly begin to wonder how you ever managed without it.</p>
 
@@ -194,7 +194,7 @@
 
 <p>The <em>.</em> is a Pending test, a passed test and a pending test.</p>
 
-<p>Let&#39;s experiment a little and confirm the test is working by breaking it. Change have<em>content test in _</em>spec/views/home/index.html.erb<em>spec.rb</em>_ to have_content(&quot;Welcome to Smelly Socks&quot;)</p>
+<p>Let&#39;s experiment a little and confirm the test is working by breaking it. Change have<em>content test in _</em>spec/views/home/index.html.erb_spec.rb__ to have_content(&quot;Welcome to Smelly Socks&quot;)</p>
 <div class="highlight"><pre><span class="go">bundle exec rspec</span>
 </pre></div>
 
@@ -229,7 +229,7 @@
 <p><strong>DON&quot;T FORGET TO GO BACK AND FIX THE TEST WE&quot;VE JUST BROKEN</strong></p>
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#time-to-write-a-test"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/2-create-the-home-page.html#testing-make-sure-the-home-page-displays-the-right-text"
      data-num-posts="2"
      data-width="auto">
 </div>

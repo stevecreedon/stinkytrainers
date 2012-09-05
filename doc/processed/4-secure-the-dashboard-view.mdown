@@ -5,10 +5,12 @@
 To secure the dashboard we're going to need a user so that we are able to sign-up, store some password details, sign-out and then sign-in.
 
 1. [Add the Devise gem](#add-the-devise-gem)
-1. [Create the User model](#create-the-user-model)
-1. [Now let's secure the dashboard with Devise:](#now-let-s-secure-the-dashboard-with-devise)
-1. [Add some code so that we can sign out](#add-some-code-so-that-we-can-sign-out)
-1. [Testing our locked-down dashboard](#testing-our-locked-down-dashboard)
+1. [Use Devise to create the User Model](#use-devise-to-create-the-user-model)
+1. [Secure the Dashboard with Devise](#secure-the-dashboard-with-devise)
+1. [Testing the Dashboard is locked down](#testing-the-dashboard-is-locked-down)
+1. [Test signed-in users can see the Dashboard](#test-signed-in-users-can-see-the-dashboard)
+1. [Testing we can sign-in and see the Dashboard  ](#testing-we-can-sign-in-and-see-the-dashboard)
+1. [Testing we can sign-up and see the Dashboard ](#testing-we-can-sign-up-and-see-the-dashboard)
 
 ##<a id='add-the-devise-gem'></a> 4.1. Add the Devise gem
 Devise gives us authentication out-of-the-box. We'll be getting devise to build us an authenticating user class
@@ -125,7 +127,7 @@ bundle exec rails generate devise:views
 
 
 [back to top](#top)
-##<a id='create-the-user-model'></a> 4.2. Create the User model
+##<a id='use-devise-to-create-the-user-model'></a> 4.2. Use Devise to create the User Model
 
 ### 4.2.1. Create a User model using the Devise generator. 
 This will give us a standard Rails ActiveeRcord model but with some extra authentication methods and attributes needed for Devise. Of course we could add these extra bits by hand ourselves but we're here to write an application not a framework so we'll let Devise do this boring stuff for us.
@@ -210,14 +212,14 @@ and you should see some sql in your console that tells you your table has been d
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#create-the-user-model"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#use-devise-to-create-the-user-model"
      data-num-posts="2"
      data-width="auto">
 </div>
 
 
 [back to top](#top)
-##<a id='now-let-s-secure-the-dashboard-with-devise'></a> 4.3. Now let's secure the dashboard with Devise:
+##<a id='secure-the-dashboard-with-devise'></a> 4.3. Secure the Dashboard with Devise
 To secure the dashboard we'll add some code to our dashboard_controller that checks to see if we have a user in session that's already logged-in. Add this line to the dashboard controller app/controllers/dashboard_controller.rb
 
 ~~~ruby
@@ -233,14 +235,13 @@ Now start the app `bundle exec rails s` browse to the home page __localhost:3000
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#now-let-s-secure-the-dashboard-with-devise"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#secure-the-dashboard-with-devise"
      data-num-posts="2"
      data-width="auto">
 </div>
 
 
-[back to top](#top)
-##<a id='add-some-code-so-that-we-can-sign-out'></a> 4.4. Add some code so that we can sign out
+### 4.3.1. Add some code so that we can sign out
 Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  Add this line to app/layouts/application.html.erb so that it's at the bottom of
 
 ~~~ruby
@@ -264,14 +265,14 @@ destroy\_user\_session_path. We'll cover Devise routes a bit more below.
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#add-some-code-so-that-we-can-sign-out"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#secure-the-dashboard-with-devise"
      data-num-posts="2"
      data-width="auto">
 </div>
 
 
 [back to top](#top)
-##<a id='testing-our-locked-down-dashboard'></a> 4.5. Testing our locked-down dashboard
+##<a id='testing-the-dashboard-is-locked-down'></a> 4.4. Testing the Dashboard is locked down
 Typically with Test Driven Development you would write tests first and then make them pass but in this particular case I wanted you to see Devise in action so that the tests have some meaning. 
 
 Let's test Devise by writing two tests for our dashboard controller:
@@ -282,7 +283,7 @@ Let's test Devise by writing two tests for our dashboard controller:
 
 
 
-### 4.5.1. Testing the redirect
+### 4.4.1. Testing the redirect
 Let's test that our dashboard controller redirects us to a sign-in page when there is no signed-in user
 
 In spec/controllers/dashboard_controller_spec.rb
@@ -338,7 +339,8 @@ cancel_user_registration GET    /users/cancel(.:format)           devise/registr
 
 You can see that __new\_user\_session__ returns the path __/users/sign\_in__ which points to the new method of a devise sessions controller. Remember that we use __new\_user\_session__ by adding either _path or _url to the end depending on whether we want a full url or not.
 
-### 4.5.2. Test signed-in users
+[back to top](#top)
+##<a id='test-signed-in-users-can-see-the-dashboard'></a> 4.5. Test signed-in users can see the Dashboard
 Let's create a test that calls the index page of our secure dashboard_controller. 
 
 add this test to spec/controllers/dashboard\_controller\_spec.rb beneath our passing test.
@@ -390,7 +392,7 @@ end
 
 The test should now pass when you run `bundle exec rake spec`
 
-### 4.5.3. Change the test to use FactoryGirl.
+### 4.5.1. Change the test to use FactoryGirl.
 We've got the test passing but it feels wrong to create a new user each time we want to run a test so we're going to use a gem called FactoryGirl. FactoryGirl will, on demand, create test users (and other objects) for us. As our user gets more complex, FactoryGirl will become a clear and convenient way to build objects for testing rather than create new ones from scratch each time.
 
 First let's add the FactoryGirl gem to our Gemfile's testing group:
@@ -444,7 +446,10 @@ now check that it's all still working
 
 ~~~console
 bundle exec rake spec  
-~~~  
+~~~
+
+[back to top](#top)
+##<a id='testing-we-can-sign-in-and-see-the-dashboard'></a> 4.6. Testing we can sign-in and see the Dashboard  
   
 We've tested that we have to be signed-in to see the dashboard index page so now let's test that we CAN sign in. Create the folder and file spec/integration/dashboard/authentication_spec.rb and add these lines:
 
@@ -486,6 +491,9 @@ bundle exec rake spec
 ~~~
 
 and it should pass.
+
+[back to top](#top)
+##<a id='testing-we-can-sign-up-and-see-the-dashboard'></a> 4.7. Testing we can sign-up and see the Dashboard 
 
 Lastly, we want users that aren't logged-in and don't have an account with us to be able to sign-up and then see the dashboard index page. Add this to spec/integration/dashboard/authentication_spec.rb
 
@@ -537,7 +545,7 @@ We can see that for testing we have a database called db/test.sqlite3 so that we
 
 
 <div class="fb-comments"
-     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#testing-our-locked-down-dashboard"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/4-secure-the-dashboard-view.html#testing-we-can-sign-up-and-see-the-dashboard"
      data-num-posts="2"
      data-width="auto">
 </div>

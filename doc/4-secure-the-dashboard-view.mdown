@@ -111,7 +111,7 @@ bundle exec rails generate devise:views
 
 COMMENTS
 
-## Create the User model
+## Use Devise to create the User Model
 
 ### Create a User model using the Devise generator. 
 This will give us a standard Rails ActiveeRcord model but with some extra authentication methods and attributes needed for Devise. Of course we could add these extra bits by hand ourselves but we're here to write an application not a framework so we'll let Devise do this boring stuff for us.
@@ -195,7 +195,7 @@ and you should see some sql in your console that tells you your table has been d
 
 COMMENTS
 
-## Now let's secure the dashboard with Devise:
+## Secure the Dashboard with Devise
 To secure the dashboard we'll add some code to our dashboard_controller that checks to see if we have a user in session that's already logged-in. Add this line to the dashboard controller app/controllers/dashboard_controller.rb
 
 ~~~ruby
@@ -210,7 +210,7 @@ Now start the app `bundle exec rails s` browse to the home page __localhost:3000
 
 COMMENTS
 
-## Add some code so that we can sign out
+### Add some code so that we can sign out
 Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  Add this line to app/layouts/application.html.erb so that it's at the bottom of
 
 ~~~ruby
@@ -233,7 +233,7 @@ destroy\_user\_session_path. We'll cover Devise routes a bit more below.
 
 COMMENTS
 
-## Testing our locked-down dashboard
+## Testing the Dashboard is locked down
 Typically with Test Driven Development you would write tests first and then make them pass but in this particular case I wanted you to see Devise in action so that the tests have some meaning. 
 
 Let's test Devise by writing two tests for our dashboard controller:
@@ -300,7 +300,7 @@ cancel_user_registration GET    /users/cancel(.:format)           devise/registr
 
 You can see that __new\_user\_session__ returns the path __/users/sign\_in__ which points to the new method of a devise sessions controller. Remember that we use __new\_user\_session__ by adding either _path or _url to the end depending on whether we want a full url or not.
 
-### Test signed-in users
+## Test signed-in users can see the Dashboard
 Let's create a test that calls the index page of our secure dashboard_controller. 
 
 add this test to spec/controllers/dashboard\_controller\_spec.rb beneath our passing test.
@@ -406,7 +406,9 @@ now check that it's all still working
 
 ~~~console
 bundle exec rake spec  
-~~~  
+~~~
+
+## Testing we can sign-in and see the Dashboard  
   
 We've tested that we have to be signed-in to see the dashboard index page so now let's test that we CAN sign in. Create the folder and file spec/integration/dashboard/authentication_spec.rb and add these lines:
 
@@ -448,6 +450,8 @@ bundle exec rake spec
 ~~~
 
 and it should pass.
+
+## Testing we can sign-up and see the Dashboard 
 
 Lastly, we want users that aren't logged-in and don't have an account with us to be able to sign-up and then see the dashboard index page. Add this to spec/integration/dashboard/authentication_spec.rb
 
