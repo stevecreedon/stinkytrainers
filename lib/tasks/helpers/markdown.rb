@@ -49,7 +49,7 @@ module Tasks
                 break
               end
             end
-            
+
             if name
               %Q{<li><%= link_to "#{name}", "#{url_prefix}#{file_name.gsub(from, "").gsub('mdown', '')}html"  %></li>}
             else
@@ -73,7 +73,7 @@ module Tasks
 
         Dir.glob("#{from}*.mdown").each do |path|
           file = File.open(path, "r")
-          
+
           target = path.gsub(from, to)
 
           puts "Processing #{path} to #{path.gsub(from, to)}"
@@ -90,13 +90,14 @@ module Tasks
             end
 
             file.rewind
+            skip_lines = false
 
             file.readlines.each do |line|
-              if line =~ /^INDEX/
+              if line =~ /^INDEX/ && !skip_lines
                 h2s.each do |h2|
                   pf.write "1. [#{h2[1]}](##{h2[2]})\n"
                 end
-              elsif line =~ /^COMMENTS/
+              elsif line =~ /^COMMENTS/ && !skip_lines
                 pf.write %Q{
 
 <div class="fb-comments"
@@ -106,14 +107,16 @@ module Tasks
 </div>
 
 }
-              elsif line =~ /^#\s/
+              elsif line =~ /^#\s/ && !skip_lines
                 pf.write line.gsub(/#\s/, "# #{numbering.nextH1}. ")
-              elsif line =~ /^###\s/
+              elsif line =~ /^###\s/ && !skip_lines
                 pf.write line.gsub(/###\s/, "### #{numbering.nextH3}. ") 
-              elsif h2s.size > numbering.h2 && h2s[numbering.h2][0] == line
+              elsif h2s.size > numbering.h2 && h2s[numbering.h2][0] == line && !skip_lines
                 pf.write "[back to top](#top)\n" unless numbering.h2 == 0
                 pf.write line.gsub(/^##\s/, "##<a id='#{h2s[numbering.h2][2]}'></a> #{numbering.nextH2}. ")
               else
+                skip_lines = true if line =~ /^~~~\w+\s*$/
+                skip_lines = false if line =~ /^~~~\s*$/
                 pf.write line
               end
             end

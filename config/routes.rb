@@ -5,9 +5,9 @@ Stinkytrainers::Application.routes.draw do
   get "dashboard/index"
 
   resources :dashboard, :only => [:index] 
-  
+
   get "ruby-on-rails-tutorial(/*path)" => "tutorial#index"
-  
+
   root :to => 'home#index'
 
   # The priority is based upon order of creation:

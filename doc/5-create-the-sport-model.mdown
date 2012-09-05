@@ -160,6 +160,7 @@ and they should all still pass.
 COMMENTS
 
 ## Add the Many to Many relationship between User and Sport
+
 We established at the beginning of this section that the association between User and Sport is many to many. 
 
 ### Active Record Associations
