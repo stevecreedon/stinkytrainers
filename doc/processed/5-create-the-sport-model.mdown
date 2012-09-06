@@ -17,7 +17,7 @@ Obviously sport is connected to things like games too but we only have a user ob
 We created our User model using a generator provided by Devise because we wanted our User to have Devise authentication functionality baked-in. Our Sport model is going to be a 'plain old Rails model' so we'll create it using the rails generator and passing it the argument `name:string` so that it creates the name attribute in our migration.
 
 ~~~console
-bundle exec rails g model sports name:string
+bundle exec rails g model sport name:string
 ~~~   
 
 This should produce:
@@ -352,7 +352,7 @@ and run the command:
 bundle exec rake db:seed
 ~~~
 
-on the assumption that you have a user in your database we can now test this association in the rails console:
+on the assumption that you have a user in your database (maybe you've been playing with migration rollbacks and deleted any users so if you don't then just sign-up to create one) we can now test this association in the rails console:
 
 ~~~console
 rails c

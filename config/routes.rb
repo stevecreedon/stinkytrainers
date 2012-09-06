@@ -1,8 +1,8 @@
 Stinkytrainers::Application.routes.draw do
-
+  
   devise_for :users
 
-  get "dashboard/index"
+  resources :sports, :only => [:index, :new, :create, :destroy]
 
   resources :dashboard, :only => [:index] 
 

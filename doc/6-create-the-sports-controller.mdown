@@ -1,0 +1,118 @@
+We have a Sport model that we've hooked to the User in a has\_and\_belongs\_to\_many relationship. We need to be able to carry out most of the basic CRUD actions:
+
+1. List sports
+2. Create a Sport
+3. Destroy a Sport
+
+For this first release of Stinkytrainers Sport will be a simple 'lookup' value with a name so we don't really need to edit a sport.
+
+## Generate the Sports Controller
+
+To make these actions work we'll need a controller:  
+
+~~~console
+bundle exec rails g controller sports index create destroy
+~~~
+
+which returns
+
+~~~console
+create  app/controllers/sports_controller.rb
+      route  get "sports/destroy"
+      route  get "sports/create"
+      route  get "sports/new"
+      route  get "sports/index"
+     invoke  erb
+     create    app/views/sports
+     create    app/views/sports/index.html.erb
+     create    app/views/sports/new.html.erb
+     create    app/views/sports/create.html.erb
+     create    app/views/sports/destroy.html.erb
+     invoke  rspec
+     create    spec/controllers/sports_controller_spec.rb
+     create    spec/views/sports
+     create    spec/views/sports/index.html.erb_spec.rb
+     create    spec/views/sports/new.html.erb_spec.rb
+     create    spec/views/sports/create.html.erb_spec.rb
+     create    spec/views/sports/destroy.html.erb_spec.rb
+     invoke  helper
+     create    app/helpers/sports_helper.rb
+     invoke    rspec
+     create      spec/helpers/sports_helper_spec.rb
+     invoke  assets
+     invoke    coffee
+     create      app/assets/javascripts/sports.js.coffee
+     invoke    scss
+     create      app/assets/stylesheets/sports.css.scss
+~~~
+
+We've created a controller with views for index, new, create and destroy plus associated tests. 
+
+~~~ruby
+class SportsController < ApplicationController
+  def index
+  end
+
+  def new
+  end
+
+  def create
+  end
+
+  def destroy
+  end
+end
+~~~
+
+There are some css and coffee script files that we may use later. We certainly won't be using the destroy.html.erb and create.html.erb files; when we create a new sport or destroy one we'll redirect to the index page rather than show a create or destroy page so let's delete the following:
+
+~~~console
+app/views/sports/create.html.erb
+app/views/sports/destroy.html.erb
+
+spec/views/sports/create.html.erb_spec.rb
+spec/views/sports/destroy.html.erb_spec.rb
+~~~
+
+### Make Sport a RESTful resource
+Remove these lines from config/routes.rb
+
+~~~ruby
+get "sports/index"
+
+get "sports/new"
+
+get "sports/create"
+
+get "sports/destroy"
+~~~
+
+and put this line in their place
+
+~~~ruby
+resources :sports, :only => [:index, :new, :create, :destory]
+~~~
+
+Run `bundle exec rake routes` to see the routes that will connect to our sports_controller's index, new create & destroy actions
+
+~~~console
+     new_user_session GET    /users/sign_in(.:format)                  devise/sessions#new
+            user_session POST   /users/sign_in(.:format)                  devise/sessions#create
+    destroy_user_session DELETE /users/sign_out(.:format)                 devise/sessions#destroy
+           user_password POST   /users/password(.:format)                 devise/passwords#create
+       new_user_password GET    /users/password/new(.:format)             devise/passwords#new
+      edit_user_password GET    /users/password/edit(.:format)            devise/passwords#edit
+                         PUT    /users/password(.:format)                 devise/passwords#update
+cancel_user_registration GET    /users/cancel(.:format)                   devise/registrations#cancel
+       user_registration POST   /users(.:format)                          devise/registrations#create
+   new_user_registration GET    /users/sign_up(.:format)                  devise/registrations#new
+  edit_user_registration GET    /users/edit(.:format)                     devise/registrations#edit
+                         PUT    /users(.:format)                          devise/registrations#update
+                         DELETE /users(.:format)                          devise/registrations#destroy
+                  sports GET    /sports(.:format)                         sports#index
+                         POST   /sports(.:format)                         sports#create
+               new_sport GET    /sports/new(.:format)                     sports#new
+                   sport DELETE /sports/:id(.:format)                     sports#destroy
+         dashboard_index GET    /dashboard(.:format)                      dashboard#index
+                    root        /                                         home#index                                  home#index
+~~~

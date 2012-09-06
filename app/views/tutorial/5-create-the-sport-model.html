@@ -19,7 +19,7 @@
 <h2><a id='generate-the-sport-model'></a> 5.1. Generate the Sport Model</h2>
 
 <p>We created our User model using a generator provided by Devise because we wanted our User to have Devise authentication functionality baked-in. Our Sport model is going to be a &#39;plain old Rails model&#39; so we&#39;ll create it using the rails generator and passing it the argument <code>name:string</code> so that it creates the name attribute in our migration.</p>
-<div class="highlight"><pre><span class="go">bundle exec rails g model sports name:string</span>
+<div class="highlight"><pre><span class="go">bundle exec rails g model sport name:string</span>
 </pre></div>
 
 <p>This should produce:</p>
@@ -305,7 +305,7 @@
 <div class="highlight"><pre><span class="go">bundle exec rake db:seed</span>
 </pre></div>
 
-<p>on the assumption that you have a user in your database we can now test this association in the rails console:</p>
+<p>on the assumption that you have a user in your database (maybe you&#39;ve been playing with migration rollbacks and deleted any users so if you don&#39;t then just sign-up to create one) we can now test this association in the rails console:</p>
 <div class="highlight"><pre><span class="go">rails c</span>
 </pre></div>
 
