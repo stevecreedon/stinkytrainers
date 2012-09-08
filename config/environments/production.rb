@@ -65,17 +65,4 @@ Stinkytrainers::Application.configure do
   # with SQLite, MySQL, and PostgreSQL)
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
 
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.default_charset = "utf-8"
-  config.action_mailer.perform_deliveries = true
-  config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.smtp_settings =
-  {
-    :authentication => :plain,
-    :address => "smtp.mailgun.org",
-    :port => 587,
-    :domain => "app7219381.mailgun.org",
-    :user_name => "postmaster@app7219381.mailgun.org",
-    :password => "6e4-6ppg4563"
-  }
 end
