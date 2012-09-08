@@ -1,16 +1,23 @@
 <p><a id='top'></a></p>
 
-<p>We have a Sport model that we&#39;ve hooked to the User in a has_and_belongs_to_many relationship. We need to be able to carry out most of the basic CRUD actions:</p>
+<h1>6. The Sports Controller and Views</h1>
+
+<p>We have a Sport model that we&#39;ve hooked to the User in a has_and_belongs_to_many relationship. We want to be able to list, create and destroy Sports. At the moment our Sport object only has a name so we won&#39;t implement editing a sport. </p>
 
 <ol>
-<li>List sports</li>
-<li>Create a Sport</li>
-<li>Destroy a Sport</li>
+<li><a href="#generate-the-sports-controller">Generate the Sports Controller</a></li>
+<li><a href="#integration-testing-over-controller-view-testing">Integration testing over Controller/View testing</a></li>
+<li><a href="#test-that-the-controller-requires-authentication">Test that the controller requires authentication</a></li>
+<li><a href="#functional-tests-for-listing-creating-and-deleting-sports">Functional Tests for listing, creating and deleting Sports</a></li>
+<li><a href="#test-1-listing-sports-with-the-index-action">Test 1. Listing Sports with the index action</a></li>
+<li><a href="#test-2-creating-a-new-sport-with-the-new-and-create-actions">Test 2. Creating a new Sport with the new and create actions</a></li>
+<li><a href="#test-3-attempt-to-create-a-new-sport-with-invalid-parameters">Test 3. Attempt to create a new sport with invalid parameters</a></li>
+<li><a href="#test-4-destroy-a-sport">Test 4. Destroy a Sport</a></li>
 </ol>
 
 <p>For this first release of Stinkytrainers Sport will be a simple &#39;lookup&#39; value with a name so we don&#39;t really need to edit a sport.</p>
 
-<h2>Generate the Sports Controller</h2>
+<h2><a id='generate-the-sports-controller'></a> 6.1. Generate the Sports Controller</h2>
 
 <p>To make these actions work we&#39;ll need a controller:  </p>
 <div class="highlight"><pre><span class="go">bundle exec rails g controller sports index create destroy</span>
@@ -62,15 +69,19 @@
 <span class="k">end</span>
 </pre></div>
 
-<p>There are some css and coffee script files that we may use later. We certainly won&#39;t be using the destroy.html.erb and create.html.erb files; when we create a new sport or destroy one we&#39;ll redirect to the index page rather than show a create or destroy page so let&#39;s delete the following:</p>
+<p>There are some css and coffee script files that we may use later. We certainly won&#39;t be using the destroy.html.erb and create.html.erb files; when we create a new sport or destroy one we&#39;ll redirect to the index page rather than show a create or destroy page. We also won&#39;t be testing the sports_controller directly. More about that a bit further down.</p>
+
+<p>Delete the following:</p>
 <div class="highlight"><pre><span class="go">app/views/sports/create.html.erb</span>
 <span class="go">app/views/sports/destroy.html.erb</span>
 
 <span class="go">spec/views/sports/create.html.erb_spec.rb</span>
 <span class="go">spec/views/sports/destroy.html.erb_spec.rb</span>
+
+<span class="go">spec/controllers/sports_controller_spec.rb</span>
 </pre></div>
 
-<h3>5.3.3. Make Sport a RESTful resource</h3>
+<h3>6.1.1. Make Sport a RESTful resource</h3>
 
 <p>Remove these lines from config/routes.rb</p>
 <div class="highlight"><pre><span class="n">get</span> <span class="s2">&quot;sports/index&quot;</span>
@@ -106,4 +117,462 @@
 <span class="go">                   sport DELETE /sports/:id(.:format)                     sports#destroy</span>
 <span class="go">         dashboard_index GET    /dashboard(.:format)                      dashboard#index</span>
 <span class="go">                    root        /                                         home#index                                  home#index</span>
+</pre></div>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='integration-testing-over-controller-view-testing'></a> 6.2. Integration testing over Controller/View testing</h2>
+
+<p>So you may be wondering why we deleted the spec/controllers/sports_controller_spec.rb when we&#39;re building a Test Driven application. Traditionally we would use RSpec to write some test for the controller and then use it again to write more tests for each view. We&#39;ve always found testing controllers to be a bit painful. Model unit testing is simple, you put something in and expect something back but controllers are more complex. For example, testing a &#39;create&#39; action on the controller often means we call &#39;create&#39;, the controller does something and all we get back is a nice 302 from the controller saying &#39;trust me, I did the right thing&#39;. </p>
+
+<p>Of course there are things we can do to make sure the controller did actually do the right thing but quite quickly our controller unit tests get tied-down to testing individual lines of code rather than the action as a whole. In other words the tests don&#39;t just look for the end-result of the controller they have to understand how the controller works and so they start to dictate how the controller code should look and that&#39;s not good for refactoring. A simple example of this already exists in our controller unit tests with the line:</p>
+<div class="highlight"><pre><span class="n">assign</span><span class="p">(</span><span class="ss">:sport</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">sport</span>
+</pre></div>
+
+<p>The above test is ensuring that our controller creates an instance variable @sport with the value sport. Why should a test dictate the name of internal variables that a controller needs to complete its task? Advocates of controller testing will say that the test is valid because the @sport variable is required by the view so the test is ensuring that variable is correct. But why not have a test that encompasses both controller and view since they&#39;re both parts of the same user interaction ?</p>
+
+<p>For the remainder of this application we&#39;ll be discarding controller unit tests and creating functional tests that cover the user interacting with both the controller and the view. We&#39;re certainly not saying that controller and view testing is wrong, it will be valid for large projects where there may be a front-end team, a back-end team and maybe even an integration team writing code separately but we feel that it&#39;s less suited for the very common scenario of one or two Rails developers building it all.</p>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='test-that-the-controller-requires-authentication'></a> 6.3. Test that the controller requires authentication</h2>
+
+<p>Create the file <code>spec/integration/sports/authentication_spec.rb</code> and add this code. Note that after we call <code>visit sports_path</code> we&#39;re expecting expecting to see the login page <code>page.current_path.should == new_user_session_path</code> </p>
+<div class="highlight"><pre><span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
+
+<span class="n">describe</span> <span class="s1">&#39;only registered users can access sports&#39;</span> <span class="k">do</span>
+
+  <span class="n">it</span> <span class="s1">&#39;should require users to sign in when they trying to access sports&#39;</span> <span class="k">do</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+
+    <span class="n">visit</span> <span class="n">sports_path</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">new_user_session_path</span>
+
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Email&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Password&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Sign in&#39;</span><span class="p">)</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">sports_path</span>
+  <span class="k">end</span>
+
+
+<span class="k">end</span>
+</pre></div>
+
+<p>Run the tests. </p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<p>and they should fail since we haven&#39;t secured the sports_controller.rb</p>
+<div class="highlight"><pre><span class="go">Failures:</span>
+
+<span class="go">    1) only registred users can access sports should require users to sign in when they trying to access sports</span>
+<span class="go">       Failure/Error: page.current_path.should == new_user_session_path</span>
+<span class="go">         expected: &quot;/users/sign_in&quot;</span>
+<span class="go">              got: &quot;/sports&quot; (using ==)</span>
+<span class="go">       # ./spec/integration/sports/authentication_spec.rb:10:in `block (2 levels) in &lt;top (required)&gt;&#39;</span>
+</pre></div>
+
+<p>So now we just add the same Devise before_filter to <code>app/controllers/sports_controller.rb</code> that we used in the home controller.</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">SportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">before_filter</span> <span class="ss">:authenticate_user!</span>
+
+  <span class="k">def</span> <span class="nf">index</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">new</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</pre></div>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<p>it should now all pass.</p>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='functional-tests-for-listing-creating-and-deleting-sports'></a> 6.4. Functional Tests for listing, creating and deleting Sports</h2>
+
+<p>Now we know the controller is secure we&#39;ll write some tests to make sure that it works the way we want and only then write the controller and view code to make the tests pass.</p>
+
+<p>These are the things we want to test:</p>
+
+<ol>
+<li>We list sports on the app/views/sports/index.html.erb page</li>
+<li>We can create a new sport on the app/views/sports/new.html.erb page and it redirects us back to the index.html.erb</li>
+<li>If we try to create an invalid sport it redirects us back to the app/views/sports/new.html.erb with incorrect data still in the controls.</li>
+<li>We can we destroy a sport from the index page and get redirected back to the app/views/sports/index.html.erb page</li>
+</ol>
+
+<p>We&#39;ve already written the test for authentication so we&#39;ll assume that the user is signed in for each test by writing a <code>before :each</code> block that gets an instance of <strong>User</strong> from <strong>FactoryGirl</strong> and signs that user in.</p>
+<div class="highlight"><pre><span class="go">require &#39;spec_helper&#39;</span>
+
+<span class="go">describe &#39;restful&#39; do</span>
+
+<span class="go">  before :each do</span>
+<span class="go">    user = FactoryGirl.create(:user)</span>
+<span class="go">    visit new_user_session_path</span>
+<span class="go">    fill_in(&#39;Email&#39;, :with =&gt; user.email)</span>
+<span class="go">    fill_in(&#39;Password&#39;, :with =&gt; user.password)</span>
+
+<span class="go">    click_button(&#39;Sign in&#39;)</span>
+<span class="go">  end</span>
+
+
+<span class="go">  describe &#39;listing all sports on the index page&#39; do</span>
+
+<span class="go">    it &quot;should list all sports&quot; do</span>
+<span class="go">      FactoryGirl.create(:sport, :name =&gt; &#39;Tennis&#39;)</span>
+<span class="go">      FactoryGirl.create(:sport, :name =&gt; &#39;Football&#39;)</span>
+
+<span class="go">      visit sports_path</span>
+
+<span class="go">      page.should have_content(&#39;Tennis&#39;)</span>
+<span class="go">      page.should have_content(&#39;Football&#39;)</span>
+<span class="go">    end</span>
+
+<span class="go">  end</span>
+
+<span class="go">  describe &#39;adding a new sport&#39; do</span>
+
+<span class="go">    it &#39;should add a valid sport and redirect to the index page&#39; do</span>
+<span class="go">        visit sports_path</span>
+
+<span class="go">        click_link(&#39;New Sport&#39;)</span>
+
+<span class="go">        fill_in(&#39;Name&#39;, :with =&gt; &#39;Tennis&#39;)</span>
+
+<span class="go">        expect{</span>
+<span class="go">            click_button(&#39;Create Sport&#39;)</span>
+<span class="go">        }.to change{Sport.count}.by(1)</span>
+
+<span class="go">        page.current_path.should == sports_path</span>
+<span class="go">        page.should have_content(&#39;Tennis&#39;)</span>
+<span class="go">    end</span>
+
+<span class="go">    it &#39;should not add an invalid sport and should re-render the new page with the invalid data we entered&#39; do</span>
+<span class="go">        Sport.create(:name =&gt; &#39;Tennis&#39;)</span>
+
+<span class="go">        visit sports_path</span>
+
+<span class="go">        click_link(&#39;New Sport&#39;)</span>
+
+<span class="go">        fill_in(&#39;Name&#39;, :with =&gt; &#39;Tennis&#39;)</span>
+
+<span class="go">        expect{</span>
+<span class="go">          click_button(&#39;Create Sport&#39;)</span>
+<span class="go">        }.to change{Sport.count}.by(0)</span>
+
+<span class="go">        #page.save_and_open_page</span>
+
+<span class="go">        page.find_field(&#39;Name&#39;).value.should have_content(&#39;Tennis&#39;)</span>
+<span class="go">        page.should have_content(&#39;has already been taken&#39;)</span>
+<span class="go">    end</span>
+
+<span class="go">  end</span>
+
+<span class="go">  describe &#39;destroying a sport&#39; do</span>
+
+<span class="go">    it &#39;should destroy a sport&#39; do</span>
+<span class="go">        FactoryGirl.create(:sport, :name =&gt; &#39;football&#39;)</span>
+<span class="go">        FactoryGirl.create(:sport, :name =&gt; &#39;cricket&#39;)</span>
+<span class="go">        sport = FactoryGirl.create(:sport, :name =&gt; &#39;Tennis&#39;)</span>
+<span class="go">        FactoryGirl.create(:sport, :name =&gt; &#39;basketball&#39;)</span>
+
+<span class="go">        visit sports_path</span>
+
+<span class="go">        page.should have_content(&#39;Tennis&#39;)</span>
+
+<span class="go">        within(&quot;tr[@data-row=&#39;#{sport.id}&#39;]&quot;) do</span>
+<span class="go">          expect{</span>
+<span class="go">            click_link(&#39;Destroy&#39;)</span>
+<span class="go">          }.to change{Sport.count}.by(-1)</span>
+<span class="go">        end</span>
+
+<span class="go">        page.current_path.should == sports_path</span>
+<span class="go">        page.should_not have_content(&#39;Tennis&#39;)</span>
+<span class="go">    end</span>
+
+<span class="go">  end</span>
+
+
+<span class="go">end</span>
+</pre></div>
+
+<p>This is our test suite, now we&#39;ll write code in our sports controllers and views to make sure that these tests pass.</p>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='test-1-listing-sports-with-the-index-action'></a> 6.5. Test 1. Listing Sports with the index action</h2>
+
+<p>The test above requires that the index page lists all of our sports and displays each one.</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s2">&quot;should list all sports&quot;</span> <span class="k">do</span>
+  <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+  <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Football&#39;</span><span class="p">)</span>
+
+  <span class="n">visit</span> <span class="n">sports_path</span>
+
+  <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+  <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Football&#39;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>First we must make the <code>index</code> action in our sports controller fetches all of the Sport objects. The <code>all</code> in <code>Sport.all</code> is an Active Record method that returns all of our Sport instances from the data source. This is assigned to the <code>@sports</code> variable which Rails will then pass on to our index view <code>app/views/index.html.erb</code>. </p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">SportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+
+  <span class="n">before_filter</span> <span class="ss">:authenticate_user!</span>
+
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@sports</span> <span class="o">=</span> <span class="no">Sport</span><span class="o">.</span><span class="n">all</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">new</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">create</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">destroy</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Now we can iterate through the @sports collection in our view to list our sports. We&#39;ve also added the destroy link to the list so that we can destroy a sport. </p>
+
+<p>Note the <code>:method =&gt; :delete</code>. This is a bit smoke and mirrors provided by Rails that simulates an HTML DELETE action when we&#39;ve really made an HTML GET. Browsers can only really GET or POST so when we click the destroy link Rails converts this to a DELETE for us.</p>
+
+<p>Note </p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Listing</span> <span class="n">sports</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+
+<span class="sr">&lt;table class=&#39;table&#39;&gt;</span>
+<span class="sr">  &lt;thead&gt;</span>
+<span class="sr">    &lt;tr&gt;</span>
+<span class="sr">      &lt;th width=90%&gt;Name&lt;/</span><span class="n">th</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">th</span><span class="o">&gt;&lt;</span><span class="sr">/th&gt;</span>
+<span class="sr">    &lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="sr">/thead&gt;</span>
+
+<span class="sr">  &lt;tbody&gt;</span>
+<span class="sr">    &lt;% @sports.each do |sport| %&gt;</span>
+<span class="sr">      &lt;tr data-row=&#39;&lt;%= sport.id %&gt;&#39;&gt;</span>
+<span class="sr">        &lt;td&gt;&lt;%= sport.name %&gt;&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;&lt;</span><span class="sx">%= link_to &#39;Destroy&#39;, sport_path(sport), :method =</span><span class="o">&gt;</span> <span class="ss">:delete</span><span class="p">,</span> <span class="ss">:data</span> <span class="o">=&gt;</span><span class="p">{</span> <span class="n">confirm</span><span class="p">:</span> <span class="s1">&#39;Are you sure?&#39;</span> <span class="p">},</span> <span class="ss">:class</span> <span class="o">=&gt;</span> <span class="s1">&#39;btn btn-danger btn-mini&#39;</span> <span class="sx">%&gt;&lt;/td&gt;</span>
+      <span class="o">&lt;</span><span class="sr">/tr&gt;</span>
+<span class="sr">    &lt;% end %&gt;</span>
+<span class="sr">  &lt;/</span><span class="n">tbody</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="sr">/table&gt;</span>
+</pre></div>
+
+<p>run the test</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<p>and you should find that our first test now passes.</p>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='test-2-creating-a-new-sport-with-the-new-and-create-actions'></a> 6.6. Test 2. Creating a new Sport with the new and create actions</h2>
+
+<p>Our next test requires that whenever we visit the index page we want to click on a link to the action <code>def new</code> that will display a form with the fields we need to create a new sport. In this case it&#39;s just name. When we hit the submit button then the form will call <code>def create</code>, create a sport then redirect us back to the sports index page.</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should add a valid sport and redirect to the index page&#39;</span> <span class="k">do</span>
+    <span class="n">visit</span> <span class="n">sports_path</span>
+
+    <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;New Sport&#39;</span><span class="p">)</span>
+
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">{</span>
+            <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Create Sport&#39;</span><span class="p">)</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">to</span> <span class="n">change</span><span class="p">{</span><span class="no">Sport</span><span class="o">.</span><span class="n">count</span><span class="p">}</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">sports_path</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>NOTE the RSpec <code>expect{...}.to</code> block that tests that the <code>.count</code> method of <code>ActiveRecord::Base</code> changes by one when we add a new sport. We could have just had a line at the beginning of test <code>x=Sport.count</code> and tested that it was +1 when the test was finished but then something else in our code may have incremented the Sport by 1 so our test may pass for the wrong reasons. This code ensure that the change occurs across that one line of our code and not elsewhere in the test.   </p>
+
+<p>Add this code to the new action in our sports controller; <code>app/controllers/sports_controller.rb</code> and the new view <code>app/views/sports/new.html.erb</code></p>
+
+<h3>6.6.1. The new action</h3>
+
+<p>We create a new, unsaved sport object and assign it to the variable @sport. This is passed to the new view.</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">new</span>
+    <span class="vi">@sport</span> <span class="o">=</span> <span class="no">Sport</span><span class="o">.</span><span class="n">new</span>
+<span class="k">end</span>
+</pre></div>
+
+<h3>6.6.2. The new view</h3>
+
+<p>The @sport variable is bound to the form using <code>form_for</code> which automatically creates the restful url and populates the form fields from the model (in this case :name which is empty because this object is brand-spanking new)</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Create</span> <span class="n">a</span> <span class="kp">new</span> <span class="no">Sport</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+<span class="sr">&lt;%= form_for @sport, :class =&gt; &#39;form-horizontal&#39; do |f| %&gt;</span>
+<span class="sr">  &lt;div class=&quot;control-group&quot;&gt;</span>
+<span class="sr">    &lt;%= f.label :name, :class =&gt; &#39;control-label&#39; %&gt;</span>
+<span class="sr">    &lt;div class=&#39;controls&#39;&gt;</span>
+<span class="sr">      &lt;%= f.text_field :name %&gt;</span>
+<span class="sr">    &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+
+<span class="sr">  &lt;div class=&quot;form-actions&quot;&gt;</span>
+<span class="sr">    &lt;%= submit_tag &#39;Create Sport&#39;, :class =&gt; &#39;btn btn-primary&#39; %&gt;</span>
+<span class="sr">    &lt;%= link_to &#39;Back&#39;, sports_path, :class =&gt; &#39;btn&#39; %&gt;</span>
+<span class="sr">  &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>
+</pre></div>
+
+<p>This creates the html:</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">form</span> <span class="n">accept</span><span class="o">-</span><span class="n">charset</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;/sports&quot;</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;new_sport&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;new_sport&quot;</span> <span class="nb">method</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="o">&gt;&lt;</span><span class="n">div</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;margin:0;padding:0;display:inline&quot;</span><span class="o">&gt;&lt;</span><span class="n">input</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;✓&quot;</span><span class="o">&gt;&lt;</span><span class="n">input</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;authenticity_token&quot;</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;kGj744onhD+sZJ0DRBtk+/QHEe32LWuIH/lew4J+BVY=&quot;</span><span class="o">&gt;&lt;</span><span class="sr">/div&gt;</span>
+<span class="sr">  &lt;div class=&quot;control-group&quot;&gt;</span>
+<span class="sr">    &lt;label class=&quot;control-label&quot; for=&quot;sport_name&quot;&gt;Name&lt;/</span><span class="n">label</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;controls&quot;</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">input</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;sport_name&quot;</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;sport[name]&quot;</span> <span class="n">size</span><span class="o">=</span><span class="s2">&quot;30&quot;</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+<span class="sr">  &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+
+  <span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;form-actions&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">input</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;btn btn-primary&quot;</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;commit&quot;</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;submit&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;Create Sport&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;/sports&quot;</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;btn&quot;</span><span class="o">&gt;</span><span class="no">Back</span><span class="o">&lt;</span><span class="sr">/a&gt;</span>
+<span class="sr">  &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="sr">/form&gt;</span>
+</pre></div>
+
+<p>NOTE:</p>
+
+<ul>
+<li><code>action=&quot;/sports&quot;</code> and <code>method=&quot;post&quot;</code>. ActiveRecord::Base (don&#39;t forget our Sport model extends ActiveRecord::Base) has a method <code>.is_new?</code> which returns true if the object has no id so hasn&#39;t yet been saved to the database. Our object is new so <code>form_for @sport</code> creates a URL that posts to &quot;/sports&quot;. If <code>.is_new?</code> had returned false then <code>form_for @sports</code> would have created a url that simulates an <strong>HTML PUT</strong> in a similar way it simulates an <strong>HTML DELETE</strong> above. </li>
+<li><code>name=&quot;sport[name]&quot;</code> will post the name control to Rails and be converted to a hash :sport =&gt; {:name =&gt; &#39;football&#39;}. If we had several fields for our sport such as &#39;number of players&#39; and &#39;outdoor&#39; then these would be merged into the hash so that the <code>def create</code> action would see something like <code>:sport =&gt; {:name =&gt; &#39;football&#39;, :number_of_players =&gt; &#39;11&#39;, :outdoor =&gt; &#39;true&#39;}</code> making it easy for us to separate the model&#39;s parameters from any other parameters that get submitted.</li>
+</ul>
+
+<p>We&#39;ve coded the <code>def new</code> to create a new sport instance for our <code>form_for</code>. The next thing we need to do is code the <code>def create</code> action so that a sport is created when the form is submitted and that we are redirected back to the sports index page.</p>
+
+<p>Add this to our <code>def create</code> action in <code>app/controllers/sports_controller.rb</code></p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">create</span>
+    <span class="no">Sport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:sport</span><span class="o">]</span><span class="p">)</span>
+    <span class="n">redirect_to</span><span class="p">(</span><span class="n">sports_path</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Remember the note above about params[:sport] being a hash of parameters for our model ? Rails is converting the form parameter sport[name] to :sport =&gt; {:name =&gt; &#39;xyz&#39;}. We&#39;re calling the <code>ActiveRecor::Base</code> method <code>.create</code> and passing it that hash so when we call <code>Sport.create(params[:sport])</code> we&#39;re really saying <code>Sport.create({:name =&gt; &#39;xyz&#39;})</code>.</p>
+
+<p>One last thing before our test can pass. It starts with the lines</p>
+<div class="highlight"><pre><span class="n">visit</span> <span class="n">sports_path</span>
+
+<span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;New Sport&#39;</span><span class="p">)</span>
+</pre></div>
+
+<p>Which means we need a link on the index page <code>visit sports_path</code> that takes us to the new sport page <code>click_link(&#39;New Sport&#39;)</code>. </p>
+
+<p>Add this to <code>app/views/sports/index.html.erb</code> under the table that lists our sports.</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="sx">%= link_to &#39;New Sport&#39;, new_sport_path, :class =</span><span class="o">&gt;</span> <span class="s1">&#39;btn btn-primary&#39;</span> <span class="o">%&gt;</span>
+</pre></div>
+
+<p>run the tests</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<p>and the test should pass.</p>
+
+<p>What if it doesn&#39;t ? A really useful Capybara method for debugging is</p>
+<div class="highlight"><pre><span class="n">page</span><span class="o">.</span><span class="n">save_and_open_page</span>
+</pre></div>
+
+<p>just place this line in your test where you think things may be going wrong and it will open the page in a browser so that you get to see the page that&#39;s being tested at that moment. It doesn&#39;t always work if the browser it opens is already being used so if you don&#39;t see your browser open to the test page then close your browser and run the tests again.</p>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='test-3-attempt-to-create-a-new-sport-with-invalid-parameters'></a> 6.7. Test 3. Attempt to create a new sport with invalid parameters</h2>
+
+<p>Our third test should not create a sport but should render the form <code>app/views/sports/new.html.erb</code> with the values the user entered. Since names have to be unique in our sport model we&#39;ll create a sport called &#39;Tennis&#39; first then try and create another one. We know that this validation will fail so the user should be taken back to the new sport form with a message &#39;has already been taken&#39;</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should not add an invalid sport and should re-render the new page with the invalid data we entered&#39;</span> <span class="k">do</span>
+    <span class="no">Sport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+
+    <span class="n">visit</span> <span class="n">sports_path</span>
+
+    <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;New Sport&#39;</span><span class="p">)</span>
+
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">{</span>
+      <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Create Sport&#39;</span><span class="p">)</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">to</span> <span class="n">change</span><span class="p">{</span><span class="no">Sport</span><span class="o">.</span><span class="n">count</span><span class="p">}</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1">#page.save_and_open_page</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;has already been taken&#39;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>our create action in <code>app/controllers/sports_controller.rb</code> is currently</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">create</span>
+    <span class="no">Sport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:sport</span><span class="o">]</span><span class="p">)</span>
+    <span class="n">redirect_to</span><span class="p">(</span><span class="n">sports_path</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>but this will always redirect us to the index page regardless of whether the sport was created or not.</p>
+
+<p>we need to change this to:</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">create</span>
+    <span class="vi">@sport</span> <span class="o">=</span> <span class="no">Sport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:sport</span><span class="o">]</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="vi">@sport</span><span class="o">.</span><span class="n">save</span>
+        <span class="n">redirect_to</span><span class="p">(</span><span class="n">sports_path</span><span class="p">)</span>
+    <span class="k">else</span>
+        <span class="n">render</span> <span class="ss">:template</span> <span class="o">=&gt;</span> <span class="s1">&#39;sports/new.html.erb&#39;</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The <code>.save</code> method of <code>ActiveRecord::Base</code> returns true or false depending on whether the save was successful. The save will be successful if the object was valid (and the underlying database confirms the save was completed). If the sport was invalid then <code>.save</code> will return false and we render the new template again.</p>
+
+<p>NOTE: We don&#39;t redirect to the <code>def new</code> action because we want our form to display the incorrect values the user entered. Redirecting to <code>def new</code> would simple create a new, empty sports model and the user would see empty fields instead of their incorrect input plus a warning message.</p>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='test-4-destroy-a-sport'></a> 6.8. Test 4. Destroy a Sport</h2>
+
+<p>Our last test requires that we are able to click a link called &#39;destroy&#39; on the index page. This will destroy the sport selected and redirect us back to the index page.</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should destroy a sport&#39;</span> <span class="k">do</span>
+    <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;football&#39;</span><span class="p">)</span>
+    <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;cricket&#39;</span><span class="p">)</span>
+    <span class="n">sport</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+    <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;basketball&#39;</span><span class="p">)</span>
+
+    <span class="n">visit</span> <span class="n">sports_path</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+
+    <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;</span><span class="si">#{</span><span class="n">sport</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+        <span class="n">expect</span><span class="p">{</span>
+            <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;Destroy&#39;</span><span class="p">)</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">to</span> <span class="n">change</span><span class="p">{</span><span class="no">Sport</span><span class="o">.</span><span class="n">count</span><span class="p">}</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">sports_path</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">should_not</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>NOTE Our index page returns the four sports we create at the beginning of the test. We want to click the destroy link against for tennis and not any of the others. The XPath query select the table row that contains Tennis <code>within(&quot;tr[@data-row=&#39;#{sport.id}&#39;]&quot;) do</code> so the <code>click_link</code> inside this scope is destroy tennis and not foootball, cricket or basketball.</p>
+
+<p>The destroy link HTML generated by Rails will look something like the HTML above. Rails will call the url &#39;/sports/6&#39; - 6 being the id of our sport object in the database and will be available to the controller as <code>params[:id]</code> </p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;/sports/6&quot;</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;btn btn-danger btn-mini&quot;</span> <span class="n">data</span><span class="o">-</span><span class="n">confirm</span><span class="o">=</span><span class="s2">&quot;Are you sure?&quot;</span> <span class="n">data</span><span class="o">-</span><span class="nb">method</span><span class="o">=</span><span class="s2">&quot;delete&quot;</span> <span class="n">rel</span><span class="o">=</span><span class="s2">&quot;nofollow&quot;</span><span class="o">&gt;</span>
+    <span class="no">Destroy</span>
+<span class="o">&lt;</span><span class="sr">/a&gt;</span>
+</pre></div>
+
+<p>We have no destroy view because the link is in our index page and redirects us back there after the destroy is complete so all we need do is code the <code>def destroy</code> action in our sports controller <code>app/controllers/sports_controller.rb</code>.</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">destroy</span>
+    <span class="no">Sport</span><span class="o">.</span><span class="n">destroy</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+    <span class="n">redirect_to</span><span class="p">(</span><span class="n">sports_path</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>run the tests and they should all pass</p>
+<div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rake</span> <span class="n">spec</span>
 </pre></div>

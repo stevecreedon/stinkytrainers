@@ -182,6 +182,28 @@
 <span class="go">       force  app/views/layouts/application.html.erb</span>
 </pre></div>
 
+<p>One last thing on Twitter Bootstrap. ActiveRecord has a built-in system for validating errors and returning error messages where an object&#39;s data is invalid. We want Twitter Bootsrap to automagically display these errors in the HTML forms we are going to create. To do this we need to create the file config/initializers/twitter_boostrap.rb and add these lines of code:</p>
+<div class="highlight"><pre><span class="no">ActionView</span><span class="o">::</span><span class="no">Base</span><span class="o">.</span><span class="n">field_error_proc</span> <span class="o">=</span> <span class="no">Proc</span><span class="o">.</span><span class="n">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">html_tag</span><span class="p">,</span> <span class="n">instance</span><span class="o">|</span>
+  <span class="n">html</span> <span class="o">=</span> <span class="sx">%(&lt;div class=&quot;field_with_errors&quot;&gt;</span><span class="si">#{</span><span class="n">html_tag</span><span class="si">}</span><span class="sx">&lt;/div&gt;)</span><span class="o">.</span><span class="n">html_safe</span>
+  <span class="c1"># add nokogiri gem to Gemfile</span>
+  <span class="n">elements</span> <span class="o">=</span> <span class="no">Nokogiri</span><span class="o">::</span><span class="no">HTML</span><span class="o">::</span><span class="no">DocumentFragment</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">html_tag</span><span class="p">)</span><span class="o">.</span><span class="n">css</span> <span class="s2">&quot;label, input&quot;</span>
+  <span class="n">elements</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">e</span><span class="o">|</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">node_name</span><span class="o">.</span><span class="n">eql?</span> <span class="s1">&#39;label&#39;</span>
+      <span class="n">html</span> <span class="o">=</span> <span class="sx">%(&lt;div class=&quot;clearfix error&quot;&gt;</span><span class="si">#{</span><span class="n">e</span><span class="si">}</span><span class="sx">&lt;/div&gt;)</span><span class="o">.</span><span class="n">html_safe</span>
+    <span class="k">elsif</span> <span class="n">e</span><span class="o">.</span><span class="n">node_name</span><span class="o">.</span><span class="n">eql?</span> <span class="s1">&#39;input&#39;</span>
+      <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">error_message</span><span class="o">.</span><span class="n">kind_of?</span><span class="p">(</span><span class="nb">Array</span><span class="p">)</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="sx">%(&lt;div class=&quot;clearfix error&quot;&gt;</span><span class="si">#{</span><span class="n">html_tag</span><span class="si">}</span><span class="sx">&lt;span class=&quot;help-inline&quot;&gt;&amp;nbsp;</span><span class="si">#{</span><span class="n">instance</span><span class="o">.</span><span class="n">error_message</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="si">}</span><span class="sx">&lt;/span&gt;&lt;/div&gt;)</span><span class="o">.</span><span class="n">html_safe</span>
+      <span class="k">else</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="sx">%(&lt;div class=&quot;clearfix error&quot;&gt;</span><span class="si">#{</span><span class="n">html_tag</span><span class="si">}</span><span class="sx">&lt;span class=&quot;help-inline&quot;&gt;&amp;nbsp;</span><span class="si">#{</span><span class="n">instance</span><span class="o">.</span><span class="n">error_message</span><span class="si">}</span><span class="sx">&lt;/span&gt;&lt;/div&gt;)</span><span class="o">.</span><span class="n">html_safe</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+  <span class="n">html</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Without going into too much detail we&#39;ve added a method to ActiveRecord that it will call whenever it writes the value of a model attribute. If the attribute has an error then it will wrap the output in error html. Don&#39;t worry too much about understanding this.</p>
+
 <div class="fb-comments"
      data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/1-setting-up-the-application.html#make-the-application-a-little-sexy-with-twitter-bootstrap"
      data-num-posts="2"

@@ -1,8 +1,8 @@
-We have a Sport model that we've hooked to the User in a has\_and\_belongs\_to\_many relationship. We need to be able to carry out most of the basic CRUD actions:
+# The Sports Controller and Views
 
-1. List sports
-2. Create a Sport
-3. Destroy a Sport
+We have a Sport model that we've hooked to the User in a has\_and\_belongs\_to\_many relationship. We want to be able to list, create and destroy Sports. At the moment our Sport object only has a name so we won't implement editing a sport. 
+
+INDEX
 
 For this first release of Stinkytrainers Sport will be a simple 'lookup' value with a name so we don't really need to edit a sport.
 
@@ -200,7 +200,7 @@ bundle exec rake spec
 
 it should now all pass.
 
-## Write functional Tests for listing, creating and deleting Sports
+## Functional Tests for listing, creating and deleting Sports
 Now we know the controller is secure we'll write some tests to make sure that it works the way we want and only then write the controller and view code to make the tests pass.
 
 These are the things we want to test:
@@ -307,7 +307,9 @@ describe 'restful' do
 end
 ~~~
 
-## Listing Sports with the index action
+This is our test suite, now we'll write code in our sports controllers and views to make sure that these tests pass.
+
+## Test 1. Listing Sports with the index action
 The test above requires that the index page lists all of our sports and displays each one.
 
 ~~~ruby
@@ -381,7 +383,7 @@ bundle exec rake spec
 and you should find that our first test now passes.
 
 
-## Creating a new Sport with the new and create actions
+## Test 2. Creating a new Sport with the new and create actions
 Our next test requires that whenever we visit the index page we want to click on a link to the action `def new` that will display a form with the fields we need to create a new sport. In this case it's just name. When we hit the submit button then the form will call `def create`, create a sport then redirect us back to the sports index page.
 
 ~~~ruby
@@ -502,7 +504,7 @@ page.save_and_open_page
 
 just place this line in your test where you think things may be going wrong and it will open the page in a browser so that you get to see the page that's being tested at that moment. It doesn't always work if the browser it opens is already being used so if you don't see your browser open to the test page then close your browser and run the tests again.
 
-## Attempt to create a new sport with invalid parameters
+## Test 3. Attempt to create a new sport with invalid parameters
 Our third test should not create a sport but should render the form `app/views/sports/new.html.erb` with the values the user entered. Since names have to be unique in our sport model we'll create a sport called 'Tennis' first then try and create another one. We know that this validation will fail so the user should be taken back to the new sport form with a message 'has already been taken'
 
 ~~~ruby
@@ -555,7 +557,7 @@ The `.save` method of `ActiveRecord::Base` returns true or false depending on wh
 
 NOTE: We don't redirect to the `def new` action because we want our form to display the incorrect values the user entered. Redirecting to `def new` would simple create a new, empty sports model and the user would see empty fields instead of their incorrect input plus a warning message.
 
-## Destroy a Sport
+## Test 4. Destroy a Sport
 Our last test requires that we are able to click a link called 'destroy' on the index page. This will destroy the sport selected and redirect us back to the index page.
 
 ~~~ruby

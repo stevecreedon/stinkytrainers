@@ -147,6 +147,42 @@
 
 <p>and they should all still pass.</p>
 
+<h3>5.2.1. Make sure we can&#39;t create two sports with the same name</h3>
+
+<p>We also don&#39;t want two sports with the same name to be created.</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should not be valid if a sport with the same name exists&#39;</span> <span class="k">do</span>
+ <span class="no">Sport</span><span class="o">.</span><span class="n">create!</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;tiddlywinks&#39;</span><span class="p">)</span>
+ <span class="n">sport</span> <span class="o">=</span> <span class="no">Sport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;tiddlywinks&#39;</span><span class="p">)</span>
+ <span class="n">sport</span><span class="o">.</span><span class="n">valid?</span><span class="o">.</span><span class="n">should</span> <span class="n">be_false</span>
+ <span class="n">sport</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">to_a</span><span class="o">.</span><span class="n">should</span> <span class="kp">include</span><span class="p">(</span><span class="s2">&quot;Name has already been taken&quot;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+<div class="highlight"><pre><span class="go">bundle exec rake spec   </span>
+</pre></div>
+
+<p>The test should fail with</p>
+<div class="highlight"><pre><span class="go">1) Sport should not be valid if a sport with the same name exists</span>
+<span class="go">    Failure/Error: sport.valid?.should be_false</span>
+<span class="go">      expected: false value</span>
+<span class="go">           got: true </span>
+</pre></div>
+
+<p>We&#39;ll add another validation to :name that will make sure the name is unique. Add <code>:uniqueness =&gt; true</code> to our model <code>app/models/sport.rb</code></p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Sport</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+
+  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span>   <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:uniqueness</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:users</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Run the tests</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec   </span>
+</pre></div>
+
+<p>Everything should pass</p>
+
 <div class="fb-comments"
      data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/5-create-the-sport-model.html#add-an-active-model-validation-to-our-sport-model"
      data-num-posts="2"

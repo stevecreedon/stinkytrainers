@@ -55,8 +55,6 @@ describe 'restful' do
           click_button('Create Sport')
         }.to change{Sport.count}.by(0)
         
-        #page.save_and_open_page
-        
         page.find_field('Name').value.should have_content('Tennis')
         page.should have_content('has already been taken')
       end

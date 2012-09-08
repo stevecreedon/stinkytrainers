@@ -169,6 +169,52 @@ bundle exec rake spec
 
 and they should all still pass.
 
+### 5.2.1. Make sure we can't create two sports with the same name
+We also don't want two sports with the same name to be created.
+
+~~~ruby
+it 'should not be valid if a sport with the same name exists' do
+ Sport.create!(:name => 'tiddlywinks')
+ sport = Sport.new(:name => 'tiddlywinks')
+ sport.valid?.should be_false
+ sport.errors.to_a.should include("Name has already been taken")
+end
+~~~
+
+~~~console
+bundle exec rake spec   
+~~~
+
+The test should fail with
+
+~~~console
+1) Sport should not be valid if a sport with the same name exists
+    Failure/Error: sport.valid?.should be_false
+      expected: false value
+           got: true 
+~~~
+
+We'll add another validation to :name that will make sure the name is unique. Add `:uniqueness => true` to our model `app/models/sport.rb`
+
+~~~ruby
+class Sport < ActiveRecord::Base
+  attr_accessible :name
+
+  validates :name,   :presence => true, :uniqueness => true
+  
+  has_and_belongs_to_many :users
+end
+
+~~~
+
+Run the tests
+
+~~~console
+bundle exec rake spec   
+~~~
+
+Everything should pass
+
 
 
 <div class="fb-comments"

@@ -206,6 +206,30 @@ Overwrite /Users/stephencreedon/devel/stinkytrainers/app/views/layouts/applicati
        force  app/views/layouts/application.html.erb
 ~~~
 
+One last thing on Twitter Bootstrap. ActiveRecord has a built-in system for validating errors and returning error messages where an object's data is invalid. We want Twitter Bootsrap to automagically display these errors in the HTML forms we are going to create. To do this we need to create the file config/initializers/twitter_boostrap.rb and add these lines of code:
+
+~~~ruby
+ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
+  html = %(<div class="field_with_errors">#{html_tag}</div>).html_safe
+  # add nokogiri gem to Gemfile
+  elements = Nokogiri::HTML::DocumentFragment.parse(html_tag).css "label, input"
+  elements.each do |e|
+    if e.node_name.eql? 'label'
+      html = %(<div class="clearfix error">#{e}</div>).html_safe
+    elsif e.node_name.eql? 'input'
+      if instance.error_message.kind_of?(Array)
+        html = %(<div class="clearfix error">#{html_tag}<span class="help-inline">&nbsp;#{instance.error_message.join(',')}</span></div>).html_safe
+      else
+        html = %(<div class="clearfix error">#{html_tag}<span class="help-inline">&nbsp;#{instance.error_message}</span></div>).html_safe
+      end
+    end
+  end
+  html
+end
+~~~
+
+Without going into too much detail we've added a method to ActiveRecord that it will call whenever it writes the value of a model attribute. If the attribute has an error then it will wrap the output in error html. Don't worry too much about understanding this.
+
 
 
 <div class="fb-comments"
