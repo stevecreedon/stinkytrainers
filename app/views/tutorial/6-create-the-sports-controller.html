@@ -119,6 +119,12 @@
 <span class="go">                    root        /                                         home#index                                  home#index</span>
 </pre></div>
 
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#generate-the-sports-controller"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 <p><a href="#top">back to top</a></p>
 
 <h2><a id='integration-testing-over-controller-view-testing'></a> 6.2. Integration testing over Controller/View testing</h2>
@@ -132,6 +138,12 @@
 <p>The above test is ensuring that our controller creates an instance variable @sport with the value sport. Why should a test dictate the name of internal variables that a controller needs to complete its task? Advocates of controller testing will say that the test is valid because the @sport variable is required by the view so the test is ensuring that variable is correct. But why not have a test that encompasses both controller and view since they&#39;re both parts of the same user interaction ?</p>
 
 <p>For the remainder of this application we&#39;ll be discarding controller unit tests and creating functional tests that cover the user interacting with both the controller and the view. We&#39;re certainly not saying that controller and view testing is wrong, it will be valid for large projects where there may be a front-end team, a back-end team and maybe even an integration team writing code separately but we feel that it&#39;s less suited for the very common scenario of one or two Rails developers building it all.</p>
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#integration-testing-over-controller-view-testing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
 
 <p><a href="#top">back to top</a></p>
 
@@ -191,6 +203,12 @@
 </pre></div>
 
 <p>it should now all pass.</p>
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#test-that-the-controller-requires-authentication"
+     data-num-posts="2"
+     data-width="auto">
+</div>
 
 <p><a href="#top">back to top</a></p>
 
@@ -304,6 +322,12 @@
 
 <p>This is our test suite, now we&#39;ll write code in our sports controllers and views to make sure that these tests pass.</p>
 
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#functional-tests-for-listing-creating-and-deleting-sports"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 <p><a href="#top">back to top</a></p>
 
 <h2><a id='test-1-listing-sports-with-the-index-action'></a> 6.5. Test 1. Listing Sports with the index action</h2>
@@ -371,6 +395,12 @@
 </pre></div>
 
 <p>and you should find that our first test now passes.</p>
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#test-1-listing-sports-with-the-index-action"
+     data-num-posts="2"
+     data-width="auto">
+</div>
 
 <p><a href="#top">back to top</a></p>
 
@@ -482,6 +512,12 @@
 
 <p>just place this line in your test where you think things may be going wrong and it will open the page in a browser so that you get to see the page that&#39;s being tested at that moment. It doesn&#39;t always work if the browser it opens is already being used so if you don&#39;t see your browser open to the test page then close your browser and run the tests again.</p>
 
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#test-2-creating-a-new-sport-with-the-new-and-create-actions"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 <p><a href="#top">back to top</a></p>
 
 <h2><a id='test-3-attempt-to-create-a-new-sport-with-invalid-parameters'></a> 6.7. Test 3. Attempt to create a new sport with invalid parameters</h2>
@@ -531,6 +567,12 @@
 <p>The <code>.save</code> method of <code>ActiveRecord::Base</code> returns true or false depending on whether the save was successful. The save will be successful if the object was valid (and the underlying database confirms the save was completed). If the sport was invalid then <code>.save</code> will return false and we render the new template again.</p>
 
 <p>NOTE: We don&#39;t redirect to the <code>def new</code> action because we want our form to display the incorrect values the user entered. Redirecting to <code>def new</code> would simple create a new, empty sports model and the user would see empty fields instead of their incorrect input plus a warning message.</p>
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#test-3-attempt-to-create-a-new-sport-with-invalid-parameters"
+     data-num-posts="2"
+     data-width="auto">
+</div>
 
 <p><a href="#top">back to top</a></p>
 

@@ -130,6 +130,15 @@ cancel_user_registration GET    /users/cancel(.:format)                   devise
                     root        /                                         home#index                                  home#index
 ~~~
 
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#generate-the-sports-controller"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
 [back to top](#top)
 ##<a id='integration-testing-over-controller-view-testing'></a> 6.2. Integration testing over Controller/View testing
 So you may be wondering why we deleted the spec/controllers/sports\_controller\_spec.rb when we're building a Test Driven application. Traditionally we would use RSpec to write some test for the controller and then use it again to write more tests for each view. We've always found testing controllers to be a bit painful. Model unit testing is simple, you put something in and expect something back but controllers are more complex. For example, testing a 'create' action on the controller often means we call 'create', the controller does something and all we get back is a nice 302 from the controller saying 'trust me, I did the right thing'. 
@@ -143,6 +152,15 @@ assign(:sport).should == sport
 The above test is ensuring that our controller creates an instance variable @sport with the value sport. Why should a test dictate the name of internal variables that a controller needs to complete its task? Advocates of controller testing will say that the test is valid because the @sport variable is required by the view so the test is ensuring that variable is correct. But why not have a test that encompasses both controller and view since they're both parts of the same user interaction ?
 
 For the remainder of this application we'll be discarding controller unit tests and creating functional tests that cover the user interacting with both the controller and the view. We're certainly not saying that controller and view testing is wrong, it will be valid for large projects where there may be a front-end team, a back-end team and maybe even an integration team writing code separately but we feel that it's less suited for the very common scenario of one or two Rails developers building it all.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#integration-testing-over-controller-view-testing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='test-that-the-controller-requires-authentication'></a> 6.3. Test that the controller requires authentication
@@ -210,6 +228,15 @@ bundle exec rake spec
 ~~~
 
 it should now all pass.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#test-that-the-controller-requires-authentication"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='functional-tests-for-listing-creating-and-deleting-sports'></a> 6.4. Functional Tests for listing, creating and deleting Sports
@@ -321,6 +348,15 @@ end
 
 This is our test suite, now we'll write code in our sports controllers and views to make sure that these tests pass.
 
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#functional-tests-for-listing-creating-and-deleting-sports"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
 [back to top](#top)
 ##<a id='test-1-listing-sports-with-the-index-action'></a> 6.5. Test 1. Listing Sports with the index action
 The test above requires that the index page lists all of our sports and displays each one.
@@ -394,6 +430,14 @@ bundle exec rake spec
 ~~~
 
 and you should find that our first test now passes.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#test-1-listing-sports-with-the-index-action"
+     data-num-posts="2"
+     data-width="auto">
+</div>
 
 
 [back to top](#top)
@@ -518,6 +562,15 @@ page.save_and_open_page
 
 just place this line in your test where you think things may be going wrong and it will open the page in a browser so that you get to see the page that's being tested at that moment. It doesn't always work if the browser it opens is already being used so if you don't see your browser open to the test page then close your browser and run the tests again.
 
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#test-2-creating-a-new-sport-with-the-new-and-create-actions"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
 [back to top](#top)
 ##<a id='test-3-attempt-to-create-a-new-sport-with-invalid-parameters'></a> 6.7. Test 3. Attempt to create a new sport with invalid parameters
 Our third test should not create a sport but should render the form `app/views/sports/new.html.erb` with the values the user entered. Since names have to be unique in our sport model we'll create a sport called 'Tennis' first then try and create another one. We know that this validation will fail so the user should be taken back to the new sport form with a message 'has already been taken'
@@ -571,6 +624,15 @@ end
 The `.save` method of `ActiveRecord::Base` returns true or false depending on whether the save was successful. The save will be successful if the object was valid (and the underlying database confirms the save was completed). If the sport was invalid then `.save` will return false and we render the new template again.
 
 NOTE: We don't redirect to the `def new` action because we want our form to display the incorrect values the user entered. Redirecting to `def new` would simple create a new, empty sports model and the user would see empty fields instead of their incorrect input plus a warning message.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/6-create-the-sports-controller.html#test-3-attempt-to-create-a-new-sport-with-invalid-parameters"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
 
 [back to top](#top)
 ##<a id='test-4-destroy-a-sport'></a> 6.8. Test 4. Destroy a Sport
