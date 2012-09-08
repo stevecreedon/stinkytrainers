@@ -1,2 +1,14 @@
-<h1>Sports#new</h1>
-<p>Find me in app/views/sports/new.html.erb</p>
+<h1>Create a new Sport</h1>
+<%= form_for @sport, :class => 'form-horizontal' do |f| %>
+  <div class="control-group">
+    <%= f.label :name, :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.text_field :name %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= submit_tag 'Create Sport', :class => 'btn btn-primary' %>
+    <%= link_to 'Back', sports_path, :class => 'btn' %>
+  </div>
+<% end %>

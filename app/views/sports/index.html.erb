@@ -1,2 +1,21 @@
-<h1>Sports#index</h1>
-<p>Find me in app/views/sports/index.html.erb</p>
+<h1>Listing sports</h1>
+
+<table class='table'>
+  <thead>
+    <tr>
+      <th width=90%>Name</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @sports.each do |sport| %>
+      <tr data-row='<%= sport.id %>'>
+        <td><%= sport.name %></td>
+        <td><%= link_to 'Destroy', sport_path(sport), :method => :delete, :data =>{ confirm: 'Are you sure?' }, :class => 'btn btn-danger btn-mini' %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= link_to 'New Sport', new_sport_path, :class => 'btn btn-primary' %>

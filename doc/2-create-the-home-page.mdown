@@ -127,9 +127,9 @@ Our dashboard page doesn't do very much at this stage so let's start with just a
 ### Inside the describe block in spec/views/home/index.html.erb\_spec.rb
 
 ~~~ruby
-it 'should display Welcome to Stinky Trainers on the home page' do
+it 'should display a welcome message on the Stinky Trainers on the home page' do
     render
-    rendered.should have_content("Welcome to Stinky Trainers")
+    rendered.should have_content("Stinky trainers is a website that let's you organise your sports life")
 end
 ~~~
 

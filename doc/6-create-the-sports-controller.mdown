@@ -64,7 +64,9 @@ class SportsController < ApplicationController
 end
 ~~~
 
-There are some css and coffee script files that we may use later. We certainly won't be using the destroy.html.erb and create.html.erb files; when we create a new sport or destroy one we'll redirect to the index page rather than show a create or destroy page so let's delete the following:
+There are some css and coffee script files that we may use later. We certainly won't be using the destroy.html.erb and create.html.erb files; when we create a new sport or destroy one we'll redirect to the index page rather than show a create or destroy page. We also won't be testing the sports_controller directly. More about that a bit further down.
+
+Delete the following:
 
 ~~~console
 app/views/sports/create.html.erb
@@ -72,6 +74,8 @@ app/views/sports/destroy.html.erb
 
 spec/views/sports/create.html.erb_spec.rb
 spec/views/sports/destroy.html.erb_spec.rb
+
+spec/controllers/sports_controller_spec.rb
 ~~~
 
 ### Make Sport a RESTful resource
@@ -116,3 +120,490 @@ cancel_user_registration GET    /users/cancel(.:format)                   devise
          dashboard_index GET    /dashboard(.:format)                      dashboard#index
                     root        /                                         home#index                                  home#index
 ~~~
+
+## Integration testing over Controller/View testing
+So you may be wondering why we deleted the spec/controllers/sports\_controller\_spec.rb when we're building a Test Driven application. Traditionally we would use RSpec to write some test for the controller and then use it again to write more tests for each view. We've always found testing controllers to be a bit painful. Model unit testing is simple, you put something in and expect something back but controllers are more complex. For example, testing a 'create' action on the controller often means we call 'create', the controller does something and all we get back is a nice 302 from the controller saying 'trust me, I did the right thing'. 
+
+Of course there are things we can do to make sure the controller did actually do the right thing but quite quickly our controller unit tests get tied-down to testing individual lines of code rather than the action as a whole. In other words the tests don't just look for the end-result of the controller they have to understand how the controller works and so they start to dictate how the controller code should look and that's not good for refactoring. A simple example of this already exists in our controller unit tests with the line:
+
+~~~ruby
+assign(:sport).should == sport
+~~~
+
+The above test is ensuring that our controller creates an instance variable @sport with the value sport. Why should a test dictate the name of internal variables that a controller needs to complete its task? Advocates of controller testing will say that the test is valid because the @sport variable is required by the view so the test is ensuring that variable is correct. But why not have a test that encompasses both controller and view since they're both parts of the same user interaction ?
+
+For the remainder of this application we'll be discarding controller unit tests and creating functional tests that cover the user interacting with both the controller and the view. We're certainly not saying that controller and view testing is wrong, it will be valid for large projects where there may be a front-end team, a back-end team and maybe even an integration team writing code separately but we feel that it's less suited for the very common scenario of one or two Rails developers building it all.
+
+## Test that the controller requires authentication
+Create the file `spec/integration/sports/authentication_spec.rb` and add this code. Note that after we call `visit sports_path` we're expecting expecting to see the login page `page.current_path.should == new_user_session_path` 
+
+~~~ruby
+require 'spec_helper'
+
+describe 'only registered users can access sports' do
+
+  it 'should require users to sign in when they trying to access sports' do
+    user = FactoryGirl.create(:user)
+
+    visit sports_path
+
+    page.current_path.should == new_user_session_path
+
+    fill_in('Email', :with => user.email)
+    fill_in('Password', :with => user.password)
+
+    click_button('Sign in')
+
+    page.current_path.should == sports_path
+  end
+
+
+end
+~~~
+
+Run the tests. 
+
+~~~console
+bundle exec rake spec
+~~~
+
+and they should fail since we haven't secured the sports_controller.rb
+
+~~~console
+Failures:
+  
+    1) only registred users can access sports should require users to sign in when they trying to access sports
+       Failure/Error: page.current_path.should == new_user_session_path
+         expected: "/users/sign_in"
+              got: "/sports" (using ==)
+       # ./spec/integration/sports/authentication_spec.rb:10:in `block (2 levels) in <top (required)>'
+~~~
+
+So now we just add the same Devise before_filter to `app/controllers/sports_controller.rb` that we used in the home controller.
+
+~~~ruby
+class SportsController < ApplicationController
+  before_filter :authenticate_user!
+
+  def index
+  end
+
+  def new
+  end
+
+end
+~~~
+
+~~~console
+bundle exec rake spec
+~~~
+
+it should now all pass.
+
+## Write functional Tests for listing, creating and deleting Sports
+Now we know the controller is secure we'll write some tests to make sure that it works the way we want and only then write the controller and view code to make the tests pass.
+
+These are the things we want to test:
+
+1. We list sports on the app/views/sports/index.html.erb page
+1. We can create a new sport on the app/views/sports/new.html.erb page and it redirects us back to the index.html.erb
+1. If we try to create an invalid sport it redirects us back to the app/views/sports/new.html.erb with incorrect data still in the controls.
+1. We can we destroy a sport from the index page and get redirected back to the app/views/sports/index.html.erb page
+
+We've already written the test for authentication so we'll assume that the user is signed in for each test by writing a `before :each` block that gets an instance of __User__ from __FactoryGirl__ and signs that user in.
+
+~~~console
+require 'spec_helper'
+
+describe 'restful' do
+
+  before :each do
+  	user = FactoryGirl.create(:user)
+	visit new_user_session_path
+	fill_in('Email', :with => user.email)
+    fill_in('Password', :with => user.password)
+
+    click_button('Sign in')
+  end
+
+
+  describe 'listing all sports on the index page' do
+
+    it "should list all sports" do
+      FactoryGirl.create(:sport, :name => 'Tennis')
+      FactoryGirl.create(:sport, :name => 'Football')
+
+      visit sports_path
+
+      page.should have_content('Tennis')
+      page.should have_content('Football')
+    end
+
+  end
+
+  describe 'adding a new sport' do
+
+    it 'should add a valid sport and redirect to the index page' do
+		visit sports_path
+
+		click_link('New Sport')
+
+		fill_in('Name', :with => 'Tennis')
+
+		expect{
+  			click_button('Create Sport')
+		}.to change{Sport.count}.by(1)
+  
+		page.current_path.should == sports_path
+		page.should have_content('Tennis')
+	end
+	
+    it 'should not add an invalid sport and should re-render the new page with the invalid data we entered' do
+		Sport.create(:name => 'Tennis')
+
+		visit sports_path
+
+		click_link('New Sport')
+
+		fill_in('Name', :with => 'Tennis')
+
+		expect{
+		  click_button('Create Sport')
+		}.to change{Sport.count}.by(0)
+
+		#page.save_and_open_page
+
+		page.find_field('Name').value.should have_content('Tennis')
+		page.should have_content('has already been taken')
+	end
+
+  end
+
+  describe 'destroying a sport' do
+
+    it 'should destroy a sport' do
+		FactoryGirl.create(:sport, :name => 'football')
+		FactoryGirl.create(:sport, :name => 'cricket')
+		sport = FactoryGirl.create(:sport, :name => 'Tennis')
+		FactoryGirl.create(:sport, :name => 'basketball')
+
+		visit sports_path
+
+		page.should have_content('Tennis')
+
+		within("tr[@data-row='#{sport.id}']") do
+		  expect{
+		    click_link('Destroy')
+		  }.to change{Sport.count}.by(-1)
+		end
+
+		page.current_path.should == sports_path
+		page.should_not have_content('Tennis')
+	end
+
+  end
+
+
+end
+~~~
+
+## Listing Sports with the index action
+The test above requires that the index page lists all of our sports and displays each one.
+
+~~~ruby
+it "should list all sports" do
+  FactoryGirl.create(:sport, :name => 'Tennis')
+  FactoryGirl.create(:sport, :name => 'Football')
+
+  visit sports_path
+
+  page.should have_content('Tennis')
+  page.should have_content('Football')
+end
+~~~
+
+First we must make the `index` action in our sports controller fetches all of the Sport objects. The `all` in `Sport.all` is an Active Record method that returns all of our Sport instances from the data source. This is assigned to the `@sports` variable which Rails will then pass on to our index view `app/views/index.html.erb`. 
+
+~~~ruby
+class SportsController < ApplicationController
+  
+  before_filter :authenticate_user!
+  
+  def index
+    @sports = Sport.all
+  end
+
+  def new
+  end
+
+  def create
+  end
+
+  def destroy
+  end
+end
+~~~
+
+Now we can iterate through the @sports collection in our view to list our sports. We've also added the destroy link to the list so that we can destroy a sport. 
+
+Note the `:method => :delete`. This is a bit smoke and mirrors provided by Rails that simulates an HTML DELETE action when we've really made an HTML GET. Browsers can only really GET or POST so when we click the destroy link Rails converts this to a DELETE for us.
+
+Note 
+
+~~~ruby
+<h1>Listing sports</h1>
+
+<table class='table'>
+  <thead>
+    <tr>
+      <th width=90%>Name</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @sports.each do |sport| %>
+      <tr data-row='<%= sport.id %>'>
+        <td><%= sport.name %></td>
+        <td><%= link_to 'Destroy', sport_path(sport), :method => :delete, :data =>{ confirm: 'Are you sure?' }, :class => 'btn btn-danger btn-mini' %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+~~~
+
+run the test
+
+~~~console
+bundle exec rake spec
+~~~
+
+and you should find that our first test now passes.
+
+
+## Creating a new Sport with the new and create actions
+Our next test requires that whenever we visit the index page we want to click on a link to the action `def new` that will display a form with the fields we need to create a new sport. In this case it's just name. When we hit the submit button then the form will call `def create`, create a sport then redirect us back to the sports index page.
+
+~~~ruby
+it 'should add a valid sport and redirect to the index page' do
+	visit sports_path
+
+	click_link('New Sport')
+
+	fill_in('Name', :with => 'Tennis')
+
+	expect{
+			click_button('Create Sport')
+	}.to change{Sport.count}.by(1)
+
+	page.current_path.should == sports_path
+	page.should have_content('Tennis')
+end
+~~~
+
+NOTE the RSpec `expect{...}.to` block that tests that the `.count` method of `ActiveRecord::Base` changes by one when we add a new sport. We could have just had a line at the beginning of test `x=Sport.count` and tested that it was +1 when the test was finished but then something else in our code may have incremented the Sport by 1 so our test may pass for the wrong reasons. This code ensure that the change occurs across that one line of our code and not elsewhere in the test.   
+
+Add this code to the new action in our sports controller; `app/controllers/sports_controller.rb` and the new view `app/views/sports/new.html.erb`
+
+### The new action
+We create a new, unsaved sport object and assign it to the variable @sport. This is passed to the new view.
+
+~~~ruby
+def new
+	@sport = Sport.new
+end
+~~~
+
+### The new view
+The @sport variable is bound to the form using `form_for` which automatically creates the restful url and populates the form fields from the model (in this case :name which is empty because this object is brand-spanking new)
+
+~~~ruby
+<h1>Create a new Sport</h1>
+<%= form_for @sport, :class => 'form-horizontal' do |f| %>
+  <div class="control-group">
+    <%= f.label :name, :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.text_field :name %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= submit_tag 'Create Sport', :class => 'btn btn-primary' %>
+    <%= link_to 'Back', sports_path, :class => 'btn' %>
+  </div>
+<% end %>
+~~~
+
+This creates the html:
+
+~~~ruby
+<form accept-charset="UTF-8" action="/sports" class="new_sport" id="new_sport" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="✓"><input name="authenticity_token" type="hidden" value="kGj744onhD+sZJ0DRBtk+/QHEe32LWuIH/lew4J+BVY="></div>
+  <div class="control-group">
+    <label class="control-label" for="sport_name">Name</label>
+    <div class="controls">
+      <input id="sport_name" name="sport[name]" size="30" type="text">
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <input class="btn btn-primary" name="commit" type="submit" value="Create Sport">
+    <a href="/sports" class="btn">Back</a>
+  </div>
+</form>
+~~~
+
+NOTE:
+
+* `action="/sports"` and `method="post"`. ActiveRecord::Base (don't forget our Sport model extends ActiveRecord::Base) has a method `.is_new?` which returns true if the object has no id so hasn't yet been saved to the database. Our object is new so `form_for @sport` creates a URL that posts to "/sports". If `.is_new?` had returned false then `form_for @sports` would have created a url that simulates an __HTML PUT__ in a similar way it simulates an __HTML DELETE__ above. 
+* `name="sport[name]"` will post the name control to Rails and be converted to a hash :sport => {:name => 'football'}. If we had several fields for our sport such as 'number of players' and 'outdoor' then these would be merged into the hash so that the `def create` action would see something like `:sport => {:name => 'football', :number_of_players => '11', :outdoor => 'true'}` making it easy for us to separate the model's parameters from any other parameters that get submitted.
+
+We've coded the `def new` to create a new sport instance for our `form_for`. The next thing we need to do is code the `def create` action so that a sport is created when the form is submitted and that we are redirected back to the sports index page.
+
+Add this to our `def create` action in `app/controllers/sports_controller.rb`
+
+~~~ruby
+def create
+	Sport.create(params[:sport])
+	redirect_to(sports_path)
+end
+~~~ 
+
+Remember the note above about params[:sport] being a hash of parameters for our model ? Rails is converting the form parameter sport[name] to :sport => {:name => 'xyz'}. We're calling the `ActiveRecor::Base` method `.create` and passing it that hash so when we call `Sport.create(params[:sport])` we're really saying `Sport.create({:name => 'xyz'})`.
+
+One last thing before our test can pass. It starts with the lines
+
+~~~ruby
+visit sports_path
+
+click_link('New Sport')
+~~~
+
+Which means we need a link on the index page `visit sports_path` that takes us to the new sport page `click_link('New Sport')`. 
+
+Add this to `app/views/sports/index.html.erb` under the table that lists our sports.
+
+~~~ ruby
+<%= link_to 'New Sport', new_sport_path, :class => 'btn btn-primary' %>
+~~~
+
+run the tests
+
+~~~console
+bundle exec rake spec
+~~~
+
+and the test should pass.
+
+What if it doesn't ? A really useful Capybara method for debugging is
+
+~~~ruby
+page.save_and_open_page
+~~~
+
+just place this line in your test where you think things may be going wrong and it will open the page in a browser so that you get to see the page that's being tested at that moment. It doesn't always work if the browser it opens is already being used so if you don't see your browser open to the test page then close your browser and run the tests again.
+
+## Attempt to create a new sport with invalid parameters
+Our third test should not create a sport but should render the form `app/views/sports/new.html.erb` with the values the user entered. Since names have to be unique in our sport model we'll create a sport called 'Tennis' first then try and create another one. We know that this validation will fail so the user should be taken back to the new sport form with a message 'has already been taken'
+
+~~~ruby
+it 'should not add an invalid sport and should re-render the new page with the invalid data we entered' do
+	Sport.create(:name => 'Tennis')
+
+	visit sports_path
+
+	click_link('New Sport')
+
+	fill_in('Name', :with => 'Tennis')
+
+	expect{
+	  click_button('Create Sport')
+	}.to change{Sport.count}.by(0)
+
+	#page.save_and_open_page
+
+	page.find_field('Name').value.should have_content('Tennis')
+	page.should have_content('has already been taken')
+end
+~~~
+
+our create action in `app/controllers/sports_controller.rb` is currently
+
+~~~ruby
+def create
+	Sport.create(params[:sport])
+	redirect_to(sports_path)
+end
+~~~
+
+but this will always redirect us to the index page regardless of whether the sport was created or not.
+
+we need to change this to:
+
+~~~ruby
+def create
+	@sport = Sport.new(params[:sport])
+
+	if @sport.save
+		redirect_to(sports_path)
+	else
+		render :template => 'sports/new.html.erb'
+	end
+end
+~~~
+
+The `.save` method of `ActiveRecord::Base` returns true or false depending on whether the save was successful. The save will be successful if the object was valid (and the underlying database confirms the save was completed). If the sport was invalid then `.save` will return false and we render the new template again.
+
+NOTE: We don't redirect to the `def new` action because we want our form to display the incorrect values the user entered. Redirecting to `def new` would simple create a new, empty sports model and the user would see empty fields instead of their incorrect input plus a warning message.
+
+## Destroy a Sport
+Our last test requires that we are able to click a link called 'destroy' on the index page. This will destroy the sport selected and redirect us back to the index page.
+
+~~~ruby
+it 'should destroy a sport' do
+	FactoryGirl.create(:sport, :name => 'football')
+	FactoryGirl.create(:sport, :name => 'cricket')
+	sport = FactoryGirl.create(:sport, :name => 'Tennis')
+	FactoryGirl.create(:sport, :name => 'basketball')
+
+	visit sports_path
+
+	page.should have_content('Tennis')
+
+	within("tr[@data-row='#{sport.id}']") do
+		expect{
+			click_link('Destroy')
+		}.to change{Sport.count}.by(-1)
+	end
+
+	page.current_path.should == sports_path
+	page.should_not have_content('Tennis')
+end
+~~~
+
+NOTE Our index page returns the four sports we create at the beginning of the test. We want to click the destroy link against for tennis and not any of the others. The XPath query select the table row that contains Tennis `within("tr[@data-row='#{sport.id}']") do` so the `click_link` inside this scope is destroy tennis and not foootball, cricket or basketball.
+
+The destroy link HTML generated by Rails will look something like the HTML above. Rails will call the url '/sports/6' - 6 being the id of our sport object in the database and will be available to the controller as `params[:id]` 
+
+~~~ruby
+<a href="/sports/6" class="btn btn-danger btn-mini" data-confirm="Are you sure?" data-method="delete" rel="nofollow">
+	Destroy
+</a>
+~~~
+
+We have no destroy view because the link is in our index page and redirects us back there after the destroy is complete so all we need do is code the `def destroy` action in our sports controller `app/controllers/sports_controller.rb`.
+
+~~~ruby
+def destroy
+	Sport.destroy(params[:id])
+	redirect_to(sports_path)
+end
+~~~
+
+run the tests and they should all pass
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+
+
