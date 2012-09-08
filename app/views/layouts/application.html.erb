@@ -38,7 +38,8 @@
             <ul class="nav">
               <% if user_signed_in? %>
                 <li><%= link_to "dashboard", dashboard_index_path  %></li>
-	   		        <li><%= link_to "sign-out", destroy_user_session_path, :method => :delete  %></li>
+                <li><%= link_to "sports", sports_path  %></li>
+	   		    <li><%= link_to "sign-out", destroy_user_session_path, :method => :delete  %></li>
               <% else %>
 	   		        <li><%= link_to "Sign In", new_user_session_path %></li>
               <% end %>
