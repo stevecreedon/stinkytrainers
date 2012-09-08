@@ -10,7 +10,7 @@
 
   <tbody>
     <% @sports.each do |sport| %>
-      <tr data-row='<%= sport.id %>'>
+      <tr data-row='<%= sport.id %>' style='background-color: white; <%= cycle('opacity: 0.9','opacity: 0.7') %>'>
         <td><%= sport.name %></td>
         <td><%= link_to 'Destroy', sport_path(sport), :method => :delete, :data =>{ confirm: 'Are you sure?' }, :class => 'btn btn-danger btn-mini' %></td>
       </tr>
