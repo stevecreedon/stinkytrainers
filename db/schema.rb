@@ -11,7 +11,36 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120902141500) do
+ActiveRecord::Schema.define(:version => 20120909173936) do
+
+  create_table "external_players", :force => true do |t|
+    t.string   "email"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  create_table "external_players_games", :id => false, :force => true do |t|
+    t.integer "external_player_id"
+    t.integer "game_id"
+  end
+
+  add_index "external_players_games", ["external_player_id"], :name => "index_external_players_games_on_external_player_id"
+  add_index "external_players_games", ["game_id"], :name => "index_external_players_games_on_game_id"
+
+  create_table "games", :force => true do |t|
+    t.string   "location"
+    t.datetime "at"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  create_table "games_users", :id => false, :force => true do |t|
+    t.integer "user_id"
+    t.integer "game_id"
+  end
+
+  add_index "games_users", ["game_id"], :name => "index_games_users_on_game_id"
+  add_index "games_users", ["user_id"], :name => "index_games_users_on_user_id"
 
   create_table "sports", :force => true do |t|
     t.string   "name"

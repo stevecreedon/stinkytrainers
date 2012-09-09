@@ -1,0 +1,674 @@
+<a id='top'></a>
+
+# 7. The Game Model
+As you can see from the diagram Game has a `has\_and\_belongs\_to\_many` relationship with User and we've added another class, External Player. We want our users to be able to invite anyone to a game not just other StinkTrainers users. We could just add a list of email address to a game that represent the external players but then our application would have to cope with a player that's either a User object or a string and that may make our code a little hard to handle. So we're going to add the model External Player, effectively a user that hasn't signed-up. Our game can then have a polymorphic collection called players that are both Users and External players. As long as User and ExternalPLayer have similar interfaces then we should be able to keep the code nice and easy.
+
+We're going to get more TDD and write tests for the Game model and the ExternalPLayer model first then make them pass.
+
+1. [Tests for the Game Model](#tests-for-the-game-model)
+1. [Tests for the ExternalPlayer model](#tests-for-the-externalplayer-model)
+1. [Generate the Game and ExternalPlayer models](#generate-the-game-and-externalplayer-models)
+1. [Get the Game model #location test passing](#get-the-game-model-location-test-passing)
+1. [Get the Game model #at test passing](#get-the-game-model-at-test-passing)
+1. [Get the Game model test for ordering players by email passing](#get-the-game-model-test-for-ordering-players-by-email-passing)
+1. [Get the Game model test for ordering external_players by email passing](#get-the-game-model-test-for-ordering-external-players-by-email-passing)
+1. [Get Game model tests for the over? helper method passing](#get-game-model-tests-for-the-over-helper-method-passing)
+1. [Get the ExternalPlayer model test for email passing](#get-the-externalplayer-model-test-for-email-passing)
+1. [Get the ExternalPlayer email must be unique test passing](#get-the-externalplayer-email-must-be-unique-test-passing)
+
+##<a id='tests-for-the-game-model'></a> 7.1. Tests for the Game Model
+
+### 7.1.1. First Draft
+First I'll write down some empty pending test before I start thinking about code.
+
+~~~ruby
+it 'should not be valid if the game has no location'
+
+it 'should not be valid if the game has no date'
+
+it 'should not be valid if the game has no players'
+
+it 'should return a list of external players ordered by email'
+
+it 'should return a list of players ordered by email'
+
+it 'should return true if the game is in the past'
+
+it 'should return false if the game is not in the past'
+~~~
+
+### 7.1.2. Now Code the tests
+Create the file spec/models/game_spec.rb and code the tests.
+
+~~~ruby
+require 'spec_helper'
+
+describe Game do
+
+	it 'should not be valid if the game has no location' do
+	  game = Game.new(:location => nil)
+	  game.valid?.should be_false
+	  game.errors.to_a.should include("Location can't be blank")
+	end
+
+	it 'should not be valid if the game has no date' do
+	  game = Game.new(:at => nil)
+	  game.valid?.should be_false
+	  game.errors.to_a.should include("At can't be blank")
+	end
+	
+	it 'should return a list of players ordered by email' do
+	  game = FactoryGirl.create(:game)
+
+	  andrew = FactoryGirl.create(:user, :email => 'andrew@textxyz.com')
+	  zoe = FactoryGirl.create(:user, :email => 'zoe@textxyz.com')
+	  mark = FactoryGirl.create(:user, :email => 'mark@textxyz.com')
+	  	  
+	  game.players << andrew
+	  game.players << zoe
+	  game.players << mark
+	  
+	  game.players.should == [andrew, mark, zoe]
+	end
+
+	it 'should return a list of external players ordered by email' do
+	  game = FactoryGirl.create(:game)
+
+	  andrew = FactoryGirl.create(:external_player, :email => 'andrew@textxyz.com')
+	  zoe = FactoryGirl.create(:external_player, :email => 'zoe@textxyz.com')
+	  mark = FactoryGirl.create(:external_player, :email => 'mark@textxyz.com')
+
+	  game.external_players << andrew
+	  game.external_players << zoe
+	  game.external_players << mark
+
+	  game.external_players.should == [andrew, mark, zoe]
+	end
+
+	it 'should return true if the game is in the past' do
+	  game = Game.new(:at => Time.now - 100)
+	  game = game.over?.should be_true
+	end
+
+	it 'should return false if the game is not in the past' do
+	  game = Game.new(:at => Time.now + 100)
+	  game = game.over?.should be_false
+	end
+	
+end
+~~~
+
+NOTE: If your wondering why we use Game.new to create a game but FactoryGirl for user and external_player it's because we're testing the game class so it feels wrong to use a mocked FactoryGirl object even though it theoretically is almost the same thing.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#tests-for-the-game-model"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='tests-for-the-externalplayer-model'></a> 7.2. Tests for the ExternalPlayer model
+### 7.2.1. First Draft
+
+~~~ruby
+it 'should not be valid if the player has no email'
+
+it 'should not be valid if the email already exists'
+~~~
+
+### 7.2.2. Now Code
+### 7.2.3. Now write some code
+
+~~~ruby
+it 'should not be valid if the player has no email' do
+  external_player = ExternalPlayer.new(:email => nil)
+  external_player.valid?.should be_false
+  external_player.errors.to_a.should include("Email can't be blank")
+end
+
+it 'should not be valid if the email already exists' do
+  ExternalPlayer.create(:email => 'bolt@lighting.co.uk')
+
+  external_player = ExternalPlayer.new(:email => 'bolt@lighting.co.uk')
+  external_player.valid?.should be_false
+  external_player.errors.to_a.should include("Email has already been taken")
+end
+~~~
+
+We've coded our test but we haven't yet created the User or ExternalPlayer model (how TDD is that ?) so if we try running 
+
+~~~console
+bundle exec rake spec
+~~~
+
+we will get a lot of horrible errors as the Game and ExternalPlayers don't yet exist.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#tests-for-the-externalplayer-model"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='generate-the-game-and-externalplayer-models'></a> 7.3. Generate the Game and ExternalPlayer models
+We'll generate both models so that we can start running tests.
+
+NOTE: We've already written specs for game and external_player so the generator will stop part of the way and warn us of a conflict because the files `spec/models/game_spec.rb` and `spec/models/external_player_spec.rb` already exist.
+
+~~~console
+invoke  active_record
+   create    db/migrate/20120909094450_create_games.rb
+   create    app/models/game.rb
+   invoke    rspec
+ conflict      spec/models/game_spec.rb
+ Overwrite /Users/stephencreedon/devel/stinkytrainers/spec/models/game_spec.rb? (enter "h" for help) [Ynaqdh] n
+~~~ 
+
+Just return 'n' (for no) when the generator asks if you want to overwrite the existing file. 
+
+~~~console
+bundle exec rails g model game location:string at:datetime
+bundle exec rails g model external_player email:string 
+~~~
+
+Now we have a Game and ExternalPlayer model try running the tests again
+
+~~~console
+bundle exec rake spec
+~~~
+
+Rails will object because it's detected that we have migrations for Game and ExternalPlayer that we haven't run yet
+
+~~~console
+You have 2 pending migrations:
+  20120909094450 CreateGames
+  20120909094851 CreateExternalPlayers
+Run `rake db:migrate` to update your database then try again.
+~~~
+
+Take a quick look at the migrations in db/migrate
+
+~~~ruby
+class CreateGames < ActiveRecord::Migration
+  def change
+    create_table :games do |t|
+      t.string :location
+      t.datetime :at
+
+      t.timestamps
+    end
+  end
+end
+~~~
+
+~~~ruby
+class CreateExternalPlayers < ActiveRecord::Migration
+  def change
+    create_table :external_players do |t|
+      t.string :email
+
+      t.timestamps
+    end
+  end
+end
+~~~
+
+So run the migrations:
+
+~~~console
+bundle exec rake db:migrate
+~~~
+
+which should give us
+
+~~~console
+==  CreateGames: migrating ====================================================
+-- create_table(:games)
+   -> 0.0701s
+==  CreateGames: migrated (0.0702s) ===========================================
+
+==  CreateExternalPlayers: migrating ==========================================
+-- create_table(:external_players)
+   -> 0.0014s
+==  CreateExternalPlayers: migrated (0.0015s) =================================
+~~~
+
+We now have the Game and ExternalPlayer models in our code and the games and external_players tables in the database so we should be able to run the tests.
+
+~~~console
+bundle exec rake spec
+~~~
+
+The tests will now run but, of course, we should now have 8 failing because we haven't put any code into them yet.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#generate-the-game-and-externalplayer-models"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='get-the-game-model-location-test-passing'></a> 7.4. Get the Game model #location test passing
+The first test requires that we have a location
+
+~~~ruby
+it 'should not be valid if the game has no location' do
+  game = Game.new(:location => nil)
+  game.valid?.should be_false
+  game.errors.to_a.should include("Location can't be blank")
+end
+~~~
+
+Let's use an ActiveModel validation for this:
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location
+  
+  validates :location, :presence => true
+end
+~~~
+
+run the tests
+
+~~~console
+bundle exec rake spec
+~~~
+
+and you should find we only have 7 failing tests.
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#get-the-game-model-location-test-passing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='get-the-game-model-at-test-passing'></a> 7.5. Get the Game model #at test passing
+Our second test requires that we have a date
+
+~~~ruby
+it 'should not be valid if the game has no date' do
+  game = Game.new(:at => nil)
+  game.valid?.should be_false
+  game.errors.to_a.should include("Date can't be blank")
+end
+~~~
+
+Again, we'll use an ActiveModel validation for this:
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+end
+~~~
+
+Run the tests and we should be down to 6 failures
+
+~~~console
+bundle exec rake spec
+~~~
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#get-the-game-model-at-test-passing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='get-the-game-model-test-for-ordering-players-by-email-passing'></a> 7.6. Get the Game model test for ordering players by email passing
+For this one we need to add the association between games and players. Now players are actually users but it seems a little odd that a game has a collection of users so we'll create an association called players, tell it to use User and also tell it to order users by email.
+
+
+This is the test we have to make work
+~~~ruby
+it 'should return a list of players ordered by email' do
+  game = FactoryGirl.create(:game)
+
+  andrew = FactoryGirl.create(:user, :email => 'andrew@textxyz.com')
+  zoe = FactoryGirl.create(:user, :email => 'zoe@textxyz.com')
+  mark = FactoryGirl.create(:user, :email => 'mark@textxyz.com')
+  	  
+  game.players << andrew
+  game.players << zoe
+  game.players << mark
+  
+  game.players.should == [andrew, mark, zoe]
+end
+~~~
+
+NOTE: we've broken the rule about not using FactoryGirl to create the objects we're testing. In this case it's not so bad because we're actually not testing Game but the association players. We've used FactoryGirl because we needed a valid instance of Game before we can add records to an association. Remember that our games_users join table needs a game_id ? Well if we'd just created Game.new the record isn't saved, if it isn't saved it won't have an id. For the association to work we need a saved, and thus valid instance of game, hence we use FactoryGirl. We could have created a valid game in the test `Game.create(:location => 'xyz', :at => Time.now)` but that would mean every time we add a new validation to Game we'd have to rewrite this line in our tests.
+
+let's create the has\_and\_belongs\_to\_many players association in our game. Note that we have to explicitly tell it that our players collection is actually a user.
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  has_and_belongs_to_many :players, :class_name_ => 'User'
+end
+~~~
+
+We also need the has\_and\_belongs\_to\_many relationship that connects our user to games. This time we don't need to do any renaming as user.games makes a little more sense
+
+~~~ruby
+class User < ActiveRecord::Base
+  # Include default devise modules. Others available are:
+  # :token_authenticatable, :confirmable,
+  # :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+
+  # Setup accessible (or protected) attributes for your model
+  attr_accessible :email, :password, :password_confirmation, :remember_me
+  # attr_accessible :title, :body
+  
+  has_and_belongs_to_many :sports
+  has_and_belongs_to_many :games
+end
+~~~
+
+We've associated game to user and user to game. Since this is a has\_and\_belongs\_to\_many we need to create a join table
+
+~~~console
+bundle exec rails g migration CreateGamesUsersJoinTable
+~~~
+
+Open the migration in db/migrate. When we created the sports\_users join table we created a more traditional migration that used `def up` and `def down` to handle migrations and rollbacks. This time we'll use the more succinct `def change`
+
+~~~ruby
+class CreateGamesUsersJoinTable < ActiveRecord::Migration
+  
+  def change
+    create_table :games_users do |t|
+      t.integer :user_id
+      t.integer :game_id
+    end
+    
+    add_index :games_users, :user_id
+  	add_index :games_users, :game_id
+  end
+  
+end
+~~~
+
+NOTE that we've used user\_id not player\_id but because we've specified the class_name as 'User' in our association `:class_name => 'User' our game class will look for a user_id in the join table games_users when we call players.
+
+run the migration
+
+~~~console
+bundle exec rake db:migrate
+~~~
+
+and we should be ready to see if our test passes.
+
+~~~console
+bundle exec rake spec
+~~~
+
+We still have 7 tests failing and the one we're interested will be giving us quite a lengthy output
+
+~~~console
+4) Game should return a list of players ordered by email
+    Failure/Error: game.players.should == [andrew, mark, zoe]
+      expected: [#<User id: 1, email: "andrew@textxyz.com", encrypted_password: "$2a$04$jY7YZG2818JmzoMGEM7GAeEzUfSlcq2GtYkZhOTXZZV5...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">, #<User id: 3, email: "mark@textxyz.com", encrypted_password: "$2a$04$xBvXRHoFcRRbjPXVlDb0FunAT.SUTfqldMwhn0M31J7B...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">, #<User id: 2, email: "zoe@textxyz.com", encrypted_password: "$2a$04$6UFM8tc755xJ7J8d853EyeqFa6bDUdtm6CY0awqXrrsf...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">]
+           got: [#<User id: 1, email: "andrew@textxyz.com", encrypted_password: "$2a$04$jY7YZG2818JmzoMGEM7GAeEzUfSlcq2GtYkZhOTXZZV5...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">, #<User id: 2, email: "zoe@textxyz.com", encrypted_password: "$2a$04$6UFM8tc755xJ7J8d853EyeqFa6bDUdtm6CY0awqXrrsf...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">, #<User id: 3, email: "mark@textxyz.com", encrypted_password: "$2a$04$xBvXRHoFcRRbjPXVlDb0FunAT.SUTfqldMwhn0M31J7B...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">] (using ==)
+      Diff:
+      @@ -1,4 +1,4 @@
+       [#<User id: 1, email: "andrew@textxyz.com", encrypted_password: "$2a$04$jY7YZG2818JmzoMGEM7GAeEzUfSlcq2GtYkZhOTXZZV5...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">,
+      - #<User id: 3, email: "mark@textxyz.com", encrypted_password: "$2a$04$xBvXRHoFcRRbjPXVlDb0FunAT.SUTfqldMwhn0M31J7B...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">,
+      - #<User id: 2, email: "zoe@textxyz.com", encrypted_password: "$2a$04$6UFM8tc755xJ7J8d853EyeqFa6bDUdtm6CY0awqXrrsf...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">]
+      + #<User id: 2, email: "zoe@textxyz.com", encrypted_password: "$2a$04$6UFM8tc755xJ7J8d853EyeqFa6bDUdtm6CY0awqXrrsf...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">,
+      + #<User id: 3, email: "mark@textxyz.com", encrypted_password: "$2a$04$xBvXRHoFcRRbjPXVlDb0FunAT.SUTfqldMwhn0M31J7B...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 0, current_sign_in_at: nil, last_sign_in_at: nil, current_sign_in_ip: nil, last_sign_in_ip: nil, created_at: "2012-09-09 16:10:51", updated_at: "2012-09-09 16:10:51">]
+~~~
+
+Our association is working but we haven't told it to order by email yet. If you read it carefully it's telling us it expected andrew, mark, zoe but got andrew, zoe, mark.
+
+The Diff is the difference between the two arrays.
+
+Let's add ordering by email and get this test passing
+
+~~~
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  has_and_belongs_to_many :players, :class_name_ => 'User', :order => 'users.email ASC'
+end
+~~~
+
+run the tests and you should now have just 5 tests failing
+
+~~~console
+bundle exec rake spec
+~~~
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#get-the-game-model-test-for-ordering-players-by-email-passing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='get-the-game-model-test-for-ordering-external-players-by-email-passing'></a> 7.7. Get the Game model test for ordering external_players by email passing
+This is a very similar problem to the previous one so we won't spend too much time on this.
+
+Create the association in Game. Note that our external\_players association is the same name as our class so we don't specify the :class_name
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+end
+~~~
+
+Create the association in ExternalPlayer. Note that we don't need external\_player.games to be in any particular order.
+
+~~~ruby
+class ExternalPlayer < ActiveRecord::Base
+  attr_accessible :email
+  
+  has_and_belongs_to_many :games
+end
+~~~
+
+Create the migration for the join table
+
+~~~console
+bundle exec rails g migration CreateExternalPlayersGamesJoinTable
+~~~
+
+Add this code to the migration
+
+~~~ruby
+class CreateExternalPlayersGamesJoinTable < ActiveRecord::Migration
+ 
+  def change
+    create_table :external_players_games, :id => false do |t|
+      t.integer :external_player_id
+      t.integer :game_id
+    end
+    
+    add_index :external_players_games, :external_player_id
+  	add_index :external_players_games, :game_id
+  end
+ 
+end
+~~~
+
+run the migration
+
+~~~console
+bundle exec rake db:migrate
+~~~
+
+now run the tests and we should be down to 4 tests passing
+
+~~~console
+bundle exec rake spec
+~~~
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#get-the-game-model-test-for-ordering-external-players-by-email-passing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='get-game-model-tests-for-the-over-helper-method-passing'></a> 7.8. Get Game model tests for the over? helper method passing
+We want to have a simple helper method `.over?` that tells us whether the game is in the past or not. methods ending in `?` such as `valid?`, `over?`, `nil?` & `blank?` are a common ruby idiom where the method returns true or false.
+
+This are the two tests we want to pass
+
+~~~ruby
+it 'should return true if the game is in the past' do
+  game = Game.new(:at => Date.today - 1)
+  game = game.over?.should be_true
+end
+
+it 'should return false if the game is not in the past' do
+  game = Game.new(:at => Date.today + 1)
+  game = game.over?.should be_false
+end
+~~~
+
+Add the `.over?` method to our game model
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+  
+  def over?
+    Time.now > self.at
+  end
+  
+end
+~~~
+
+run the tests and we should be down to 2 failing tests
+
+~~~console
+bundle exec rake spec
+~~~
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#get-game-model-tests-for-the-over-helper-method-passing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='get-the-externalplayer-model-test-for-email-passing'></a> 7.9. Get the ExternalPlayer model test for email passing
+This is very similar to the test for name in our sports model. We'll use an ActiveModel validation to make sure that the email is present
+
+We want this test to pass
+
+~~~ruby
+it 'should not be valid if the player has no email' do
+  external_player = ExternalPlayer.new(:email => nil)
+  external_player.valid?.should be_false
+  external_player.errors.to_a.should include("Email can't be blank")
+end
+~~~ 
+
+add this validation
+
+~~~ruby
+class ExternalPlayer < ActiveRecord::Base
+  attr_accessible :email
+  
+  validates :email, :presence => true
+  
+  has_and_belongs_to_many :games
+end
+~~~
+
+run the tests and we should be down to 1 failing test
+
+~~~console
+bundle exec rake spec
+~~~
+
+
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#get-the-externalplayer-model-test-for-email-passing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+
+[back to top](#top)
+##<a id='get-the-externalplayer-email-must-be-unique-test-passing'></a> 7.10. Get the ExternalPlayer email must be unique test passing
+This is very similar to the test for uniqueness of name in our sports model. We'll use an ActiveModel validation to make sure that the email doesn't already exist.
+
+This is the test we want to pass. Note that we create a an ExternalPlayer in the first line then attempt to create another
+
+~~~ruby
+it 'should not be valid if the email already exists' do
+  ExternalPlayer.create(:email => 'bolt@lighting.co.uk')
+
+  external_player = ExternalPlayer.new(:email => 'bolt@lighting.co.uk')
+  external_player.valid?.should be_false
+  external_player.errors.to_a.should include("Email already taken")
+end
+~~~
+
+Add the email uniqueness validation to ExternalPlayer
+
+~~~ruby
+class ExternalPlayer < ActiveRecord::Base
+  attr_accessible :email
+  
+  validates :email, :presence => true, :uniqueness => true
+  
+  has_and_belongs_to_many :games
+end
+~~~
+
+run the tests and everything should be passing
+
+~~~console
+bundle exec rake spec
+~~~
