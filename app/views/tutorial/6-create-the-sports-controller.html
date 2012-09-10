@@ -226,98 +226,98 @@
 </ol>
 
 <p>We&#39;ve already written the test for authentication so we&#39;ll assume that the user is signed in for each test by writing a <code>before :each</code> block that gets an instance of <strong>User</strong> from <strong>FactoryGirl</strong> and signs that user in.</p>
-<div class="highlight"><pre><span class="go">require &#39;spec_helper&#39;</span>
+<div class="highlight"><pre><span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
 
-<span class="go">describe &#39;restful&#39; do</span>
+<span class="n">describe</span> <span class="s1">&#39;restful&#39;</span> <span class="k">do</span>
 
-<span class="go">  before :each do</span>
-<span class="go">    user = FactoryGirl.create(:user)</span>
-<span class="go">    visit new_user_session_path</span>
-<span class="go">    fill_in(&#39;Email&#39;, :with =&gt; user.email)</span>
-<span class="go">    fill_in(&#39;Password&#39;, :with =&gt; user.password)</span>
+  <span class="n">before</span> <span class="ss">:each</span> <span class="k">do</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+    <span class="n">visit</span> <span class="n">new_user_session_path</span>
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Email&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Password&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-<span class="go">    click_button(&#39;Sign in&#39;)</span>
-<span class="go">  end</span>
-
-
-<span class="go">  describe &#39;listing all sports on the index page&#39; do</span>
-
-<span class="go">    it &quot;should list all sports&quot; do</span>
-<span class="go">      FactoryGirl.create(:sport, :name =&gt; &#39;Tennis&#39;)</span>
-<span class="go">      FactoryGirl.create(:sport, :name =&gt; &#39;Football&#39;)</span>
-
-<span class="go">      visit sports_path</span>
-
-<span class="go">      page.should have_content(&#39;Tennis&#39;)</span>
-<span class="go">      page.should have_content(&#39;Football&#39;)</span>
-<span class="go">    end</span>
-
-<span class="go">  end</span>
-
-<span class="go">  describe &#39;adding a new sport&#39; do</span>
-
-<span class="go">    it &#39;should add a valid sport and redirect to the index page&#39; do</span>
-<span class="go">        visit sports_path</span>
-
-<span class="go">        click_link(&#39;New Sport&#39;)</span>
-
-<span class="go">        fill_in(&#39;Name&#39;, :with =&gt; &#39;Tennis&#39;)</span>
-
-<span class="go">        expect{</span>
-<span class="go">            click_button(&#39;Create Sport&#39;)</span>
-<span class="go">        }.to change{Sport.count}.by(1)</span>
-
-<span class="go">        page.current_path.should == sports_path</span>
-<span class="go">        page.should have_content(&#39;Tennis&#39;)</span>
-<span class="go">    end</span>
-
-<span class="go">    it &#39;should not add an invalid sport and should re-render the new page with the invalid data we entered&#39; do</span>
-<span class="go">        Sport.create(:name =&gt; &#39;Tennis&#39;)</span>
-
-<span class="go">        visit sports_path</span>
-
-<span class="go">        click_link(&#39;New Sport&#39;)</span>
-
-<span class="go">        fill_in(&#39;Name&#39;, :with =&gt; &#39;Tennis&#39;)</span>
-
-<span class="go">        expect{</span>
-<span class="go">          click_button(&#39;Create Sport&#39;)</span>
-<span class="go">        }.to change{Sport.count}.by(0)</span>
-
-<span class="go">        #page.save_and_open_page</span>
-
-<span class="go">        page.find_field(&#39;Name&#39;).value.should have_content(&#39;Tennis&#39;)</span>
-<span class="go">        page.should have_content(&#39;has already been taken&#39;)</span>
-<span class="go">    end</span>
-
-<span class="go">  end</span>
-
-<span class="go">  describe &#39;destroying a sport&#39; do</span>
-
-<span class="go">    it &#39;should destroy a sport&#39; do</span>
-<span class="go">        FactoryGirl.create(:sport, :name =&gt; &#39;football&#39;)</span>
-<span class="go">        FactoryGirl.create(:sport, :name =&gt; &#39;cricket&#39;)</span>
-<span class="go">        sport = FactoryGirl.create(:sport, :name =&gt; &#39;Tennis&#39;)</span>
-<span class="go">        FactoryGirl.create(:sport, :name =&gt; &#39;basketball&#39;)</span>
-
-<span class="go">        visit sports_path</span>
-
-<span class="go">        page.should have_content(&#39;Tennis&#39;)</span>
-
-<span class="go">        within(&quot;tr[@data-row=&#39;#{sport.id}&#39;]&quot;) do</span>
-<span class="go">          expect{</span>
-<span class="go">            click_link(&#39;Destroy&#39;)</span>
-<span class="go">          }.to change{Sport.count}.by(-1)</span>
-<span class="go">        end</span>
-
-<span class="go">        page.current_path.should == sports_path</span>
-<span class="go">        page.should_not have_content(&#39;Tennis&#39;)</span>
-<span class="go">    end</span>
-
-<span class="go">  end</span>
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Sign in&#39;</span><span class="p">)</span>
+  <span class="k">end</span>
 
 
-<span class="go">end</span>
+  <span class="n">describe</span> <span class="s1">&#39;listing all sports on the index page&#39;</span> <span class="k">do</span>
+
+    <span class="n">it</span> <span class="s2">&quot;should list all sports&quot;</span> <span class="k">do</span>
+      <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+      <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Football&#39;</span><span class="p">)</span>
+
+      <span class="n">visit</span> <span class="n">sports_path</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Football&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+  <span class="k">end</span>
+
+  <span class="n">describe</span> <span class="s1">&#39;adding a new sport&#39;</span> <span class="k">do</span>
+
+    <span class="n">it</span> <span class="s1">&#39;should add a valid sport and redirect to the index page&#39;</span> <span class="k">do</span>
+      <span class="n">visit</span> <span class="n">sports_path</span>
+
+      <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;New Sport&#39;</span><span class="p">)</span>
+
+      <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+
+      <span class="n">expect</span><span class="p">{</span>
+        <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Create Sport&#39;</span><span class="p">)</span>
+      <span class="p">}</span><span class="o">.</span><span class="n">to</span> <span class="n">change</span><span class="p">{</span><span class="no">Sport</span><span class="o">.</span><span class="n">count</span><span class="p">}</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">sports_path</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s1">&#39;should not add an invalid sport and should re-render the new page with the invalid data we entered&#39;</span> <span class="k">do</span>
+      <span class="no">Sport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+
+      <span class="n">visit</span> <span class="n">sports_path</span>
+
+      <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;New Sport&#39;</span><span class="p">)</span>
+
+      <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+
+      <span class="n">expect</span><span class="p">{</span>
+        <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Create Sport&#39;</span><span class="p">)</span>
+      <span class="p">}</span><span class="o">.</span><span class="n">to</span> <span class="n">change</span><span class="p">{</span><span class="no">Sport</span><span class="o">.</span><span class="n">count</span><span class="p">}</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+      <span class="c1">#page.save_and_open_page</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;Name&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;has already been taken&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+  <span class="k">end</span>
+
+  <span class="n">describe</span> <span class="s1">&#39;destroying a sport&#39;</span> <span class="k">do</span>
+
+    <span class="n">it</span> <span class="s1">&#39;should destroy a sport&#39;</span> <span class="k">do</span>
+      <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;football&#39;</span><span class="p">)</span>
+      <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;cricket&#39;</span><span class="p">)</span>
+      <span class="n">sport</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+      <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;basketball&#39;</span><span class="p">)</span>
+
+      <span class="n">visit</span> <span class="n">sports_path</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+
+      <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;</span><span class="si">#{</span><span class="n">sport</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+        <span class="n">expect</span><span class="p">{</span>
+          <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;Destroy&#39;</span><span class="p">)</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">to</span> <span class="n">change</span><span class="p">{</span><span class="no">Sport</span><span class="o">.</span><span class="n">count</span><span class="p">}</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">sports_path</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">should_not</span> <span class="n">have_content</span><span class="p">(</span><span class="s1">&#39;Tennis&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+  <span class="k">end</span>
+
+
+<span class="k">end</span>
 </pre></div>
 
 <p>This is our test suite, now we&#39;ll write code in our sports controllers and views to make sure that these tests pass.</p>

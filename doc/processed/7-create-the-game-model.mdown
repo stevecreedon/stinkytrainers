@@ -1,7 +1,7 @@
 <a id='top'></a>
 
 # 7. The Game Model
-As you can see from the diagram Game has a `has\_and\_belongs\_to\_many` relationship with User and we've added another class, External Player. We want our users to be able to invite anyone to a game not just other StinkTrainers users. We could just add a list of email address to a game that represent the external players but then our application would have to cope with a player that's either a User object or a string and that may make our code a little hard to handle. So we're going to add the model External Player, effectively a user that hasn't signed-up. Our game can then have a polymorphic collection called players that are both Users and External players. As long as User and ExternalPLayer have similar interfaces then we should be able to keep the code nice and easy.
+As you can see from the diagram Game has a `has_and_belongs_to_many` relationship with User and we've added another class, External Player. We want our users to be able to invite anyone to a game not just other StinkTrainers users. We could just add a list of email address to a game that represent the external players but then our application would have to cope with a player that's either a User object or a string and that may make our code a little hard to handle. So we're going to add the model External Player, effectively a user that hasn't signed-up. Our game can then have a polymorphic collection called players that are both Users and External players. As long as User and ExternalPLayer have similar interfaces then we should be able to keep the code nice and easy.
 
 We're going to get more TDD and write tests for the Game model and the ExternalPLayer model first then make them pass.
 
@@ -339,6 +339,7 @@ For this one we need to add the association between games and players. Now playe
 
 
 This is the test we have to make work
+
 ~~~ruby
 it 'should return a list of players ordered by email' do
   game = FactoryGirl.create(:game)
@@ -448,7 +449,7 @@ The Diff is the difference between the two arrays.
 
 Let's add ordering by email and get this test passing
 
-~~~
+~~~ruby
 class Game < ActiveRecord::Base
   attr_accessible :at, :location
   
