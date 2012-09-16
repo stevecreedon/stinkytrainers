@@ -28,9 +28,9 @@ group :assets do
   gem 'uglifier', '>= 1.0.3'
 end
 
-gem "twitter-bootstrap-rails"
-gem 'jquery-rails'
-gem 'devise'
+gem "twitter-bootstrap-rails",'=2.0.7'
+gem 'jquery-rails', '=2.0.2'
+gem 'devise', '=2.1.2'
 
 group :development, :test do
   gem 'rspec-rails', '=2.11.0'

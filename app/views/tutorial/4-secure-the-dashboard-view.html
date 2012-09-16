@@ -20,7 +20,63 @@
 and the views to allow users to sign up, sign-in and handle forgotten passwords.</p>
 
 <h3>4.1.1. Add the devise gem to bundlers Gemfile</h3>
-<div class="highlight"><pre><span class="n">gem</span> <span class="s1">&#39;devise&#39;</span>
+
+<p>Add the line <code>gem &#39;devise&#39;</code> to our Gemfile</p>
+<div class="highlight"><pre><span class="n">source</span> <span class="s1">&#39;https://rubygems.org&#39;</span>
+
+<span class="n">gem</span> <span class="s1">&#39;rails&#39;</span><span class="p">,</span> <span class="s1">&#39;3.2.8&#39;</span>
+<span class="n">gem</span> <span class="s1">&#39;pg&#39;</span>
+
+ <span class="c1"># Bundle edge Rails instead:</span>
+ <span class="c1"># gem &#39;rails&#39;, :git =&gt; &#39;git://github.com/rails/rails.git&#39;</span>
+
+
+<span class="n">group</span> <span class="ss">:development</span> <span class="k">do</span>
+  <span class="n">gem</span> <span class="s1">&#39;sqlite3&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;redcarpet&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;pygmentize&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;nokogiri&#39;</span>
+<span class="k">end</span>
+
+
+
+ <span class="c1"># Gems used only for assets and not required</span>
+ <span class="c1"># in production environments by default.</span>
+<span class="n">group</span> <span class="ss">:assets</span> <span class="k">do</span>
+  <span class="n">gem</span> <span class="s1">&#39;sass-rails&#39;</span><span class="p">,</span>   <span class="s1">&#39;~&gt; 3.2.3&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;coffee-rails&#39;</span><span class="p">,</span> <span class="s1">&#39;~&gt; 3.2.1&#39;</span>
+
+  <span class="c1"># See https://github.com/sstephenson/execjs#readme for more supported runtimes</span>
+  <span class="c1"># gem &#39;therubyracer&#39;, :platforms =&gt; :ruby</span>
+
+  <span class="n">gem</span> <span class="s1">&#39;uglifier&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;= 1.0.3&#39;</span>
+<span class="k">end</span>
+
+<span class="n">gem</span> <span class="s2">&quot;twitter-bootstrap-rails&quot;</span><span class="p">,</span><span class="s1">&#39;~&gt; 2.0.7&#39;</span>
+<span class="n">gem</span> <span class="s1">&#39;jquery-rails&#39;</span><span class="p">,</span> <span class="s1">&#39;~&gt; 2.0.2&#39;</span>
+<span class="n">gem</span> <span class="s1">&#39;devise&#39;</span><span class="p">,</span> <span class="s1">&#39;~&gt; 2.1.2&#39;</span>
+
+<span class="n">group</span> <span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span> <span class="k">do</span>
+  <span class="n">gem</span> <span class="s1">&#39;rspec-rails&#39;</span><span class="p">,</span> <span class="s1">&#39;=2.11.0&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;capybara&#39;</span><span class="p">,</span> <span class="s1">&#39;=1.1.2&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;launchy&#39;</span>
+  <span class="n">gem</span> <span class="s1">&#39;factory_girl_rails&#39;</span>
+<span class="k">end</span>
+
+ <span class="c1"># To use ActiveModel has_secure_password</span>
+ <span class="c1"># gem &#39;bcrypt-ruby&#39;, &#39;~&gt; 3.0.0&#39;</span>
+
+ <span class="c1"># To use Jbuilder templates for JSON</span>
+ <span class="c1"># gem &#39;jbuilder&#39;</span>
+
+ <span class="c1"># Use unicorn as the app server</span>
+ <span class="c1"># gem &#39;unicorn&#39;</span>
+
+ <span class="c1"># Deploy with Capistrano</span>
+ <span class="c1"># gem &#39;capistrano&#39;</span>
+
+ <span class="c1"># To use debugger</span>
+ <span class="c1"># gem &#39;debugger&#39;</span>
 </pre></div>
 
 <h3>4.1.2. Install the devise gem</h3>
@@ -76,8 +132,46 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 <p>Setup action mailer so that devise can email us any forgotten passwords. To do this we need to tell Devise where the link in the email it will send should point to. Rails allows us to configure environments for <strong>development</strong>, <strong>test</strong> and <strong>production</strong> but for now we&#39;ll just set up the default actionmailer url for our development environment.</p>
 
-<p>In the file config/environments/development.rb add the line below anywhere after <strong>Stinkytrainers::Application.configure do</strong></p>
-<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">action_mailer</span><span class="o">.</span><span class="n">default_url_options</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s1">&#39;localhost:3000&#39;</span> <span class="p">}</span>
+<p>In the file config/environments/development.rb add the line <code>config.action_mailer.default_url_options = { :host =&gt; &#39;localhost:3000&#39; }</code></p>
+<div class="highlight"><pre><span class="no">Stinkytrainers</span><span class="o">::</span><span class="no">Application</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span>
+  <span class="c1"># Settings specified here will take precedence over those in config/application.rb</span>
+
+  <span class="n">config</span><span class="o">.</span><span class="n">action_mailer</span><span class="o">.</span><span class="n">default_url_options</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s1">&#39;localhost:3000&#39;</span> <span class="p">}</span>
+
+  <span class="c1"># In the development environment your application&#39;s code is reloaded on</span>
+  <span class="c1"># every request. This slows down response time but is perfect for development</span>
+  <span class="c1"># since you don&#39;t have to restart the web server when you make code changes.</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">cache_classes</span> <span class="o">=</span> <span class="kp">false</span>
+
+  <span class="c1"># Log error messages when you accidentally call methods on nil.</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">whiny_nils</span> <span class="o">=</span> <span class="kp">true</span>
+
+  <span class="c1"># Show full error reports and disable caching</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">consider_all_requests_local</span>       <span class="o">=</span> <span class="kp">true</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">action_controller</span><span class="o">.</span><span class="n">perform_caching</span> <span class="o">=</span> <span class="kp">false</span>
+
+  <span class="c1"># Don&#39;t care if the mailer can&#39;t send</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">action_mailer</span><span class="o">.</span><span class="n">raise_delivery_errors</span> <span class="o">=</span> <span class="kp">false</span>
+
+  <span class="c1"># Print deprecation notices to the Rails logger</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">active_support</span><span class="o">.</span><span class="n">deprecation</span> <span class="o">=</span> <span class="ss">:log</span>
+
+  <span class="c1"># Only use best-standards-support built into browsers</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">action_dispatch</span><span class="o">.</span><span class="n">best_standards_support</span> <span class="o">=</span> <span class="ss">:builtin</span>
+
+  <span class="c1"># Raise exception on mass assignment protection for Active Record models</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">active_record</span><span class="o">.</span><span class="n">mass_assignment_sanitizer</span> <span class="o">=</span> <span class="ss">:strict</span>
+
+  <span class="c1"># Log the query plan for queries taking more than this (works</span>
+  <span class="c1"># with SQLite, MySQL, and PostgreSQL)</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">active_record</span><span class="o">.</span><span class="n">auto_explain_threshold_in_seconds</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span>
+
+  <span class="c1"># Do not compress assets</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">compress</span> <span class="o">=</span> <span class="kp">false</span>
+
+  <span class="c1"># Expands the lines which load the assets</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="k">end</span>
 </pre></div>
 
 <h3>4.1.5. Devise point 2.</h3>
@@ -91,10 +185,92 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 </pre></div>
 
 <p>This message will then be usd in your view as below. </p>
-
-<p>Add these line to app/views/layouts/application.html.erb before the line &#39;yield&#39;</p>
 <div class="highlight"><pre>   <span class="o">&lt;</span><span class="nb">p</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;notice&quot;</span><span class="o">&gt;&lt;</span><span class="sx">%= notice %&gt;&lt;/p&gt;</span>
 <span class="sx">   &lt;p class=</span><span class="s2">&quot;alert&quot;</span><span class="o">&gt;&lt;%=</span> <span class="n">alert</span> <span class="sx">%&gt;&lt;/p&gt;</span>
+</pre></div>
+
+<p>Add the two lines above to app/views/layouts/application.html.erb below inside the &#39;container&#39; div above <code>yield</code>. <code>yield</code> is where Rails will be putting the output of our view. </p>
+<div class="highlight"><pre><span class="o">&lt;!</span><span class="no">DOCTYPE</span> <span class="n">html</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">html</span> <span class="n">lang</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">head</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">meta</span> <span class="n">charset</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">meta</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;viewport&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;width=device-width, initial-scale=1.0&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">title</span><span class="o">&gt;&lt;</span><span class="sx">%= content_for?(:title) ? yield(:title) : &quot;StinkyTrainers&quot; %&gt;&lt;/title&gt;</span>
+<span class="sx">    &lt;%=</span> <span class="n">csrf_meta_tags</span> <span class="sx">%&gt;</span>
+
+<span class="sx">    &lt;!-- Le HTML5 shim, for IE6-8 support of HTML elements --&gt;</span>
+    <span class="o">&lt;!--[</span><span class="k">if</span> <span class="n">lt</span> <span class="no">IE</span> <span class="mi">9</span><span class="o">]&gt;</span>
+      <span class="o">&lt;</span><span class="n">script</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;http://html5shim.googlecode.com/svn/trunk/html5.js&quot;</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;&lt;</span><span class="sr">/script&gt;</span>
+<span class="sr">    &lt;![endif]--&gt;</span>
+
+<span class="sr">    &lt;%= stylesheet_link_tag &quot;application&quot;, :media =&gt; &quot;all&quot; %&gt;</span>
+
+<span class="sr">    &lt;link href=&quot;images/</span><span class="n">favicon</span><span class="o">.</span><span class="n">ico</span><span class="s2">&quot; rel=&quot;</span><span class="n">shortcut</span> <span class="n">icon</span><span class="s2">&quot;&gt;</span>
+<span class="s2">    &lt;link href=&quot;</span><span class="n">images</span><span class="o">/</span><span class="n">apple</span><span class="o">-</span><span class="n">touch</span><span class="o">-</span><span class="n">icon</span><span class="o">.</span><span class="n">png</span><span class="s2">&quot; rel=&quot;</span><span class="n">apple</span><span class="o">-</span><span class="n">touch</span><span class="o">-</span><span class="n">icon</span><span class="s2">&quot;&gt;</span>
+<span class="s2">    &lt;link href=&quot;</span><span class="n">images</span><span class="o">/</span><span class="n">apple</span><span class="o">-</span><span class="n">touch</span><span class="o">-</span><span class="n">icon</span><span class="o">-</span><span class="mi">72</span><span class="n">x72</span><span class="o">.</span><span class="n">png</span><span class="s2">&quot; rel=&quot;</span><span class="n">apple</span><span class="o">-</span><span class="n">touch</span><span class="o">-</span><span class="n">icon</span><span class="s2">&quot; sizes=&quot;</span><span class="mi">72</span><span class="n">x72</span><span class="s2">&quot;&gt;</span>
+<span class="s2">    &lt;link href=&quot;</span><span class="n">images</span><span class="o">/</span><span class="n">apple</span><span class="o">-</span><span class="n">touch</span><span class="o">-</span><span class="n">icon</span><span class="o">-</span><span class="mi">114</span><span class="n">x114</span><span class="o">.</span><span class="n">png</span><span class="s2">&quot; rel=&quot;</span><span class="n">apple</span><span class="o">-</span><span class="n">touch</span><span class="o">-</span><span class="n">icon</span><span class="s2">&quot; sizes=&quot;</span><span class="mi">114</span><span class="n">x114</span><span class="s2">&quot;&gt;</span>
+
+<span class="s2">    &lt;link href=&#39;http://fonts.googleapis.com/css?family=Sonsie+One|Vast+Shadow&#39; rel=&#39;stylesheet&#39; type=&#39;text/css&#39;&gt;</span>
+<span class="s2">    &lt;link href=&#39;http://fonts.googleapis.com/css?family=Vollkorn&#39; rel=&#39;stylesheet&#39; type=&#39;text/css&#39;&gt;</span>
+
+<span class="s2">  &lt;/head&gt;</span>
+<span class="s2">  &lt;body class=&quot;</span><span class="n">stinky</span><span class="s2">&quot;&gt;</span>
+<span class="s2">    &lt;%= render &#39;shared/google_analytics&#39; %&gt;</span>
+<span class="s2">    &lt;div class=&quot;</span><span class="n">navbar</span> <span class="n">navbar</span><span class="o">-</span><span class="n">fixed</span><span class="o">-</span><span class="n">top</span><span class="s2">&quot;&gt;</span>
+<span class="s2">      &lt;div class=&quot;</span><span class="n">navbar</span><span class="o">-</span><span class="n">inner</span><span class="s2">&quot;&gt;</span>
+<span class="s2">        &lt;div class=&quot;</span><span class="n">container</span><span class="s2">&quot;&gt;</span>
+<span class="s2">          &lt;a class=&quot;</span><span class="n">btn</span> <span class="n">btn</span><span class="o">-</span><span class="n">navbar</span><span class="s2">&quot; data-target=&quot;</span><span class="o">.</span><span class="n">nav</span><span class="o">-</span><span class="n">collapse</span><span class="s2">&quot; data-toggle=&quot;</span><span class="n">collapse</span><span class="s2">&quot;&gt;</span>
+<span class="s2">            &lt;span class=&quot;</span><span class="n">icon</span><span class="o">-</span><span class="n">bar</span><span class="s2">&quot;&gt;&lt;/span&gt;</span>
+<span class="s2">            &lt;span class=&quot;</span><span class="n">icon</span><span class="o">-</span><span class="n">bar</span><span class="s2">&quot;&gt;&lt;/span&gt;</span>
+<span class="s2">            &lt;span class=&quot;</span><span class="n">icon</span><span class="o">-</span><span class="n">bar</span><span class="s2">&quot;&gt;&lt;/span&gt;</span>
+<span class="s2">          &lt;/a&gt;</span>
+
+<span class="s2">          &lt;a class=&quot;</span><span class="n">brand</span><span class="s2">&quot; href=&quot;</span><span class="o">/</span><span class="s2">&quot;&gt;Stinkytrainers&lt;/a&gt;</span>
+<span class="s2">          &lt;div class=&quot;</span><span class="n">container</span> <span class="n">nav</span><span class="o">-</span><span class="n">collapse</span><span class="s2">&quot;&gt;</span>
+<span class="s2">            &lt;ul class=&quot;</span><span class="n">nav</span><span class="s2">&quot;&gt;</span>
+<span class="s2">               &lt;li&gt;&lt;%= link_to &quot;</span><span class="n">dashboard</span><span class="s2">&quot;, dashboard_index_path  %&gt;&lt;/li&gt;</span>
+<span class="s2">            &lt;/ul&gt;</span>
+
+<span class="s2">          &lt;/div&gt;&lt;!--/.nav-collapse --&gt;</span>
+<span class="s2">        &lt;/div&gt;</span>
+<span class="s2">      &lt;/div&gt;</span>
+
+
+<span class="s2">    &lt;/div&gt;</span>
+
+<span class="s2">    &lt;h1 class=&quot;</span><span class="n">banner</span><span class="s2">&quot;&gt;&lt;%= yield :title %&gt;&lt;/h1&gt;</span>
+
+<span class="s2">    &lt;div class=&quot;</span><span class="n">container</span><span class="s2">&quot;&gt;</span>
+
+<span class="s2">      &lt;p class=&quot;</span><span class="n">notice</span><span class="s2">&quot;&gt;&lt;%= notice %&gt;&lt;/p&gt;</span>
+<span class="s2">      &lt;p class=&quot;</span><span class="n">alert</span><span class="s2">&quot;&gt;&lt;%= alert %&gt;&lt;/p&gt;</span>
+
+<span class="s2">      &lt;div class=&quot;</span><span class="n">content</span><span class="s2">&quot;&gt;</span>
+<span class="s2">        &lt;div class=&quot;</span><span class="n">row</span><span class="s2">&quot;&gt;</span>
+<span class="s2">           &lt;div class=&quot;</span><span class="n">span9</span><span class="s2">&quot;&gt;</span>
+
+<span class="s2">                &lt;%= yield %&gt;</span>
+
+<span class="s2">            &lt;/div&gt;</span>
+<span class="s2">            &lt;div class=&quot;</span><span class="n">span3</span><span class="s2">&quot;&gt;</span>
+<span class="s2">                &amp;nbsp;</span>
+<span class="s2">            &lt;/div&gt;&lt;!--/span--&gt;</span>
+<span class="s2">        &lt;/div&gt;&lt;!--/row--&gt;</span>
+<span class="s2">      &lt;/div&gt;&lt;!--/content--&gt;</span>
+
+<span class="s2">      &lt;footer&gt;</span>
+<span class="s2">        &lt;p&gt;&amp;copy; Stinky Trainers 2012&lt;/p&gt;</span>
+<span class="s2">      &lt;/footer&gt;</span>
+
+<span class="s2">    &lt;/div&gt; &lt;!-- /container --&gt;</span>
+
+<span class="s2">    &lt;!-- Javascripts</span>
+<span class="s2">    ================================================== --&gt;</span>
+<span class="s2">    &lt;!-- Placed at the end of the document so the pages load faster --&gt;</span>
+<span class="s2">    &lt;%= javascript_include_tag &quot;</span><span class="n">application</span><span class="s2">&quot; %&gt;</span>
+
+<span class="s2">  &lt;/body&gt;</span>
+<span class="s2">&lt;/html&gt;</span>
 </pre></div>
 
 <p>It has to be said that Flash is very useful for quick applications like ours but less commonly used in bigger apps where this kind of user interaction is determined by the Look &amp; Feel.</p>
@@ -195,13 +371,19 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 <h2><a id='secure-the-dashboard-with-devise'></a> 4.3. Secure the Dashboard with Devise</h2>
 
-<p>To secure the dashboard we&#39;ll add some code to our dashboard<em>controller that checks to see if we have a user in session that&#39;s already logged-in. Add this line to the dashboard controller app/controllers/dashboard</em>controller.rb</p>
-<div class="highlight"><pre><span class="n">before_filter</span> <span class="ss">:authenticate_user!</span>
+<p>To secure the dashboard we&#39;ll add some code to our dashboard_controller that checks to see if we have a user in session that&#39;s already logged-in. Add the line <code>before_filter :authenticate_user!</code> to the dashboard controller app/controllers/dashboard_controller.rb</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">DashboardController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+
+  <span class="n">before_filter</span> <span class="ss">:authenticate_user!</span>
+
+  <span class="k">def</span> <span class="nf">index</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </pre></div>
 
-<p>We&#39;ve added a <strong>before filter</strong> that calls a dynamic method that Devise will handle for us <strong>authenticate_user!</strong>. It&#39;s dynamic because the model we&#39;re authenticating against doesn&#39;t have to be a user. We could easily have created an admin model or even a martian model which would require us to authenticate_admin! or authenticate_martian!. Dynamic methods are a Ruby metaprogramming technique that allows our code (in this case Devise) to intercept calls to methods that don&#39;t exist - such as authenticate_user! - before Ruby throws a &#39;NoMethodError&#39;. Devise can then decide if it wants to act on this missing method so if our code calls authenticate_user! (and we have a user) then Devise will do something. If our code calls authenticate_martian! (and we have no martians in this application) then Devise will ignore it and we&#39;ll get the expected NoMethodError.  </p>
+<p>We&#39;ve added a <code>before filter</code> that calls a dynamic method that Devise will handle for us <code>authenticate_user!</code>. It&#39;s dynamic because the method <code>authenticate_user!</code> doesn&#39;t actually exist which makes sense because the model we&#39;re authenticating against doesn&#39;t have to be a user. We could easily have created an admin model or even a martian model which would require us to <code>authenticate_admin!</code> or <code>authenticate_martian!</code>. Ruby, like most programming languages will throw a <code>NoMethodError</code> if you try to call a method that doesn&#39;t exist but unlike most other languages, before it does, it calls a special method called <code>method_missing</code> that allows our code (in this case Devise) to see if it can make sense of something like <code>authenticate_user!</code>.  Devise can then decide if it wants to act on this missing method so if our code calls <code>authenticate_user!</code> (and we have a user) then Devise will do something. If our code calls <code>authenticate_martian!</code> (and we have no martians in this application) then Devise will ignore it and we&#39;ll get the expected <code>NoMethodError</code>.  </p>
 
-<p>Because it&#39;s a before<em>filter authenticate\</em>user! will run before each action in the dashboard controller to ensure we have an authenticated user in the application session.</p>
+<p>Because it&#39;s a <code>before_filter</code> then <code>authenticate_user!</code> will run before each action in the dashboard controller to ensure we have an authenticated user in the application session.</p>
 
 <p>Now start the app <code>bundle exec rails s</code> browse to the home page <strong>localhost:3000</strong> and click the dashboard link. You should be redirected to a screen asking you to login or sign up. Just sign up as a new user and you should then be directed to the dashboard page. </p>
 
@@ -213,17 +395,40 @@ and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 <h3>4.3.1. Add some code so that we can sign out</h3>
 
-<p>Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  Add this line to app/layouts/application.html.erb so that it&#39;s at the bottom of</p>
-<div class="highlight"><pre> <span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;navbar navbar-fixed-top&quot;</span><span class="o">&gt;</span>
-</pre></div>
-
-<p>Forgive the inline style but this isn&#39;t a tutorial on css.</p>
+<p>Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  </p>
 <div class="highlight"><pre><span class="o">&lt;</span><span class="sx">% if </span><span class="n">user_signed_in?</span> <span class="sx">%&gt;</span>
 <span class="sx">   &lt;div  style=&quot;text-align: right;&quot;&gt;</span>
     <span class="o">&lt;</span><span class="sx">%= link_to &quot;sign-out&quot;, destroy_user_session_path, :method =</span><span class="o">&gt;</span> <span class="ss">:delete</span>  <span class="sx">%&gt;</span>
 <span class="sx">   &lt;/div&gt;</span>
 <span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>          
 </pre></div>
+
+<p>Add the lines above to app/layouts/application.html.erb:</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;navbar navbar-fixed-top&quot;</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;navbar-inner&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;container&quot;</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">a</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;btn btn-navbar&quot;</span> <span class="n">data</span><span class="o">-</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;.nav-collapse&quot;</span> <span class="n">data</span><span class="o">-</span><span class="n">toggle</span><span class="o">=</span><span class="s2">&quot;collapse&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;icon-bar&quot;</span><span class="o">&gt;&lt;</span><span class="sr">/span&gt;</span>
+<span class="sr">        &lt;span class=&quot;icon-bar&quot;&gt;&lt;/s</span><span class="n">pan</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;icon-bar&quot;</span><span class="o">&gt;&lt;</span><span class="sr">/span&gt;</span>
+<span class="sr">      &lt;/</span><span class="n">a</span><span class="o">&gt;</span>
+
+      <span class="o">&lt;</span><span class="n">a</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;brand&quot;</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="o">&gt;</span><span class="no">Stinkytrainers</span><span class="o">&lt;</span><span class="sr">/a&gt;</span>
+<span class="sr">      &lt;div class=&quot;container nav-collapse&quot;&gt;</span>
+<span class="sr">        &lt;ul class=&quot;nav&quot;&gt;</span>
+<span class="sr">          &lt;% if user_signed_in? %&gt;</span>
+<span class="sr">           &lt;div  style=&quot;text-align: right;&quot;&gt;</span>
+<span class="sr">            &lt;%= link_to &quot;sign-out&quot;, destroy_user_session_path, :method =&gt; :delete  %&gt;</span>
+<span class="sr">           &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+<span class="sx">        &lt;/ul&gt;</span>
+      <span class="o">&lt;</span><span class="sr">/div&gt;&lt;!--/</span><span class="o">.</span><span class="n">nav</span><span class="o">-</span><span class="n">collapse</span> <span class="o">--&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+<span class="sr">  &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</pre></div>
+
+<p>Forgive the inline style but this isn&#39;t a tutorial on css.</p>
 
 <p>user_signed_in? is a helper method generated by devise, link<em>to is a Rails helper for generating html links. In this case we&#39;re generating a link with text &#39;sign-out&#39; and a url generated by the devise named route 
 destroy\</em>user_session_path. We&#39;ll cover Devise routes a bit more below.</p>
@@ -248,11 +453,19 @@ destroy\</em>user_session_path. We&#39;ll cover Devise routes a bit more below.<
 <li>A test that we can sign-up and go to the dashboard index page</li>
 </ol>
 
+<p>Before we start we need to include some helper methods that Devise gives us so that it can participate in our tests. </p>
+
+<p>Create the file <code>spec/support/devise.rb</code> (you&#39;ll probably have to create the spec/support folder) and add these lines:</p>
+<div class="highlight"><pre><span class="no">RSpec</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">include</span> <span class="no">Devise</span><span class="o">::</span><span class="no">TestHelpers</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:controller</span>
+<span class="k">end</span>
+</pre></div>
+
 <h3>4.4.1. Testing the redirect</h3>
 
 <p>Let&#39;s test that our dashboard controller redirects us to a sign-in page when there is no signed-in user</p>
 
-<p>In spec/controllers/dashboard<em>controller</em>spec.rb</p>
+<p>In <code>spec/controllers/dashboard_controller_spec.rb</code></p>
 <div class="highlight"><pre><span class="n">it</span> <span class="s2">&quot;should redirect to the login page when the user is not signed-in&quot;</span> <span class="k">do</span>
   <span class="n">get</span> <span class="s1">&#39;index&#39;</span>
   <span class="n">response</span><span class="o">.</span><span class="n">should</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">new_user_session_path</span><span class="p">)</span>
@@ -265,8 +478,16 @@ destroy\</em>user_session_path. We&#39;ll cover Devise routes a bit more below.<
 
 <p>You should see the test passes in console </p>
 
-<p>NOTE that <strong>new_user_session_path</strong> is another named route. Open <code>config/routes.rb</code> and you&#39;ll see the line</p>
-<div class="highlight"><pre><span class="n">devise_for</span> <span class="ss">:users</span>
+<p>NOTE that <code>new_user_session_path</code> is another named route. Open <code>config/routes.rb</code> and you&#39;ll see the line <code>devise_for :users</code></p>
+<div class="highlight"><pre><span class="no">Stinkytrainers</span><span class="o">::</span><span class="no">Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
+
+ <span class="n">devise_for</span> <span class="ss">:users</span>
+
+ <span class="n">resources</span> <span class="ss">:dashboard</span><span class="p">,</span> <span class="ss">:only</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="ss">:index</span><span class="o">]</span> 
+
+ <span class="n">root</span> <span class="ss">:to</span> <span class="o">=&gt;</span> <span class="s1">&#39;home#index&#39;</span>
+
+<span class="k">end</span>
 </pre></div>
 
 <p>somewhere near the top. This is devise adding a bunch of new routes for creating and destroying use sessions. You can see them in console by running:</p>
@@ -321,15 +542,7 @@ destroy\</em>user_session_path. We&#39;ll cover Devise routes a bit more below.<
 <span class="go">    ./spec/controllers/dashboard_controller_spec.rb:13:in `block (3 levels) in &lt;top (required)&gt;&#39;</span>
 </pre></div>
 
-<p>That&#39;s because we haven&#39;t yet signed-in a user so we&#39;re being redirected away in just the same way as our first test. Fortunately Devise provides us with some helpers methods that let us simulate a user being logged in before our test runs. We need to add these helpers so that RSpec knows that we want to use them:</p>
-
-<p>Create the file <code>spec/support/devise.rb</code> (you&#39;ll probably have to create the spec/support folder) and add these lines:</p>
-<div class="highlight"><pre><span class="no">RSpec</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
-  <span class="n">config</span><span class="o">.</span><span class="n">include</span> <span class="no">Devise</span><span class="o">::</span><span class="no">TestHelpers</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:controller</span>
-<span class="k">end</span>
-</pre></div>
-
-<p>Now let&#39;s fix our breaking test by adding <code>sign_in :user, User.create(:email =&gt; &#39;foo@domain.com&#39;, :password =&gt; &#39;simple&#39;)</code></p>
+<p>That&#39;s because we haven&#39;t yet signed-in a user so we&#39;re being redirected away in just the same way as our first test so let&#39;s fix our breaking test by adding <code>sign_in :user, User.create(:email =&gt; &#39;foo@domain.com&#39;, :password =&gt; &#39;simple&#39;)</code></p>
 <div class="highlight"><pre><span class="n">it</span> <span class="s2">&quot;should render the index page when the user is signed-in&quot;</span> <span class="k">do</span>
    <span class="n">sign_in</span> <span class="ss">:user</span><span class="p">,</span> <span class="no">User</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;foo@domain.com&#39;</span><span class="p">,</span> <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="s1">&#39;simple&#39;</span><span class="p">)</span>
    <span class="n">get</span> <span class="s1">&#39;index&#39;</span>
@@ -459,7 +672,7 @@ destroy\</em>user_session_path. We&#39;ll cover Devise routes a bit more below.<
 <li>try to visit the dashboard index page.</li>
 <li>confirm that we are actually on the sign-in page.</li>
 <li>click the &#39;Sign up&#39; link</li>
-<li>confirm we&#39;re on the sign-up page which is the named route <strong>new<em>user</em>registration_path</strong></li>
+<li>confirm we&#39;re on the sign-up page which is the named route <code>new_user_registration_path</code></li>
 <li>fill in the email, password and password confirmation.</li>
 <li>click &#39;Sign up&#39;,</li>
 <li>confirm that we are now on the dashboard index page.</li>

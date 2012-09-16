@@ -1,7 +1,9 @@
 # The Game Model
-As you can see from the diagram Game has a `has\_and\_belongs\_to\_many` relationship with User and we've added another class, External Player. We want our users to be able to invite anyone to a game not just other StinkTrainers users. We could just add a list of email address to a game that represent the external players but then our application would have to cope with a player that's either a User object or a string and that may make our code a little hard to handle. So we're going to add the model External Player, effectively a user that hasn't signed-up. Our game can then have a polymorphic collection called players that are both Users and External players. As long as User and ExternalPLayer have similar interfaces then we should be able to keep the code nice and easy.
+![Stinky Trainers Game Model Diagram](/assets/stinky trainers game model.png)
 
-We're going to get more TDD and write tests for the Game model and the ExternalPLayer model first then make them pass.
+As you can see from the diagram Game has a `has_and_belongs_to_many` relationship with User and we've added another class, External Player. We want our users to be able to invite anyone to a game not just other StinkTrainers users. We could just add a list of email address to a game that represent the external players but then our application would have to cope with a player that's either a User object or a string and that may make our code a little hard to handle. So we're going to add the model External Player, effectively a user that hasn't signed-up. Our game can then have a collection called players and a collection of external_players. If an external player chooses to sign-up with Stinky Trainers then they'll see all of the gaems they're connected to.
+
+We're going to get much more TDD and write tests for the Game model and the ExternalPLayer model first then make them pass.
 
 INDEX
 
@@ -397,7 +399,7 @@ The Diff is the difference between the two arrays.
 
 Let's add ordering by email and get this test passing
 
-~~~
+~~~ruby
 class Game < ActiveRecord::Base
   attr_accessible :at, :location
   
@@ -589,3 +591,68 @@ run the tests and everything should be passing
 ~~~console
 bundle exec rake spec
 ~~~
+
+## Active Record Associations
+Now we have a little experience with Active Record associations let's take a peek under the hood by playing with them in console. Run these in the Rails console looking at the SQL output as we go:
+
+1. Reference the first User
+2. Create a game for that user using the association 
+3. Call user.games.size to see how many games the user has
+4. Call user.games.count to see how many games the user has
+
+~~~console
+rails c
+
+Loading development environment (Rails 3.2.8)
+irb(main):001:0>  user = User.first
+  User Load (0.2ms)  SELECT "users".* FROM "users" LIMIT 1
+=> #<User id: 1, email: "steve@light-art.co.uk", encrypted_password: "$2a$10$Wl.C0ztFRap9nodhld44luexRIWrShrVwaAdruX16My0...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 5, current_sign_in_at: "2012-09-08 21:18:03", last_sign_in_at: "2012-09-08 15:41:13", current_sign_in_ip: "127.0.0.1", last_sign_in_ip: "127.0.0.1", created_at: "2012-09-02 14:53:24", updated_at: "2012-09-08 21:18:03">
+
+irb(main):002:0> user.games.create(:at => Date.today, :location => "wimbledon")
+   (0.1ms)  begin transaction
+  SQL (21.7ms)  INSERT INTO "games" ("at", "created_at", "location", "updated_at") VALUES (?, ?, ?, ?)  [["at", Tue, 11 Sep 2012 23:00:00 UTC +00:00], ["created_at", Wed, 12 Sep 2012 07:04:50 UTC +00:00], ["location", "wimbledon"], ["updated_at", Wed, 12 Sep 2012 07:04:50 UTC +00:00]]
+   (0.2ms)  INSERT INTO "games_users" ("user_id", "game_id") VALUES (1, 2)
+   (2.8ms)  commit transaction
+=> #<Game id: 2, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:04:50", updated_at: "2012-09-12 07:04:50">
+
+irb(main):004:0> user.games.size
+  Game Load (0.3ms)  SELECT "games".* FROM "games" INNER JOIN "games_users" ON "games"."id" = "games_users"."game_id" WHERE "games_users"."user_id" = 1	
+
+irb(main):003:0> user.games.count
+   (0.2ms)  SELECT COUNT(*) FROM "games" INNER JOIN "games_users" ON "games"."id" = "games_users"."game_id" WHERE "games_users"."user_id" = 1	
+
+~~~
+
+Note: Where I've written `user.games.create(:at => Date.today, :location => "wimbledon")` I could just as easily have written `Game.create(:at => Date.today, :location => "wimbledon", :user => user)` but I think the first way is more expressive.
+
+Perhaps most important thing to take from this is the last two lines, `user.games.size` and `user.games.count`. They look like the same thing but in fact produce quite different SQL statements. The first produces a select games.* and the second select count(*). Unless you specify otherwise, ActiveRecord associations are lazy loaded. That means when we loaded our user with `User.first` ActiveRecord didn't load the associated games. This makes a lot of sense; imagine what would happen if our user had thousands of games but all you wanted was to load the user to get his or her name. Loading thousands of associated games that are never going to be used by our code at the time would add a lot of additional load on our system. Associations are left empty until you do reference them `user.games` or call `.each`, `.size`,`.to_a` (to an array). ActiveRecord won't load objects when you carry out operations like `.count` or `.sum` on them.
+
+Let's try this again. Take a look at the out put below from my console.
+
+1. `User.first` does a select users
+1. `user.games.count` does a count on the games_user many-to-many join
+1. `user.games` does a select games and returns a collection of games
+1. `user.games` a second time doesn't do any sql and just returns the loaded games collection.
+1. If our application is very dynamic and something may have added a game to the database while we were loking at our user then `user.games.reload` issues a new sql query and the games collection is refreshed. 
+ 
+~~~console
+irb(main):001:0> user = User.first
+  User Load (0.2ms)  SELECT "users".* FROM "users" LIMIT 1
+=> #<User id: 1, email: "steve@light-art.co.uk", encrypted_password: "$2a$10$Wl.C0ztFRap9nodhld44luexRIWrShrVwaAdruX16My0...", reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 5, current_sign_in_at: "2012-09-08 21:18:03", last_sign_in_at: "2012-09-08 15:41:13", current_sign_in_ip: "127.0.0.1", last_sign_in_ip: "127.0.0.1", created_at: "2012-09-02 14:53:24", updated_at: "2012-09-08 21:18:03">
+
+irb(main):002:0> user.games.count
+   (0.2ms)  SELECT COUNT(*) FROM "games" INNER JOIN "games_users" ON "games"."id" = "games_users"."game_id" WHERE "games_users"."user_id" = 1
+=> 2
+
+irb(main):003:0> user.games
+  Game Load (0.3ms)  SELECT "games".* FROM "games" INNER JOIN "games_users" ON "games"."id" = "games_users"."game_id" WHERE "games_users"."user_id" = 1
+=> [#<Game id: 1, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:00:51", updated_at: "2012-09-12 07:00:51">, #<Game id: 2, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:04:50", updated_at: "2012-09-12 07:04:50">]
+
+irb(main):004:0> user.games
+=> [#<Game id: 1, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:00:51", updated_at: "2012-09-12 07:00:51">, #<Game id: 2, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:04:50", updated_at: "2012-09-12 07:04:50">]
+	
+irb(main):006:0> irb(main):006:0> user.games.reload
+	Game Load (0.3ms)  SELECT "games".* FROM "games" INNER JOIN "games_users" ON "games"."id" = "games_users"."game_id" WHERE "games_users"."user_id" = 1
+=> [#<Game id: 1, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:00:51", updated_at: "2012-09-12 07:00:51">, #<Game id: 2, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:04:50", updated_at: "2012-09-12 07:04:50">]
+~~~
+

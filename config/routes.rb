@@ -1,10 +1,13 @@
 Stinkytrainers::Application.routes.draw do
   
+  
   devise_for :users
 
   resources :sports, :only => [:index, :new, :create, :destroy]
 
   resources :dashboard, :only => [:index] 
+  
+  resources :games
 
   get "ruby-on-rails-tutorial(/*path)" => "tutorial#index"
 

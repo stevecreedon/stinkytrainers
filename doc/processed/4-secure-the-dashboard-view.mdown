@@ -17,9 +17,64 @@ Devise gives us authentication out-of-the-box. We'll be getting devise to build 
 and the views to allow users to sign up, sign-in and handle forgotten passwords.
 
 ### 4.1.1. Add the devise gem to bundlers Gemfile
+Add the line `gem 'devise'` to our Gemfile
 
 ~~~ruby
-gem 'devise'
+source 'https://rubygems.org'
+
+gem 'rails', '3.2.8'
+gem 'pg'
+
+ # Bundle edge Rails instead:
+ # gem 'rails', :git => 'git://github.com/rails/rails.git'
+
+
+group :development do
+  gem 'sqlite3'
+  gem 'redcarpet'
+  gem 'pygmentize'
+  gem 'nokogiri'
+end
+
+
+
+ # Gems used only for assets and not required
+ # in production environments by default.
+group :assets do
+  gem 'sass-rails',   '~> 3.2.3'
+  gem 'coffee-rails', '~> 3.2.1'
+  
+  # See https://github.com/sstephenson/execjs#readme for more supported runtimes
+  # gem 'therubyracer', :platforms => :ruby
+
+  gem 'uglifier', '>= 1.0.3'
+end
+
+gem "twitter-bootstrap-rails",'~> 2.0.7'
+gem 'jquery-rails', '~> 2.0.2'
+gem 'devise', '~> 2.1.2'
+
+group :development, :test do
+  gem 'rspec-rails', '=2.11.0'
+  gem 'capybara', '=1.1.2'
+  gem 'launchy'
+  gem 'factory_girl_rails'
+end
+
+ # To use ActiveModel has_secure_password
+ # gem 'bcrypt-ruby', '~> 3.0.0'
+
+ # To use Jbuilder templates for JSON
+ # gem 'jbuilder'
+
+ # Use unicorn as the app server
+ # gem 'unicorn'
+
+ # Deploy with Capistrano
+ # gem 'capistrano'
+
+ # To use debugger
+ # gem 'debugger'
 ~~~
 	
 ### 4.1.2. Install the devise gem
@@ -82,10 +137,48 @@ Some setup you must do manually if you haven't yet:
 ### 4.1.4. Devise point 1. 
 Setup action mailer so that devise can email us any forgotten passwords. To do this we need to tell Devise where the link in the email it will send should point to. Rails allows us to configure environments for __development__, __test__ and __production__ but for now we'll just set up the default actionmailer url for our development environment.
 
-In the file config/environments/development.rb add the line below anywhere after __Stinkytrainers::Application.configure do__
+In the file config/environments/development.rb add the line `config.action_mailer.default_url_options = { :host => 'localhost:3000' }`
 
 ~~~ruby
-config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+Stinkytrainers::Application.configure do
+  # Settings specified here will take precedence over those in config/application.rb
+
+  config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+
+  # In the development environment your application's code is reloaded on
+  # every request. This slows down response time but is perfect for development
+  # since you don't have to restart the web server when you make code changes.
+  config.cache_classes = false
+
+  # Log error messages when you accidentally call methods on nil.
+  config.whiny_nils = true
+
+  # Show full error reports and disable caching
+  config.consider_all_requests_local       = true
+  config.action_controller.perform_caching = false
+
+  # Don't care if the mailer can't send
+  config.action_mailer.raise_delivery_errors = false
+
+  # Print deprecation notices to the Rails logger
+  config.active_support.deprecation = :log
+
+  # Only use best-standards-support built into browsers
+  config.action_dispatch.best_standards_support = :builtin
+
+  # Raise exception on mass assignment protection for Active Record models
+  config.active_record.mass_assignment_sanitizer = :strict
+
+  # Log the query plan for queries taking more than this (works
+  # with SQLite, MySQL, and PostgreSQL)
+  config.active_record.auto_explain_threshold_in_seconds = 0.5
+
+  # Do not compress assets
+  config.assets.compress = false
+
+  # Expands the lines which load the assets
+  config.assets.debug = true
+end
 ~~~
 
 
@@ -101,11 +194,95 @@ flash[:notice] = "I'm afraid you've failed Mr Bond"
 
 This message will then be usd in your view as below. 
 
-Add these line to app/views/layouts/application.html.erb before the line 'yield'
-
 ~~~ruby       
    <p class="notice"><%= notice %></p>
    <p class="alert"><%= alert %></p>
+~~~
+
+Add the two lines above to app/views/layouts/application.html.erb below inside the 'container' div above `yield`. `yield` is where Rails will be putting the output of our view. 
+
+~~~ruby
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= content_for?(:title) ? yield(:title) : "StinkyTrainers" %></title>
+    <%= csrf_meta_tags %>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script>
+    <![endif]-->
+
+    <%= stylesheet_link_tag "application", :media => "all" %>
+
+    <link href="images/favicon.ico" rel="shortcut icon">
+    <link href="images/apple-touch-icon.png" rel="apple-touch-icon">
+    <link href="images/apple-touch-icon-72x72.png" rel="apple-touch-icon" sizes="72x72">
+    <link href="images/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114">
+
+    <link href='http://fonts.googleapis.com/css?family=Sonsie+One|Vast+Shadow' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'>
+ 
+  </head>
+  <body class="stinky">
+    <%= render 'shared/google_analytics' %>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-target=".nav-collapse" data-toggle="collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+
+          <a class="brand" href="/">Stinkytrainers</a>
+          <div class="container nav-collapse">
+            <ul class="nav">
+               <li><%= link_to "dashboard", dashboard_index_path  %></li>
+            </ul>
+            
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+	  
+	
+    </div>
+	
+    <h1 class="banner"><%= yield :title %></h1>
+	
+    <div class="container">
+     
+      <p class="notice"><%= notice %></p>
+	  <p class="alert"><%= alert %></p>
+
+      <div class="content">
+        <div class="row">
+           <div class="span9">
+			
+				<%= yield %>
+			
+            </div>
+            <div class="span3">
+				&nbsp;
+            </div><!--/span-->
+        </div><!--/row-->
+      </div><!--/content-->
+
+      <footer>
+        <p>&copy; Stinky Trainers 2012</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    <!-- Javascripts
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <%= javascript_include_tag "application" %>
+
+  </body>
+</html>
 ~~~
 
 It has to be said that Flash is very useful for quick applications like ours but less commonly used in bigger apps where this kind of user interaction is determined by the Look & Feel.
@@ -220,15 +397,21 @@ and you should see some sql in your console that tells you your table has been d
 
 [back to top](#top)
 ##<a id='secure-the-dashboard-with-devise'></a> 4.3. Secure the Dashboard with Devise
-To secure the dashboard we'll add some code to our dashboard_controller that checks to see if we have a user in session that's already logged-in. Add this line to the dashboard controller app/controllers/dashboard_controller.rb
+To secure the dashboard we'll add some code to our dashboard\_controller that checks to see if we have a user in session that's already logged-in. Add the line `before_filter :authenticate_user!` to the dashboard controller app/controllers/dashboard_controller.rb
 
 ~~~ruby
-before_filter :authenticate_user!
+class DashboardController < ApplicationController
+  
+  before_filter :authenticate_user!
+  
+  def index
+  end
+end
 ~~~
 
-We've added a __before filter__ that calls a dynamic method that Devise will handle for us __authenticate\_user!__. It's dynamic because the model we're authenticating against doesn't have to be a user. We could easily have created an admin model or even a martian model which would require us to authenticate\_admin! or authenticate\_martian!. Dynamic methods are a Ruby metaprogramming technique that allows our code (in this case Devise) to intercept calls to methods that don't exist - such as authenticate\_user! - before Ruby throws a 'NoMethodError'. Devise can then decide if it wants to act on this missing method so if our code calls authenticate\_user! (and we have a user) then Devise will do something. If our code calls authenticate_martian! (and we have no martians in this application) then Devise will ignore it and we'll get the expected NoMethodError.  
+We've added a `before filter` that calls a dynamic method that Devise will handle for us `authenticate_user!`. It's dynamic because the method `authenticate_user!` doesn't actually exist which makes sense because the model we're authenticating against doesn't have to be a user. We could easily have created an admin model or even a martian model which would require us to `authenticate_admin!` or `authenticate_martian!`. Ruby, like most programming languages will throw a `NoMethodError` if you try to call a method that doesn't exist but unlike most other languages, before it does, it calls a special method called `method_missing` that allows our code (in this case Devise) to see if it can make sense of something like `authenticate_user!`.  Devise can then decide if it wants to act on this missing method so if our code calls `authenticate_user!` (and we have a user) then Devise will do something. If our code calls `authenticate_martian!` (and we have no martians in this application) then Devise will ignore it and we'll get the expected `NoMethodError`.  
 
-Because it's a before_filter authenticate\_user! will run before each action in the dashboard controller to ensure we have an authenticated user in the application session.
+Because it's a `before_filter` then `authenticate_user!` will run before each action in the dashboard controller to ensure we have an authenticated user in the application session.
 	
 Now start the app `bundle exec rails s` browse to the home page __localhost:3000__ and click the dashboard link. You should be redirected to a screen asking you to login or sign up. Just sign up as a new user and you should then be directed to the dashboard page. 
 
@@ -242,13 +425,7 @@ Now start the app `bundle exec rails s` browse to the home page __localhost:3000
 
 
 ### 4.3.1. Add some code so that we can sign out
-Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  Add this line to app/layouts/application.html.erb so that it's at the bottom of
-
-~~~ruby
- <div class="navbar navbar-fixed-top">
-~~~
-
-Forgive the inline style but this isn't a tutorial on css.
+Out of the box Devise gives us views to sign-in, sign-up and even retrieve forgotten passwords but we also need something to sign-out.  
 
 ~~~ruby
 <% if user_signed_in? %>
@@ -257,6 +434,35 @@ Forgive the inline style but this isn't a tutorial on css.
    </div>
 <% end %>          
 ~~~
+
+Add the lines above to app/layouts/application.html.erb:
+
+~~~ruby
+<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="btn btn-navbar" data-target=".nav-collapse" data-toggle="collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+
+      <a class="brand" href="/">Stinkytrainers</a>
+      <div class="container nav-collapse">
+        <ul class="nav">
+          <% if user_signed_in? %>
+		   <div  style="text-align: right;">
+			<%= link_to "sign-out", destroy_user_session_path, :method => :delete  %>
+		   </div>
+		  <% end %>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </div>
+</div>
+~~~
+
+Forgive the inline style but this isn't a tutorial on css.
 
 user\_signed\_in? is a helper method generated by devise, link_to is a Rails helper for generating html links. In this case we're generating a link with text 'sign-out' and a url generated by the devise named route 
 destroy\_user\_session_path. We'll cover Devise routes a bit more below.
@@ -281,12 +487,20 @@ Let's test Devise by writing two tests for our dashboard controller:
 1. A test that checks we are allowed to see the dashboard index page if the user has signed-in.
 1. A test that we can sign-up and go to the dashboard index page
 
+Before we start we need to include some helper methods that Devise gives us so that it can participate in our tests. 
 
+Create the file `spec/support/devise.rb` (you'll probably have to create the spec/support folder) and add these lines:
+
+~~~ruby
+RSpec.configure do |config|
+  config.include Devise::TestHelpers, :type => :controller
+end
+~~~
 
 ### 4.4.1. Testing the redirect
 Let's test that our dashboard controller redirects us to a sign-in page when there is no signed-in user
 
-In spec/controllers/dashboard_controller_spec.rb
+In `spec/controllers/dashboard_controller_spec.rb`
 
 ~~~ruby
 it "should redirect to the login page when the user is not signed-in" do
@@ -297,16 +511,24 @@ end
 
 and run the test.
 
-~~~ ruby
+~~~ruby
 bundle exec rake spec
 ~~~
 
 You should see the test passes in console 
 
-NOTE that __new\_user\_session\_path__ is another named route. Open `config/routes.rb` and you'll see the line
+NOTE that `new_user_session_path` is another named route. Open `config/routes.rb` and you'll see the line `devise_for :users`
 
 ~~~ruby
-devise_for :users
+Stinkytrainers::Application.routes.draw do
+
+ devise_for :users
+
+ resources :dashboard, :only => [:index] 
+
+ root :to => 'home#index'
+
+end
 ~~~
 
 somewhere near the top. This is devise adding a bunch of new routes for creating and destroying use sessions. You can see them in console by running:
@@ -369,18 +591,7 @@ you should see that the test fails:
     ./spec/controllers/dashboard_controller_spec.rb:13:in `block (3 levels) in <top (required)>'
 ~~~
 
-That's because we haven't yet signed-in a user so we're being redirected away in just the same way as our first test. Fortunately Devise provides us with some helpers methods that let us simulate a user being logged in before our test runs. We need to add these helpers so that RSpec knows that we want to use them:
-
-Create the file `spec/support/devise.rb` (you'll probably have to create the spec/support folder) and add these lines:
-
-~~~ruby
-RSpec.configure do |config|
-  config.include Devise::TestHelpers, :type => :controller
-end
-~~~
-
-
-Now let's fix our breaking test by adding `sign_in :user, User.create(:email => 'foo@domain.com', :password => 'simple')`
+That's because we haven't yet signed-in a user so we're being redirected away in just the same way as our first test so let's fix our breaking test by adding `sign_in :user, User.create(:email => 'foo@domain.com', :password => 'simple')`
 
 ~~~ruby
 it "should render the index page when the user is signed-in" do
@@ -524,7 +735,7 @@ This time the journey through our application is:
 1. try to visit the dashboard index page.
 1. confirm that we are actually on the sign-in page.
 1. click the 'Sign up' link
-1. confirm we're on the sign-up page which is the named route __new_user_registration_path__
+1. confirm we're on the sign-up page which is the named route `new_user_registration_path`
 1. fill in the email, password and password confirmation.
 1. click 'Sign up',
 1. confirm that we are now on the dashboard index page.

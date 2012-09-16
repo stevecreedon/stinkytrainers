@@ -2,9 +2,11 @@
 
 <h1>7. The Game Model</h1>
 
-<p>As you can see from the diagram Game has a <code>has\_and\_belongs\_to\_many</code> relationship with User and we&#39;ve added another class, External Player. We want our users to be able to invite anyone to a game not just other StinkTrainers users. We could just add a list of email address to a game that represent the external players but then our application would have to cope with a player that&#39;s either a User object or a string and that may make our code a little hard to handle. So we&#39;re going to add the model External Player, effectively a user that hasn&#39;t signed-up. Our game can then have a polymorphic collection called players that are both Users and External players. As long as User and ExternalPLayer have similar interfaces then we should be able to keep the code nice and easy.</p>
+<p><img src="/assets/stinky%20trainers%20game%20model.png" alt="Stinky Trainers Game Model Diagram"></p>
 
-<p>We&#39;re going to get more TDD and write tests for the Game model and the ExternalPLayer model first then make them pass.</p>
+<p>As you can see from the diagram Game has a <code>has_and_belongs_to_many</code> relationship with User and we&#39;ve added another class, External Player. We want our users to be able to invite anyone to a game not just other StinkTrainers users. We could just add a list of email address to a game that represent the external players but then our application would have to cope with a player that&#39;s either a User object or a string and that may make our code a little hard to handle. So we&#39;re going to add the model External Player, effectively a user that hasn&#39;t signed-up. Our game can then have a collection called players and a collection of external_players. If an external player chooses to sign-up with Stinky Trainers then they&#39;ll see all of the gaems they&#39;re connected to.</p>
+
+<p>We&#39;re going to get much more TDD and write tests for the Game model and the ExternalPLayer model first then make them pass.</p>
 
 <ol>
 <li><a href="#tests-for-the-game-model">Tests for the Game Model</a></li>
@@ -393,6 +395,14 @@ end
 <p>The Diff is the difference between the two arrays.</p>
 
 <p>Let&#39;s add ordering by email and get this test passing</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Game</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:location</span>
+
+  <span class="n">validates</span> <span class="ss">:location</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:players</span><span class="p">,</span> <span class="ss">:class_name_</span> <span class="o">=&gt;</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="ss">:order</span> <span class="o">=&gt;</span> <span class="s1">&#39;users.email ASC&#39;</span>
+<span class="k">end</span>
+</pre></div>
 
 <p>run the tests and you should now have just 5 tests failing</p>
 <div class="highlight"><pre><span class="go">bundle exec rake spec</span>
@@ -571,4 +581,68 @@ end
 
 <p>run the tests and everything should be passing</p>
 <div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<p>Let&#39;s see this in the Rails console and try to get some idea of how ActiveRecord Associations work.</p>
+
+<p>Basically I&#39;m going to run these in the Rails console looking at the SQL output as we go:</p>
+
+<ol>
+<li>Reference the first User</li>
+<li>Create a game for that user using the association </li>
+<li>Call user.games.size to see how many games the user has</li>
+<li>Call user.games.count to see how many games the user has</li>
+</ol>
+<div class="highlight"><pre><span class="go">rails c</span>
+
+<span class="go">Loading development environment (Rails 3.2.8)</span>
+<span class="go">irb(main):001:0&gt;  user = User.first</span>
+<span class="go">  User Load (0.2ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; LIMIT 1</span>
+<span class="go">=&gt; #&lt;User id: 1, email: &quot;steve@light-art.co.uk&quot;, encrypted_password: &quot;$2a$10$Wl.C0ztFRap9nodhld44luexRIWrShrVwaAdruX16My0...&quot;, reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 5, current_sign_in_at: &quot;2012-09-08 21:18:03&quot;, last_sign_in_at: &quot;2012-09-08 15:41:13&quot;, current_sign_in_ip: &quot;127.0.0.1&quot;, last_sign_in_ip: &quot;127.0.0.1&quot;, created_at: &quot;2012-09-02 14:53:24&quot;, updated_at: &quot;2012-09-08 21:18:03&quot;&gt;</span>
+
+<span class="go">irb(main):002:0&gt; user.games.create(:at =&gt; Date.today, :location =&gt; &quot;wimbledon&quot;)</span>
+<span class="go">   (0.1ms)  begin transaction</span>
+<span class="go">  SQL (21.7ms)  INSERT INTO &quot;games&quot; (&quot;at&quot;, &quot;created_at&quot;, &quot;location&quot;, &quot;updated_at&quot;) VALUES (?, ?, ?, ?)  [[&quot;at&quot;, Tue, 11 Sep 2012 23:00:00 UTC +00:00], [&quot;created_at&quot;, Wed, 12 Sep 2012 07:04:50 UTC +00:00], [&quot;location&quot;, &quot;wimbledon&quot;], [&quot;updated_at&quot;, Wed, 12 Sep 2012 07:04:50 UTC +00:00]]</span>
+<span class="go">   (0.2ms)  INSERT INTO &quot;games_users&quot; (&quot;user_id&quot;, &quot;game_id&quot;) VALUES (1, 2)</span>
+<span class="go">   (2.8ms)  commit transaction</span>
+<span class="go">=&gt; #&lt;Game id: 2, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:04:50&quot;, updated_at: &quot;2012-09-12 07:04:50&quot;&gt;</span>
+
+<span class="go">irb(main):004:0&gt; user.games.size</span>
+<span class="go">  Game Load (0.3ms)  SELECT &quot;games&quot;.* FROM &quot;games&quot; INNER JOIN &quot;games_users&quot; ON &quot;games&quot;.&quot;id&quot; = &quot;games_users&quot;.&quot;game_id&quot; WHERE &quot;games_users&quot;.&quot;user_id&quot; = 1 </span>
+
+<span class="go">irb(main):003:0&gt; user.games.count</span>
+<span class="go">   (0.2ms)  SELECT COUNT(*) FROM &quot;games&quot; INNER JOIN &quot;games_users&quot; ON &quot;games&quot;.&quot;id&quot; = &quot;games_users&quot;.&quot;game_id&quot; WHERE &quot;games_users&quot;.&quot;user_id&quot; = 1   </span>
+</pre></div>
+
+<p>Note: Where I&#39;ve written <code>user.games.create(:at =&gt; Date.today, :location =&gt; &quot;wimbledon&quot;)</code> I could just as easily have written <code>Game.create(:at =&gt; Date.today, :location =&gt; &quot;wimbledon&quot;, :user =&gt; user)</code> but I think the first way is more expressive.</p>
+
+<p>Perhaps most important thing to take from this is the last two lines, <code>user.games.size</code> and <code>user.games.count</code>. They look like the same thing but in fact produce quite different SQL statements. The first produces a select games.* and the second select count(*). Unless you specify otherwise, ActiveRecord associations are lazy loaded. That means when we loaded our user with <code>User.first</code> ActiveRecord didn&#39;t load the associated games. This makes a lot of sense; imagine what would happen if our user had thousands of games but all you wanted was to load the user to get his or her name. Loading thousands of associated games that are never going to be used by our code at the time would add a lot of additional load on our system. Associations are left empty until you do reference them <code>user.games</code> or call <code>.each</code>, <code>.size</code>,<code>.to_a</code> (to an array). ActiveRecord won&#39;t load objects when you carry out operations like <code>.count</code> or <code>.sum</code> on them.</p>
+
+<p>Let&#39;s try this again. Take a look at the out put below from my console.</p>
+
+<ol>
+<li><code>User.first</code> does a select users</li>
+<li><code>user.games.count</code> does a count on the games_user many-to-many join</li>
+<li><code>user.games</code> does a select games and returns a collection of games</li>
+<li><code>user.games</code> a second time doesn&#39;t do any sql and just returns the loaded games collection.</li>
+<li>If our application is very dynamic and something may have added a game to the database while we were loking at our user then <code>user.games.reload</code> issues a new sql query and the games collection is refreshed. </li>
+</ol>
+<div class="highlight"><pre><span class="go">irb(main):001:0&gt; user = User.first</span>
+<span class="go">  User Load (0.2ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; LIMIT 1</span>
+<span class="go">=&gt; #&lt;User id: 1, email: &quot;steve@light-art.co.uk&quot;, encrypted_password: &quot;$2a$10$Wl.C0ztFRap9nodhld44luexRIWrShrVwaAdruX16My0...&quot;, reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 5, current_sign_in_at: &quot;2012-09-08 21:18:03&quot;, last_sign_in_at: &quot;2012-09-08 15:41:13&quot;, current_sign_in_ip: &quot;127.0.0.1&quot;, last_sign_in_ip: &quot;127.0.0.1&quot;, created_at: &quot;2012-09-02 14:53:24&quot;, updated_at: &quot;2012-09-08 21:18:03&quot;&gt;</span>
+
+<span class="go">irb(main):002:0&gt; user.games.count</span>
+<span class="go">   (0.2ms)  SELECT COUNT(*) FROM &quot;games&quot; INNER JOIN &quot;games_users&quot; ON &quot;games&quot;.&quot;id&quot; = &quot;games_users&quot;.&quot;game_id&quot; WHERE &quot;games_users&quot;.&quot;user_id&quot; = 1</span>
+<span class="go">=&gt; 2</span>
+
+<span class="go">irb(main):003:0&gt; user.games</span>
+<span class="go">  Game Load (0.3ms)  SELECT &quot;games&quot;.* FROM &quot;games&quot; INNER JOIN &quot;games_users&quot; ON &quot;games&quot;.&quot;id&quot; = &quot;games_users&quot;.&quot;game_id&quot; WHERE &quot;games_users&quot;.&quot;user_id&quot; = 1</span>
+<span class="go">=&gt; [#&lt;Game id: 1, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:00:51&quot;, updated_at: &quot;2012-09-12 07:00:51&quot;&gt;, #&lt;Game id: 2, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:04:50&quot;, updated_at: &quot;2012-09-12 07:04:50&quot;&gt;]</span>
+
+<span class="go">irb(main):004:0&gt; user.games</span>
+<span class="go">=&gt; [#&lt;Game id: 1, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:00:51&quot;, updated_at: &quot;2012-09-12 07:00:51&quot;&gt;, #&lt;Game id: 2, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:04:50&quot;, updated_at: &quot;2012-09-12 07:04:50&quot;&gt;]</span>
+
+<span class="go">irb(main):006:0&gt; irb(main):006:0&gt; user.games.reload</span>
+<span class="go">    Game Load (0.3ms)  SELECT &quot;games&quot;.* FROM &quot;games&quot; INNER JOIN &quot;games_users&quot; ON &quot;games&quot;.&quot;id&quot; = &quot;games_users&quot;.&quot;game_id&quot; WHERE &quot;games_users&quot;.&quot;user_id&quot; = 1</span>
+<span class="go">=&gt; [#&lt;Game id: 1, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:00:51&quot;, updated_at: &quot;2012-09-12 07:00:51&quot;&gt;, #&lt;Game id: 2, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:04:50&quot;, updated_at: &quot;2012-09-12 07:04:50&quot;&gt;]</span>
 </pre></div>

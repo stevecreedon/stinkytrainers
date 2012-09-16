@@ -1,0 +1,191 @@
+# The Game Controller and View
+We want to be able to carry out the full RESTful actions on game:
+
+1. List - the index action
+2. Create - the new > create actions
+3. Edit - the edit > update actions
+4. Show - the show action
+5. Destroy - the destroy action
+
+So we're going to generate the controller, set the controller up as a RESTful resource in our routes, write the functional tests then make them all pass.
+
+## Generate the controller
+We'll tell the generator to all of the RESTful actions for us.
+
+~~~console
+rails generate controller games index new create update edit show destroy
+
+create  app/controllers/games_controller.rb
+      route  get "games/destroy"
+      route  get "games/show"
+      route  get "games/edit"
+      route  get "games/update"
+      route  get "games/create"
+      route  get "games/new"
+      route  get "games/index"
+     invoke  erb
+     create    app/views/games
+     create    app/views/games/index.html.erb
+     create    app/views/games/new.html.erb
+     create    app/views/games/create.html.erb
+     create    app/views/games/update.html.erb
+     create    app/views/games/edit.html.erb
+     create    app/views/games/show.html.erb
+     create    app/views/games/destroy.html.erb
+     invoke  rspec
+     create    spec/controllers/games_controller_spec.rb
+     create    spec/views/games
+     create    spec/views/games/index.html.erb_spec.rb
+     create    spec/views/games/new.html.erb_spec.rb
+     create    spec/views/games/create.html.erb_spec.rb
+     create    spec/views/games/update.html.erb_spec.rb
+     create    spec/views/games/edit.html.erb_spec.rb
+     create    spec/views/games/show.html.erb_spec.rb
+     create    spec/views/games/destroy.html.erb_spec.rb
+     invoke  helper
+     create    app/helpers/games_helper.rb
+     invoke    rspec
+     create      spec/helpers/games_helper_spec.rb
+     invoke  assets
+     invoke    coffee
+     create      app/assets/javascripts/games.js.coffee
+     invoke    scss
+     create      app/assets/stylesheets/games.css.scss
+~~~
+
+Let's create games as a RESTful resource in `config/routes.rb` by removing:
+
+~~~ruby
+get "games/index"
+
+get "games/new"
+
+get "games/create"
+
+get "games/update"
+
+get "games/edit"
+
+get "games/show"
+
+get "games/destroy"
+~~~
+
+and creating games as a resource. Since we're using all of the RESTful actions then we don't need to limit it with `:only =>[]` 
+
+~~~ruby
+Stinkytrainers::Application.routes.draw do
+  
+  
+  devise_for :users
+
+  resources :sports, :only => [:index, :new, :create, :destroy]
+
+  resources :dashboard, :only => [:index] 
+  
+  resources :games
+
+  root :to => 'home#index'
+
+end
+~~~
+
+Take a look at the routes we've created
+
+~~~console 
+bundle exec rake routes
+
+ new_user_session GET    /users/sign_in(.:format)                  devise/sessions#new
+            user_session POST   /users/sign_in(.:format)                  devise/sessions#create
+    destroy_user_session DELETE /users/sign_out(.:format)                 devise/sessions#destroy
+           user_password POST   /users/password(.:format)                 devise/passwords#create
+       new_user_password GET    /users/password/new(.:format)             devise/passwords#new
+      edit_user_password GET    /users/password/edit(.:format)            devise/passwords#edit
+                         PUT    /users/password(.:format)                 devise/passwords#update
+cancel_user_registration GET    /users/cancel(.:format)                   devise/registrations#cancel
+       user_registration POST   /users(.:format)                          devise/registrations#create
+   new_user_registration GET    /users/sign_up(.:format)                  devise/registrations#new
+  edit_user_registration GET    /users/edit(.:format)                     devise/registrations#edit
+                         PUT    /users(.:format)                          devise/registrations#update
+                         DELETE /users(.:format)                          devise/registrations#destroy
+                  sports GET    /sports(.:format)                         sports#index
+                         POST   /sports(.:format)                         sports#create
+               new_sport GET    /sports/new(.:format)                     sports#new
+                   sport DELETE /sports/:id(.:format)                     sports#destroy
+         dashboard_index GET    /dashboard(.:format)                      dashboard#index
+                   games GET    /games(.:format)                          games#index
+                         POST   /games(.:format)                          games#create
+                new_game GET    /games/new(.:format)                      games#new
+               edit_game GET    /games/:id/edit(.:format)                 games#edit
+                    game GET    /games/:id(.:format)                      games#show
+                         PUT    /games/:id(.:format)                      games#update
+                         DELETE /games/:id(.:format)                      games#destroy
+                    root        /                                         home#index
+~~~
+
+You can see we now have games routes matching each of our actions. As a quick reminder of RESTful routes let's review the routes we've created. I've assumed we already have a game with the id 179:
+
+<table>
+	<tr>
+		<th>url</th>
+		<th>action</th>
+	</tr>
+	<tr>
+		<td>GET /games</td>
+		<td>games#index</td>
+	</tr>
+	<tr>
+		<td>POST /games</td>
+		<td>games#create</td>
+	</tr>
+	<tr>
+		<td>GET /games/new</td>
+		<td>games#new</td>
+	</tr>
+	<tr>
+		<td>GET /games/179/edit</td>
+		<td>games#edit with params[:id] = 179</td>
+	</tr>
+	<tr>
+		<td>GET /games/179</td>
+		<td>games#show with params[:id] = 179</td>
+	</tr>
+	<tr>
+		<td>PUT /games/179</td>
+		<td>games#update with params[:id] = 179</td>
+	</tr>
+	<tr>
+		<td>DELETE /games/179</td>
+		<td>games#destroy with params[:id] = 179</td>
+	</tr>
+</table>
+
+## Our draft functional tests for the games controller
+
+~~~ruby
+it 'should redirect users to the sign-in page when they are not signed-in'
+
+it 'should display a list of the games belonging to the sign-in user'
+
+it 'should create a new game when valid game parameters are provided'
+
+it 'should redirect users back to the new page with user input when incorrect parameters are provided'
+
+it 'should allow users to edit a game and update it when the values are valid'
+
+it 'should allow users to edit a game and return then to the edit page with their edited input when incorrect parameters are provided'
+
+it 'should allow users to view a game'
+
+it 'should allow users to destroy a game and redirect them back to the index page'
+~~~
+
+## Testing the index action
+
+## Testing the new/create actions
+
+## Testing the edit/updates actions
+
+## Testing the show action
+
+## Testing the destroy action
