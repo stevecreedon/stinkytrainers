@@ -1,4 +1,5 @@
 # The Game Model
+
 ![Stinky Trainers Game Model Diagram](/assets/stinky trainers game model.png)
 
 As you can see from the diagram Game has a `has_and_belongs_to_many` relationship with User and we've added another class, External Player. We want our users to be able to invite anyone to a game not just other StinkTrainers users. We could just add a list of email address to a game that represent the external players but then our application would have to cope with a player that's either a User object or a string and that may make our code a little hard to handle. So we're going to add the model External Player, effectively a user that hasn't signed-up. Our game can then have a collection called players and a collection of external_players. If an external player chooses to sign-up with Stinky Trainers then they'll see all of the gaems they're connected to.
@@ -290,6 +291,7 @@ For this one we need to add the association between games and players. Now playe
 
 
 This is the test we have to make work
+
 ~~~ruby
 it 'should return a list of players ordered by email' do
   game = FactoryGirl.create(:game)
@@ -591,6 +593,7 @@ run the tests and everything should be passing
 ~~~console
 bundle exec rake spec
 ~~~
+<<<<<<< HEAD
 
 ## Active Record Associations
 Now we have a little experience with Active Record associations let's take a peek under the hood by playing with them in console. Run these in the Rails console looking at the SQL output as we go:
@@ -656,3 +659,5 @@ irb(main):006:0> irb(main):006:0> user.games.reload
 => [#<Game id: 1, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:00:51", updated_at: "2012-09-12 07:00:51">, #<Game id: 2, location: "wimbledon", at: "2012-09-11 23:00:00", created_at: "2012-09-12 07:04:50", updated_at: "2012-09-12 07:04:50">]
 ~~~
 
+=======
+>>>>>>> c43b4b8e71d2b901d13d93be1dd6ab84f6acea55

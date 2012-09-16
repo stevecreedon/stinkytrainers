@@ -19,6 +19,7 @@
 <li><a href="#get-game-model-tests-for-the-over-helper-method-passing">Get Game model tests for the over? helper method passing</a></li>
 <li><a href="#get-the-externalplayer-model-test-for-email-passing">Get the ExternalPlayer model test for email passing</a></li>
 <li><a href="#get-the-externalplayer-email-must-be-unique-test-passing">Get the ExternalPlayer email must be unique test passing</a></li>
+<li><a href="#active-record-associations">Active Record Associations</a></li>
 </ol>
 
 <h2><a id='tests-for-the-game-model'></a> 7.1. Tests for the Game Model</h2>
@@ -300,22 +301,21 @@
 
 <p>For this one we need to add the association between games and players. Now players are actually users but it seems a little odd that a game has a collection of users so we&#39;ll create an association called players, tell it to use User and also tell it to order users by email.</p>
 
-<p>This is the test we have to make work
-~~~ruby
-it &#39;should return a list of players ordered by email&#39; do
-  game = FactoryGirl.create(:game)</p>
+<p>This is the test we have to make work</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should return a list of players ordered by email&#39;</span> <span class="k">do</span>
+  <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
 
-<p>andrew = FactoryGirl.create(:user, :email =&gt; &#39;andrew@textxyz.com&#39;)
-  zoe = FactoryGirl.create(:user, :email =&gt; &#39;zoe@textxyz.com&#39;)
-  mark = FactoryGirl.create(:user, :email =&gt; &#39;mark@textxyz.com&#39;)</p>
+  <span class="n">andrew</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;andrew@textxyz.com&#39;</span><span class="p">)</span>
+  <span class="n">zoe</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;zoe@textxyz.com&#39;</span><span class="p">)</span>
+  <span class="n">mark</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;mark@textxyz.com&#39;</span><span class="p">)</span>
 
-<p>game.players &lt;&lt; andrew
-  game.players &lt;&lt; zoe
-  game.players &lt;&lt; mark</p>
+  <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">andrew</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">zoe</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">mark</span>
 
-<p>game.players.should == [andrew, mark, zoe]
-end
-~~~</p>
+  <span class="n">game</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="o">[</span><span class="n">andrew</span><span class="p">,</span> <span class="n">mark</span><span class="p">,</span> <span class="n">zoe</span><span class="o">]</span>
+<span class="k">end</span>
+</pre></div>
 
 <p>NOTE: we&#39;ve broken the rule about not using FactoryGirl to create the objects we&#39;re testing. In this case it&#39;s not so bad because we&#39;re actually not testing Game but the association players. We&#39;ve used FactoryGirl because we needed a valid instance of Game before we can add records to an association. Remember that our games<em>users join table needs a game</em>id ? Well if we&#39;d just created Game.new the record isn&#39;t saved, if it isn&#39;t saved it won&#39;t have an id. For the association to work we need a saved, and thus valid instance of game, hence we use FactoryGirl. We could have created a valid game in the test <code>Game.create(:location =&gt; &#39;xyz&#39;, :at =&gt; Time.now)</code> but that would mean every time we add a new validation to Game we&#39;d have to rewrite this line in our tests.</p>
 
@@ -583,9 +583,13 @@ end
 <div class="highlight"><pre><span class="go">bundle exec rake spec</span>
 </pre></div>
 
-<p>Let&#39;s see this in the Rails console and try to get some idea of how ActiveRecord Associations work.</p>
+<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
 
-<p>Basically I&#39;m going to run these in the Rails console looking at the SQL output as we go:</p>
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='active-record-associations'></a> 7.11. Active Record Associations</h2>
+
+<p>Now we have a little experience with Active Record associations let&#39;s take a peek under the hood by playing with them in console. Run these in the Rails console looking at the SQL output as we go:</p>
 
 <ol>
 <li>Reference the first User</li>
@@ -646,3 +650,21 @@ end
 <span class="go">    Game Load (0.3ms)  SELECT &quot;games&quot;.* FROM &quot;games&quot; INNER JOIN &quot;games_users&quot; ON &quot;games&quot;.&quot;id&quot; = &quot;games_users&quot;.&quot;game_id&quot; WHERE &quot;games_users&quot;.&quot;user_id&quot; = 1</span>
 <span class="go">=&gt; [#&lt;Game id: 1, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:00:51&quot;, updated_at: &quot;2012-09-12 07:00:51&quot;&gt;, #&lt;Game id: 2, location: &quot;wimbledon&quot;, at: &quot;2012-09-11 23:00:00&quot;, created_at: &quot;2012-09-12 07:04:50&quot;, updated_at: &quot;2012-09-12 07:04:50&quot;&gt;]</span>
 </pre></div>
+
+<h1></h1>
+
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>c43b4b8e71d2b901d13d93be1dd6ab84f6acea55</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>

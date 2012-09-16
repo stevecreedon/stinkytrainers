@@ -218,15 +218,15 @@ These are the things we want to test:
 
 We've already written the test for authentication so we'll assume that the user is signed in for each test by writing a `before :each` block that gets an instance of __User__ from __FactoryGirl__ and signs that user in.
 
-~~~console
+~~~ruby
 require 'spec_helper'
 
 describe 'restful' do
 
   before :each do
-  	user = FactoryGirl.create(:user)
-	visit new_user_session_path
-	fill_in('Email', :with => user.email)
+    user = FactoryGirl.create(:user)
+    visit new_user_session_path
+    fill_in('Email', :with => user.email)
     fill_in('Password', :with => user.password)
 
     click_button('Sign in')
@@ -250,62 +250,62 @@ describe 'restful' do
   describe 'adding a new sport' do
 
     it 'should add a valid sport and redirect to the index page' do
-		visit sports_path
+      visit sports_path
 
-		click_link('New Sport')
+      click_link('New Sport')
 
-		fill_in('Name', :with => 'Tennis')
+      fill_in('Name', :with => 'Tennis')
 
-		expect{
-  			click_button('Create Sport')
-		}.to change{Sport.count}.by(1)
-  
-		page.current_path.should == sports_path
-		page.should have_content('Tennis')
-	end
-	
+      expect{
+        click_button('Create Sport')
+      }.to change{Sport.count}.by(1)
+
+      page.current_path.should == sports_path
+      page.should have_content('Tennis')
+    end
+
     it 'should not add an invalid sport and should re-render the new page with the invalid data we entered' do
-		Sport.create(:name => 'Tennis')
+      Sport.create(:name => 'Tennis')
 
-		visit sports_path
+      visit sports_path
 
-		click_link('New Sport')
+      click_link('New Sport')
 
-		fill_in('Name', :with => 'Tennis')
+      fill_in('Name', :with => 'Tennis')
 
-		expect{
-		  click_button('Create Sport')
-		}.to change{Sport.count}.by(0)
+      expect{
+        click_button('Create Sport')
+      }.to change{Sport.count}.by(0)
 
-		#page.save_and_open_page
+      #page.save_and_open_page
 
-		page.find_field('Name').value.should have_content('Tennis')
-		page.should have_content('has already been taken')
-	end
+      page.find_field('Name').value.should have_content('Tennis')
+      page.should have_content('has already been taken')
+    end
 
   end
 
   describe 'destroying a sport' do
 
     it 'should destroy a sport' do
-		FactoryGirl.create(:sport, :name => 'football')
-		FactoryGirl.create(:sport, :name => 'cricket')
-		sport = FactoryGirl.create(:sport, :name => 'Tennis')
-		FactoryGirl.create(:sport, :name => 'basketball')
+      FactoryGirl.create(:sport, :name => 'football')
+      FactoryGirl.create(:sport, :name => 'cricket')
+      sport = FactoryGirl.create(:sport, :name => 'Tennis')
+      FactoryGirl.create(:sport, :name => 'basketball')
 
-		visit sports_path
+      visit sports_path
 
-		page.should have_content('Tennis')
+      page.should have_content('Tennis')
 
-		within("tr[@data-row='#{sport.id}']") do
-		  expect{
-		    click_link('Destroy')
-		  }.to change{Sport.count}.by(-1)
-		end
+      within("tr[@data-row='#{sport.id}']") do
+        expect{
+          click_link('Destroy')
+        }.to change{Sport.count}.by(-1)
+      end
 
-		page.current_path.should == sports_path
-		page.should_not have_content('Tennis')
-	end
+      page.current_path.should == sports_path
+      page.should_not have_content('Tennis')
+    end
 
   end
 
