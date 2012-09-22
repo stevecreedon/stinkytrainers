@@ -1,0 +1,55 @@
+<%= form_for @game do |f| %>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :sport_id, 'Select Sport', :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.select :sport_id, options_from_collection_for_select(current_user.sports, :id, :name),
+                   { }, { :disabled => !@game.new_record?, :class => 'input-xlarge' } %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :location, :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.text_field :location, :class => 'input-xlarge' %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :at, :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.datetime_select "at",{}, :class => 'input-small' %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :players, :class => 'control-label' %>
+    <div class='controls'>
+  		<% current_user.players.each do |player| %>
+			<%= check_box_tag :player, player.id, @game.players.include?(player) %> <%= player.email %><br/>
+  		<% end %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :players_not_on_stinky_trainers, :class => 'control-label' %>
+    <div class='controls'>
+  		<% current_user.external_players.each do |player| %>
+			<%= check_box_tag :external_player, player.id, @game.external_players.include?(player) %> <%= player.email %><br/>
+  		<% end %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :more_players, :class => 'control-label' %>
+    <div class='controls'>
+      <%= text_field_tag :more_players, 'email', :class => 'input-xlarge' %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= f.submit @game.new_record? ? 'Create Game' : 'Update Game', :class => 'btn btn-primary' %>
+    <%= link_to 'Back', games_path, :class => 'btn' %>
+  </div>
+
+<% end %>

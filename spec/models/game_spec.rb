@@ -13,9 +13,16 @@ describe Game do
 	  game.valid?.should be_false
 	  game.errors.to_a.should include("At can't be blank")
 	end
+	
+	it 'should not be valid if the game has no sport' do
+    game = Game.new
+    game.valid?.should be_false
+    game.errors.to_a.should include("Sport can't be blank")
+  end
 
 	it 'should return a list of players ordered by email' do
-	  game = FactoryGirl.create(:game)
+	  sport = FactoryGirl.create(:sport)
+    game = FactoryGirl.create(:game, :sport => sport)
 
 	  andrew = FactoryGirl.create(:user, :email => 'andrew@textxyz.com')
 	  zoe = FactoryGirl.create(:user, :email => 'zoe@textxyz.com')
@@ -29,7 +36,8 @@ describe Game do
 	end
 
 	it 'should return a list of external players ordered by email' do
-	  game = FactoryGirl.create(:game)
+	  sport = FactoryGirl.create(:sport)
+    game = FactoryGirl.create(:game, :sport => sport)
 
 	  andrew = FactoryGirl.create(:external_player, :email => 'andrew@textxyz.com')
 	  zoe = FactoryGirl.create(:external_player, :email => 'zoe@textxyz.com')
@@ -51,5 +59,11 @@ describe Game do
 	  game = Game.new(:at => Time.now + 100)
 	  game = game.over?.should be_false
 	end
+	
+	it 'should not be valid if the game has no owner' do
+    game = Game.new
+    game.valid?.should be_false
+    game.errors.to_a.should include("Owner can't be blank")
+  end
   
 end

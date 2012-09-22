@@ -2,7 +2,17 @@
 
 FactoryGirl.define do
   factory :game do
-    location "MyString"
-    at "2012-09-09 10:00:00"
+    location { generate(:location) } 
+    at { generate(:at) }
+    sport { FactoryGirl.create(:sport) }   
+    owner { FactoryGirl.create(:user) } 
+  end
+  
+  sequence :location do |n|
+    "location#{n}"
+  end
+
+  sequence :at do |n|
+    Time.now + (n * 3600 * 24)
   end
 end

@@ -161,28 +161,458 @@ You can see we now have games routes matching each of our actions. As a quick re
 </table>
 
 ## Our draft functional tests for the games controller
+I'm going to introduce the concept of describe blocks in testing here. They let us group our tests together and each block can have its own setup and teardown code. Don't worry if you're not sure what setup and teardown means all will become apparent.
+
+Before we write our draft tests we must delete the file `spec/constrollers/games_controller_spec.rb` since we're testing views and controllers together as integration tests.
+
+Create the file spec/integration/games/resftful_spec.rb and add the empty draft tests below: 
 
 ~~~ruby
-it 'should redirect users to the sign-in page when they are not signed-in'
+require 'spec_helper'
 
-it 'should display a list of the games belonging to the sign-in user'
+describe 'games' do
+  
+  describe 'authentication' do
+    it 'should redirect users to the sign-in page when they are not signed-in'
+  end
 
-it 'should create a new game when valid game parameters are provided'
+  describe 'listing games' do
+    it 'should display a list of the games owned by the signed-in user'
+    it 'should display a list of the games where the signed-in user is a player'
+  end
 
-it 'should redirect users back to the new page with user input when incorrect parameters are provided'
+  describe 'creating games' do
+    it 'should create a new game when valid game parameters are provided'
+    it 'should redirect users back to the new page with user input when incorrect parameters are provided'
+  end
 
-it 'should allow users to edit a game and update it when the values are valid'
 
-it 'should allow users to edit a game and return then to the edit page with their edited input when incorrect parameters are provided'
+  describe 'editing games' do
+    it 'should edit a game and update it when the values are valid'
+    it 'should edit a game and return then to the edit page with their edited input when incorrect parameters are provided'
+  end
 
-it 'should allow users to view a game'
+  describe 'showing games' do
+    it 'should allow users to view a game'
+  end
 
-it 'should allow users to destroy a game and redirect them back to the index page'
+  describe 'destroying games' do
+    it 'should allow users to destroy a game and redirect them back to the index page'
+  end
+  
+end
+~~~
+
+## Testing authentication
+The test we need to pass is `it 'should redirect users to the sign-in page when they are not signed-in'`
+
+This is very similar to our previous authentication tests. Create the file `spec/integration/games/authentication_spoec.rb` and add this code:
+
+~~~ruby
+require 'spec_helper'
+
+describe 'authentication' do
+  it 'should require users to sign in when they trying to access sports' do
+    user = FactoryGirl.create(:user)
+
+    visit games_path
+
+    page.current_path.should == new_user_session_path
+
+    fill_in('Email', :with => user.email)
+    fill_in('Password', :with => user.password)
+
+    click_button('Sign in')
+
+    page.current_path.should == games_path
+  end
+end
+~~~
+
+Run the tests:
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+You should see one failure because we haven't secured the games_controller yet. So we'll do that now by adding the Devise `authenticate_user!`
+
+~~~ruby
+class GamesController < ApplicationController
+  
+  before_filter :authenticate_user!
+  
+  def index
+  end
+
+  def new
+  end
+
+  def create
+  end
+
+  def update
+  end
+
+  def edit
+  end
+
+  def show
+  end
+
+  def destroy
+  end
+end
+~~~
+
+Run the tests again and it should all pass
+
+~~~ruby
+bundle exec rake spec
 ~~~
 
 ## Testing the index action
+Our previous sports controller index action was quite simple, all we wanted to do is list all sports. This one is a little more difficult as we want to list two things:
+
+ruby~~~
+describe 'listing games' do
+    it 'should display a list of the games owned by the signed-in user'
+    it 'should display a list of the games where the signed-in user is a player'
+end
+~~~
+
+### Make our games Factory more useful
+
+Before we start writing tests, Games require owners and sports so our integration tests are going to be using FactoryGirl to create these objects quite frequently.
+
+Our current games factory `spec/factories/games.rb` looks something like this
+
+~~~ruby
+FactoryGirl.define do
+  factory :game do
+    location "MyString"
+    at "2012-09-09 10:00:00"
+    sport { FactoryGirl.create(:sport) }
+    owner { FactoryGirl.create(:user) }
+  end
+end
+~~~ 
+
+So in our tests the :location and :at fields always have the same values which isn't really realistic or helpful. Update it so that, like email in the user factory and name in the sport factory, locations and times are always different. 
+
+~~~ruby
+FactoryGirl.define do
+  factory :game do
+    location { generate(:location) } 
+    at { generate(:at) }
+    sport { FactoryGirl.create(:sport) }
+    owner { FactoryGirl.create(:user) }          
+  end
+  
+  sequence :location do |n|
+    "location#{n}"
+  end
+
+  sequence :at do |n|
+    Time.now + (n * 3600 * 24)
+  end
+end
+~~~ 
+
+### it 'should display a list of the games owned by the signed-in user'
+
+So now let's code the first of our two tests.
+
+First let's create a before(:each) block inside the `describe games` block. This will run before each test giving us a signed-in user `@user` so we don't have to keep writing the same login code over and over again. Again because we assign user to the instance variable `@user` and not just `user` it's available throughout the test. 
+
+Write a test to: 
+
+1. Create our signed-in user
+1. Create another user that isn't the signed-in user
+1. Create three games, two owned by the signed-in user and one owned by the user not signed-in
+1. Ensure that the games we added to the user appears in the 'owned\_games' table on index page
+1. Ensure that the game we didn't add to the signed-in user **doesn't appear** in the 'owned\_games' table on  the index page
+
+Note that we check for the existence of the games inside these within blocks
+
+~~~ruby
+within("table#owned_games") do
+  within("tr[@data-row='game_#{game1.id}']") do
+  end
+end
+~~~
+
+Which basically means the test is more than requiring the games to appear on the page, it's requiring the games to appear within a table with id my\_games and a table row with the data-row attribute data-row='game_x' where x is the id of the game in that row.
+
+We could also have used more specific XPath and css attributes to specify where the games appear but then we'd have to keep fixing our tests each time the page design was altered. This approach feels like a reasonably pragmatic balance between not caring where the games appear and being very specific.
+
+~~~ruby  
+require 'spec_helper'
+
+describe 'games' do
+  
+  before :each do
+    @user = FactoryGirl.create(:user)
+	  
+	visit new_user_session_path
+	  
+	fill_in('Email', :with => @user.email)
+    fill_in('Password', :with => @user.password)
+
+    click_button('Sign in')
+  end
+  
+  
+  describe 'listing games' do
+    it 'should display a list of the games owned by the signed-in user' do
+        
+    	other_user = FactoryGirl.create(:user)
+
+	    game1 = FactoryGirl.create(:game, :owner => @user)
+	    game2 = FactoryGirl.create(:game, :owner => @user)
+	    game3 = FactoryGirl.create(:game, :owner => other_user)
+    
+	    visit games_path
+  
+	    within("table#owned_games") do
+      
+	      @user.owned_games.each do |game|
+	        within("tr[@data-row='game_#{game.id}']") do
+	          page.should have_content(game.location)
+	          page.should have_content(game.sport.name)
+	          page.should have_content(game.at)
+	        end
+	      end
+      
+	      other_user_game = other_user.owned_games.first
+	      #page.save_and_show_page
+	      page.should_not have_content(other_user_game.location)
+	      page.should_not have_content(other_user_game.sport.name)
+	      page.should_not have_content(other_user_game.at)
+    
+	    end
+	
+	end
+	
+	it 'should display a list of the games where the signed-in user is a player'
+	
+  end
+
+  describe 'creating games' do
+    it 'should create a new game when valid game parameters are provided with the current user selected as a player'
+    it 'should redirect users back to the new page with user input when incorrect parameters are provided'
+  end
+
+
+  describe 'editing games' do
+    it 'should edit a game and update it when the values are valid'
+    it 'should edit a game and return then to the edit page with their edited input when incorrect parameters are provided'
+  end
+
+  describe 'showing games' do
+    it 'should allow users to view a game'
+  end
+
+  describe 'destroying games' do
+    it 'should allow users to destroy a game and redirect them back to the index page'
+  end
+  
+end
+~~~
+
+run the tests...
+
+~~~console
+bundle exec rake spec
+~~~
+
+and it should fail because we haven't coded the controller or the view we're testing.
+
+Let's start with the games controller `app/controllers/games_controller.rb`. It couldn't be simpler. In our previous sports controller we wanted all sports to be listed so we coded
+
+~~~ruby
+def index
+  @sports = Sport.all
+end
+~~~
+
+but now we want to list the games of the logged-in user (we can be sure we have a logged-in user because our previous spec required that). All we need do assign the games of the current user to variable @games which is passed to our view. Note that only instance (or '@') variables get passed on to the view. Variables that aren't prefixed '@' are local to the method only. 
+
+~~~ruby
+class GamesController < ApplicationController
+  
+  before_filter :authenticate_user!
+  
+  def index
+    @owned_games = current_user.owned_games
+  end
+
+  def new
+  end
+
+  def create
+  end
+
+  def update
+  end
+
+  def edit
+  end
+
+  def show
+  end
+
+  def destroy
+  end
+end
+~~~
+
+You can try running the tests but they should still fail as we haven't coded the view. Let's do that now:
+
+in `app/views/games/index.html.erb`
+
+~~~ruby
+<h1>Games#index</h1>
+
+<h2>Game I have created</h2>
+<table id="owned_games">
+	<% @owned_games.each do |game| %>
+	<tr data-row='game_<%= game.id %>'>
+		<td><%= game.sport.name %></td>
+		<td><%= game.location %></td>
+		<td><%= game.at %></td>
+	</tr>
+	<% end %>
+</table>
+~~~
+
+Note that we use the `@owned_games` variable from our controller and insert the game id into the data-row attribute of the table.
+
+Our test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+### it 'should display a list of the games where the signed-in user is a player'
+Now let's add the test that checks the list of games the signed-in user is playing in.
+
+In this test we will
+
+1. Create three games, two owned by the signed-in user and a third by another user
+1. Add the signed-in user to one of the two games he/she created and add the signed-in user to the game created by the other user.
+1. Test that the table "games" has the two games in which the signed-in user is a player - that's one of his games and one of the other user's games.
+1. Test that the table "games" doesn't have the game in which the signed-in user isn't a player even though that's a game he created.
+
+Add this code to the second of our two index page tests:
+
+~~~ruby
+it 'should display a list of the games the signed-in user is playing in' do
+
+	game1 = FactoryGirl.create(:game, :owner => @user)
+	game2 = FactoryGirl.create(:game, :owner => @user)
+	game3 = FactoryGirl.create(:game, :owner => FactoryGirl.create(:user))
+  
+	game1.players << @user
+	game3.players << @user
+
+	visit games_path
+
+	within("table#games") do
+   
+	  within("tr[@data-row='game_#{game1.id}']") do
+	    page.should have_content(game1.location)
+	    page.should have_content(game1.sport.name)
+	    page.should have_content(game1.at)
+	  end
+  
+	  within("tr[@data-row='game_#{game3.id}']") do
+	    page.should have_content(game3.location)
+	    page.should have_content(game3.sport.name)
+	    page.should have_content(game3.at)
+	  end
+  
+	  game_user_created = @user.games.last
+  
+	  page.save_and_open_page
+  
+	  page.should_not have_content(game2.location)
+	  page.should_not have_content(game2.sport.name)
+	  page.should_not have_content(game2.at)
+
+	end
+	
+end
+~~~
+
+Run the tests to see it failing (remember we haven't coded the controller or view yet)
+
+~~~console
+bundle exec rake spec
+
+
+1) games listing games should display a list of the games the signed-in user is playing in
+    Failure/Error: within("table#games") do
+    Capybara::ElementNotFound:
+      Unable to find css "table#games"
+    # (eval):2:in `find'
+    # ./spec/integration/games/restful_spec.rb:57:in `block (3 levels) in <top (required)>'
+	
+~~~
+
+Let's add a variable to our `app/controllers/games\_controller.rb` index action to reference the games our signed-in user is playing in.
+
+~~~ruby
+def index
+ @owned_games = current_user.owned_games
+ @games = current_user.games
+end
+~~~
+
+and add the games table to the view app/views/games/index.html.erb
+
+~~~ruby
+<h1>Games#index</h1>
+
+<h2>Games I have created</h2>
+<table id="owned_games">
+	<% @owned_games.each do |game| %>
+	<tr data-row='game_<%= game.id %>'>
+		<td><%= game.sport.name %></td>
+		<td><%= game.location %></td>
+		<td><%= game.at %></td>
+	</tr>
+	<% end %>
+</table>
+
+<h2>Games I am playing</h2>
+<table id="games">
+	<% @games.each do |game| %>
+	<tr data-row='game_<%= game.id %>'>
+		<td><%= game.sport.name %></td>
+		<td><%= game.location %></td>
+		<td><%= game.at %></td>
+	</tr>
+	<% end %>
+</table>
+~~~
+
+The tests should now pass.
 
 ## Testing the new/create actions
+Our draft test above has these two tests that cover new & create inside `describe 'creating games' do`. Similar to sports we want to ensure that we can create a new game if the data provided by the use is valid and we return the user back to the form with the data they entered if it's invalid.
+
+~~~ruby
+describe 'creating games' do
+    it 'should create a new game when valid game parameters are provided'
+    it 'should redirect users back to the new page with user input when incorrect parameters are provided'
+end
+~~~
+
+
+
+
+But what about the players ? We haven't added any yet
 
 ## Testing the edit/updates actions
 

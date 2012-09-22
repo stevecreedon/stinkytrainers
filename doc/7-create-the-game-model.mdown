@@ -18,7 +18,7 @@ it 'should not be valid if the game has no location'
 
 it 'should not be valid if the game has no date'
 
-it 'should not be valid if the game has no players'
+it 'should not be valid if the game has no sport'
 
 it 'should return a list of external players ordered by email'
 
@@ -27,6 +27,8 @@ it 'should return a list of players ordered by email'
 it 'should return true if the game is in the past'
 
 it 'should return false if the game is not in the past'
+
+it 'should not be valid if the game has no owner'
 ~~~
 
 ### Now Code the tests
@@ -49,8 +51,15 @@ describe Game do
 	  game.errors.to_a.should include("At can't be blank")
 	end
 	
+	it 'should not be valid if the game has no sport' do
+	  game = Game.new
+	  game.valid?.should be_false
+	  game.errors.to_a.should include("Sport can't be blank")
+	end
+	
 	it 'should return a list of players ordered by email' do
-	  game = FactoryGirl.create(:game)
+	  sport = FactoryGirl.create(:sport)
+      game = FactoryGirl.create(:game, :sport => sport)
 
 	  andrew = FactoryGirl.create(:user, :email => 'andrew@textxyz.com')
 	  zoe = FactoryGirl.create(:user, :email => 'zoe@textxyz.com')
@@ -64,7 +73,8 @@ describe Game do
 	end
 
 	it 'should return a list of external players ordered by email' do
-	  game = FactoryGirl.create(:game)
+	  sport = FactoryGirl.create(:sport)
+      game = FactoryGirl.create(:game, :sport => sport)
 
 	  andrew = FactoryGirl.create(:external_player, :email => 'andrew@textxyz.com')
 	  zoe = FactoryGirl.create(:external_player, :email => 'zoe@textxyz.com')
@@ -278,10 +288,131 @@ class Game < ActiveRecord::Base
 end
 ~~~
 
-Run the tests and we should be down to 6 failures
+Run the tests and we should be down to 7 failures
 
 ~~~console
 bundle exec rake spec
+~~~
+
+COMMENTS
+
+## Get the Game model #sport test passing
+Our third test requires that we have a sport
+
+~~~ruby
+it 'should not be valid if the game has no sport' do
+  game = Game.new
+  game.valid?.should be_false
+  game.errors.to_a.should include("Sport can't be blank")
+end
+~~~
+
+The association between Game and Sport is a simple one. A Game belongs\_to Sport and a Sport has\_many games. To create this relationship we need to add a sport_id column to our game and add the association to our Sport and Game classes.
+
+First the migration to add the sport_id column
+
+~~~console
+bundle exec rails g migration add_sport_to_game
+~~~
+
+This will give us an empty migration in db/migrate. Add the line of code below to add a sport\_id column to the games table. In other words we're adding sport\_id to our game model.
+
+~~~ruby
+class AddSportToGame < ActiveRecord::Migration
+  def change
+    add_column :games, :sport_id, :integer
+  end
+end
+~~~
+
+Now run the migration
+
+~~~
+bundle exec rake db:migrate
+
+==  AddSportToGame: migrating =================================================
+-- add_column(:games, :sport_id, :integer)
+   -> 0.0009s
+==  AddSportToGame: migrated (0.0010s) ========================================
+~~~
+
+Now let's define the associations:
+
+Sport has many games `has_many :games`:
+
+~~~ruby
+class Sport < ActiveRecord::Base
+  attr_accessible :name
+
+  validates :name,   :presence => true, :uniqueness => true
+  
+  has_and_belongs_to_many :users
+  has_many :games
+end
+~~~
+
+Make Game belong to Sport, `belongs_to :sport` lets also add sport to our list of accessible attributes `attr_accessible :at, :location, :sport`
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location, :sport
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+  belongs_to :sport
+  
+  def over?
+    Time.now > self.at
+  end
+  
+end
+~~~
+
+We've defined our association and added the sport_id column to our game model. At this stage we should be able to run the tests without anything dreadful happening. We'll still have a failing test but we shouldn't have anything painful like our game object not knowing what a sport is.
+
+~~~console
+bundle exec rake spec
+
+Failures:
+
+  1) Game should not be valid if the game has no sport
+     Failure/Error: game.errors.to_a.should include("Sport can't be blank")
+       expected ["Location can't be blank", "At can't be blank"] to include "Sport can't be blank"
+     # ./spec/models/game_spec.rb:20:in `block (2 levels) in <top (required)>'
+
+~~~
+
+Again, we'll use an ActiveModel validation for this:
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  validates :sport, :presence => true
+end
+~~~
+
+The test should now pass.
+
+~~~console
+bundle exec rake spec
+~~~
+
+One last thing, since we've made sport a required field we should add it to our FactoryGrirl factory so that future tests can create game without having to explicitly specify a sport. Add the line `sport { FactoryGirl.create(:sport) }` to spec/factories/games.rb:
+
+~~~ruby
+FactoryGirl.define do
+  factory :game do
+    location "MyString"
+    at "2012-09-09 10:00:00"
+    sport { FactoryGirl.create(:sport) }
+  end
+end
 ~~~
 
 COMMENTS
@@ -294,7 +425,8 @@ This is the test we have to make work
 
 ~~~ruby
 it 'should return a list of players ordered by email' do
-  game = FactoryGirl.create(:game)
+  sport = FactoryGirl.create(:sport)
+  game = FactoryGirl.create(:game, :sport => sport)
 
   andrew = FactoryGirl.create(:user, :email => 'andrew@textxyz.com')
   zoe = FactoryGirl.create(:user, :email => 'zoe@textxyz.com')
@@ -561,6 +693,162 @@ bundle exec rake spec
 
 COMMENTS
 
+## It should not be valid if the game has no owner
+I don't believe in systems being to controlling so we want to be able to create a game that has no players so that the creator can:
+
+1. Create a game then invite people later.
+2. Organize a game but not have to be a player. 
+
+A game with no players will just be orphaned in our system so we need to make a reference between the game and the user that created it.
+
+~~~ruby
+it 'should not be valid if the game has no owner' do
+  game = Game.new
+  game.valid?.should be_false
+  game.errors.to_a.should include("Owner can't be blank")
+end
+~~~
+
+We need to add a one to many association between user and games. Our user already has an association called 'games' so we'll create a more explicit association `user.owned_games` and add the reverse association `game.owner`.
+
+First we'll need a migration:
+
+~~~console
+bundle exec rails g migration add_owner_to_game
+
+invoke  active_record
+     create    db/migrate/20120921122225_add_owner_to_game.rb
+~~~
+
+now every game will belong to user as owner so we'll add an owner\_id to the game model. In our newly generated migration file:
+
+~~~ruby
+class AddOwnerToGame < ActiveRecord::Migration
+  def change
+    add\_column :games, :owner\_id, :integer
+  end
+end
+~~~ 
+
+run the migration:
+
+~~~console
+bundle exec rake db:migrate
+
+==  AddOwnerToGame: migrating =================================================
+-- add_column(:games, :owner\_id, :integer)
+   -> 0.0015s
+==  AddOwnerToGame: migrated (0.0016s) ========================================
+~~~
+
+Add the one to many association `belongs_to :owner, :class_name => 'User'` to our Game model. We'll also add :owner to our attr\_accessible so that we can create a game `Game.create(:sport => s)`
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location, :sport, :owner
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  validates :sport, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+  belongs_to :sport
+  belongs_to :owner, :class_name => 'User'
+   
+  def over?
+    Time.now > self.at
+  end
+  
+end
+~~~
+
+now add the association to user `has_many :owned_games, :class_name => 'Game'`:
+
+~~~ruby
+class User < ActiveRecord::Base
+  # Include default devise modules. Others available are:
+  # :token_authenticatable, :confirmable,
+  # :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+
+  # Setup accessible (or protected) attributes for your model
+  attr_accessible :email, :password, :password_confirmation, :remember_me
+  # attr_accessible :title, :body
+  
+  has_and_belongs_to_many :sports
+  has_and_belongs_to_many :games
+  
+  has_many :players, :through => :games
+  has_many :external_players, :through => :games
+  
+  has_many :owned_games, :class_name => 'Game', :foreign_key => :owner_id
+end
+~~~
+
+run the tests and we will still have a failing spec:
+
+~~~console
+bundle exec rake spec
+
+2) Game should not be valid if the game has no owner
+    Failure/Error: game.errors.to_a.should include("Owner can't be blank")
+      expected ["Location can't be blank", "At can't be blank", "Sport can't be blank"] to include "Owner can't be blank"
+~~~
+
+So let's add the validation `validates :owner, :presence => true` to the game model to make sure that we require an owner:
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  validates :sport, :presence => true
+  validates :owner, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+  belongs_to :sport
+  belongs_to :owner, :class_name => 'User'
+   
+  def over?
+    Time.now > self.at
+  end
+  
+end
+~~~
+
+~~~console
+bundle exec rake spec
+
+1) Game should return a list of players ordered by email
+     Failure/Error: game = FactoryGirl.create(:game, :sport => sport)
+     ActiveRecord::RecordInvalid:
+       Validation failed: Owner can't be blank
+     # ./spec/models/game_spec.rb:25:in `block (2 levels) in <top (required)>'
+
+  2) Game should return a list of external players ordered by email
+     Failure/Error: game = FactoryGirl.create(:game, :sport => sport)
+     ActiveRecord::RecordInvalid:
+       Validation failed: Owner can't be blank
+     # ./spec/models/game_spec.rb:40:in `block (2 levels) in <top (required)>'
+~~~
+
+Our test will pass but now we require an owner we've broken two existing tests !!! Luckily all we need do is add an owner to our game factory in `spec/factories/games.rb`
+
+~~~console
+FactoryGirl.define do
+  factory :game do
+    location "MyString"
+    at "2012-09-09 10:00:00"
+    sport { FactoryGirl.create(:sport) }   
+    owner { FactoryGirl.create(:user) }    
+  end
+end
+~~~ 
+
 ## Get the ExternalPlayer email must be unique test passing
 This is very similar to the test for uniqueness of name in our sports model. We'll use an ActiveModel validation to make sure that the email doesn't already exist.
 
@@ -593,7 +881,7 @@ run the tests and everything should be passing
 ~~~console
 bundle exec rake spec
 ~~~
-<<<<<<< HEAD
+
 
 ## Active Record Associations
 Now we have a little experience with Active Record associations let's take a peek under the hood by playing with them in console. Run these in the Rails console looking at the SQL output as we go:
@@ -660,4 +948,4 @@ irb(main):006:0> irb(main):006:0> user.games.reload
 ~~~
 
 =======
->>>>>>> c43b4b8e71d2b901d13d93be1dd6ab84f6acea55
+
