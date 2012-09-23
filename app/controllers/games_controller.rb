@@ -13,6 +13,13 @@ class GamesController < ApplicationController
   end
 
   def create
+    @game = Game.new(params[:game])
+    @game.owner = current_user
+    if @game.save
+  		redirect_to game_path(@game)
+  	else
+  		render :template => 'games/new.html.erb'
+  	end
   end
 
   def update

@@ -66,4 +66,17 @@ describe Game do
     game.errors.to_a.should include("Owner can't be blank")
   end
   
+  it 'should not be valid if the game has not been saved and is in the past' do
+    game = Game.new(:at => Time.now - 1000)
+    game.stub(:new_record?).and_return(true)
+    game.valid?
+    game.errors.get(:at).should include("Cannot create a game in the past")
+  end
+  
+  it 'should be valid if the game has been saved and is in the past' do
+    game = Game.new(:at => Time.now - 1000)
+    game.stub(:new_record?).and_return(false)
+    game.valid?
+    game.errors.get(:at).should be_nil
+  end
 end

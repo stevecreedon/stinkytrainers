@@ -1,10 +1,9 @@
 <%= form_for @game do |f| %>
 
   <div class="control-group <%= "error" if @game.errors.any? %>">
-    <%= f.label :sport_id, 'Select Sport', :class => 'control-label' %>
+    <%= f.label :sport_id, 'Sport', :class => 'control-label' %>
     <div class='controls'>
-      <%= f.select :sport_id, options_from_collection_for_select(current_user.sports, :id, :name),
-                   { }, { :disabled => !@game.new_record?, :class => 'input-xlarge' } %>
+      <%= f.select :sport_id, options_from_collection_for_select(Sport.all, :id, :name, @game.sport.try(:id)), {:include_blank => true}, {:class => 'input-xlarge' } %>
     </div>
   </div>
 

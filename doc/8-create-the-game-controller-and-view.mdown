@@ -599,18 +599,378 @@ and add the games table to the view app/views/games/index.html.erb
 
 The tests should now pass.
 
-## Testing the new/create actions
-Our draft test above has these two tests that cover new & create inside `describe 'creating games' do`. Similar to sports we want to ensure that we can create a new game if the data provided by the use is valid and we return the user back to the form with the data they entered if it's invalid.
+## Creating Games
+If a user provides the correct information to create a new game we want to redirect them to the game's 'show' page but if the information provided is invalid we return them to the 'new' page where they can correct the information.
 
 ~~~ruby
 describe 'creating games' do
-    it 'should create a new game when valid game parameters are provided'
-    it 'should redirect users back to the new page with user input when incorrect parameters are provided'
+    it 'should create a new game when valid game parameters are provided and redirect'
+    it 'should return users back to the new page with user input when incorrect parameters are provided'
 end
 ~~~
 
+### it 'should create a new game when valid game parameters are provided and redirect to the show page'
+To do this the spec must
 
+1. Journey to the new page by clicking a 'Create Game' link from the index page.
+1. Select a sport for our game from a drop-down.
+1. Complete a text box for `game.location`
+1. Complete a rails **date_time_select** for `game.at`
 
+A Rails date time select is a helper method that provides us with 5 drops down selects for year, month, day, hour and minute. In our case the selects for our `game.at` attribute will be called:
+
+game[at(1i)]
+game[at(2i)]
+game[at(3i)]
+game[at(4i)]
+game[at(5i)]
+
+ActiveRecord will automagically reassemble these five components back into a time for us.
+
+~~~ruby
+it 'should create a new game when valid game parameters are provided and redirect to the show page' do
+
+	sport = FactoryGirl.create(:sport)
+
+	visit games_path
+
+	click_link('Create Game')
+
+	fill_in("Location", :with => 'Wimbledon')
+	select(sport.name, :from => "Sport")
+
+	time = Time.now + 3600 #make it an hour from now
+
+	select(time.year.to_s, :from => 'game[at(1i)]')
+	select(Date::MONTHNAMES[time.month], :from => 'game[at(2i)]')
+	select(time.day.to_s, :from => 'game[at(3i)]')
+	select(time.hour.to_s, :from => 'game[at(4i)]')
+	select(time.min.to_s, :from => 'game[at(5i)]')
+
+	expect{
+	 click_button('Create Game')
+	}.to change{Game.count}.by(1)
+
+	page.current_path.should == game_path(Game.last)
+
+end
+~~~
+
+I'm pretty certain that we'll be using the exact same form in 'edit' and 'new' so we'll create the form as a partial. Create the file `app/views/games/_form.html.erb` and include this in our 'new' view `app/views/games/hew.html.erb`. This will render `_form.html.erb` inside the view `new.html.erb`
+
+~~~ruby
+<h1>Games#new</h1>
+
+<%= render 'form' %>
+~~~
+
+Let's code the form.
+
+~~~ruby
+<%= form_for @game do |f| %>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :sport_id, 'Sport', :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.select :sport_id, options_from_collection_for_select(Sport.all, :id, :name), {:include_blank => true}, {:class => 'input-xlarge' } %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :location, :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.text_field :location, :class => 'input-xlarge' %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :at, :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.datetime_select "at",{}, :class => 'input-small' %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= f.submit @game.new_record? ? 'Create Game' : 'Update Game', :class => 'btn btn-primary' %>
+    <%= link_to 'Back', games_path, :class => 'btn' %>
+  </div>
+
+<% end %>
+~~~
+
+1. form\_for @game understands that this is a new record. @game.new\_record? == true because @game.id is nil. It creates a POST action rather than a PUT. When we get as far as editing an existing game then @game.new\_record? == false because a game being edited will have an id. In this case form_for will make it a RESTFUL PUT action.
+1. `form_for @game do |f|` labels and controls are bound to @game via 'f' e.g. `<%= f.label :location, :class => 'control-label' %>  <%= f.text_field :location, :class => 'input-xlarge' %>`. The :class arguments are simply TwitterBootstrap class names we want to appear in the html.
+1. We've bound the :sport_id to the select box 'Sport' so that the parameter game[sport\_id] is submitted. If we'd left it as sport then game[sport]=1 would imply we had a sport that was the number 1 and not a sport object with an id that is 1. 
+1. `options_from_collection_for_select(Sport.all, :id, :name)` builds the select drop-down with an option for each sport in `Sport.all` using the sport `sport.id` and `sport.name` as the option value and text. 
+
+That's our form, let's code the new and create action in `app/controllers/games_controller.rb`.
+
+~~~ruby
+def new
+	@game = Game.new
+end
+
+def create
+  game = Game.new(params[:game])
+  game.owner = current_user
+  game.save
+  redirect_to game\_path(game)
+end
+~~~
+
+In `def new` we instantiate an empty game object so that it can be bound to the controls in our _form.html.erb partial. 
+
+In `def create` we instantiate an empty object passing it params[:game]. Params[:game] is a hash containing all of the values submitted by our form that have game[:location], game[:sport_id]. A typical params hash is `{"utf8"=>"✓", "game"=>{"sport_id"=>"1", "location"=>"Wimbledon", "at(1i)"=>"2012", "at(2i)"=>"9", "at(3i)"=>"22", "at(4i)"=>"16", "at(5i)"=>"15"}, "more_players"=>"email", "commit"=>"Create Game", "action"=>"create", "controller"=>"games"}`. Note the keys and values in the `"game" =>` part of the hash.
+
+A game needs an owner and that will always be the current user in our system so we set it.
+
+We save the game and then redirect to the 'show' page for that game. Save would have populated the `game.id` from the database so game\_path(game) would be /games/123 for a game with id 123.
+
+One last thing and this is a little ugly. Remember our form's sport control is bound to :sport\_id and not :sport ? Well, when we come to create our game in the controller it will be updating :sport\_id => 1 which means we have to make :sport\_id attr_accessible as well as sport. If we don't we're going to get one of those `Can't mass-assign protected attributes: sport_id` errors when we save.
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location, :sport, :owner, :sport\_id
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  validates :sport, :presence => true
+  validates :owner, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+  belongs_to :sport
+  belongs_to :owner, :class_name => 'User'
+   
+  def over?
+    Time.now > self.at
+  end
+  
+end
+~~~
+
+Let's run the tests, with our form and controller in place they should be passing:
+
+~~~
+bundle exec rake spec
+~~~
+
+### it 'should return users back to the new page with user input when incorrect parameters are provided'
+This is similar to our previous test but, of course, we do something wrong so that when we submit our form the game is invalid. Let's submit a game that's in the past. We already have a helper method `game.over?` that we know will return true if the game is in the past so let's include that in a validation but ONLY if we're trying to create a new game NOT if we're trying to update something on an existing game.
+
+We will add our own validation method to game. Before we do we'd better go back to our spec/models/game\_spec.rb and write a couple of additional tests for this validation. In `spec/models/game_spec.rb` add the two tests
+
+~~~ruby
+it 'should not be valid if the game has not been saved and is in the past' do
+  game = Game.new(:at => Time.now - 1000)
+  game.stub(:new\_record?).and_return(true)
+  game.valid?
+  game.errors.get(:at).should include("Cannot create a game in the past")
+end
+
+it 'should be valid if the game has been saved and is in the past' do
+  game = Game.new(:at => Time.now - 1000)
+  game.stub(:new\_record?).and_return(false)
+  game.valid?
+  game.errors.get(:at).should_not include("Cannot create a game in the past")
+end
+~~~
+
+run the tests and see the first test fail.
+
+~~~console
+bundle exec rake spec
+~~~
+
+Note `game.stub(:new\_record?).and_return(false)`. Rather than manipulate test game ids so that we get new_record? to return the expected value we simply stub it out so that, for this one test, the game model returns the exact method we're looking for.
+
+Let's create the validation in `models/game.rb`.
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location, :sport, :owner, :sport_id
+  
+  validates :location, :presence => true
+  validates :at, :presence => true
+  validates :sport, :presence => true
+  validates :owner, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+  belongs_to :sport
+  belongs_to :owner, :class_name => 'User'
+  
+  validate :cannot_create_a_game_in_the_past, :on => :create
+ 
+  def over?
+    Time.now > self.at
+  end
+  
+  private
+  
+  def cannot_create_a_game_in_the_past
+    return unless self.at
+    self.errors.add(:at, 'Cannot create a game in the past') if self.over?
+  end
+  
+end
+
+~~~
+
+We create a private method that checks to see if the game is in the past and call it with `validate :cannot_create_a_game_in_the_past, :on => :create`. The `:on => create` option means that the validation only runs when the object is new - in other words when `game.new_record?` is true. If it is in the past we add the desired error message against our :at attribute. So how do we make sure that the test object returns the desired true or false for `game.new_record?`. We could, for example, create an object, save it with the time at now then wait a few seconds to be sure it'sin the past but that's clumsy. Instead we `game.stub(:new\_record?).and_return(false)` or true. Stub overrides the method `game.new_record?` for that one tests and returns true or false depending on what we specify in `.and_return`. It's simple and explicit.
+
+Now we know that we can't create a game in the past let's try and do that to make sure our form returns us back to the new page with the bad data we've entered.
+
+~~~ruby
+it 'should redirect users back to the new page with user input when incorrect parameters are provided' do
+
+	sport = FactoryGirl.create(:sport)
+
+	visit games_path
+
+	click_link('Create Game')
+
+	fill_in("Location", :with => 'Wimbledon')
+	select(sport.name, :from => "Sport")
+
+	time = Time.now - 3600 #make it an hour in the past
+
+	select(time.year.to_s, :from => 'game[at(1i)]')
+	select(Date::MONTHNAMES[time.month], :from => 'game[at(2i)]')
+	select(time.day.to_s, :from => 'game[at(3i)]')
+	select(time.hour.to_s, :from => 'game[at(4i)]')
+	select(time.min.to_s, :from => 'game[at(5i)]')
+
+	expect{
+	 click_button('Create Game')
+	}.to change{Game.count}.by(0)
+
+	page.find_field('Location').value.should have_content('Wimbledon')
+	page.find_field('Sport').text.should have_content(sport.name)
+
+	page.find_field('game[at(1i)]').value.should have_content(time.year.to_s)
+	page.find_field('game[at(2i)]').text.should have_content(Date::MONTHNAMES[time.month])
+	page.find_field('game[at(3i)]').value.should have_content(time.day.to_s)
+	page.find_field('game[at(4i)]').value.should have_content(time.hour.to_s)
+	page.find_field('game[at(5i)]').value.should have_content(time.min.to_s)
+	
+end
+~~~
+
+So we try to create a game in the past, check that Game.count doesn't change so our attempt to create a game has failed, then check that the rendered page has the `game.sport`, `game.at` and `game.location` data we submitted.
+
+We need to code the controller so that it handles invalid requests so let's update `def create` in our `app/controllers/games_controller.rb` so that it looks like this:
+
+~~~ruby
+class GamesController < ApplicationController
+  
+  before_filter :authenticate_user!
+  
+  def index
+    @owned_games = current_user.owned_games
+    @games = current_user.games
+  end
+
+  def new
+    @game = Game.new
+    @game.players << current_user
+  end
+
+  def create
+    @game = Game.new(params[:game])
+    @game.owner = current_user
+    if @game.save
+  		redirect_to game_path(@game)
+  	else
+  		render :template => 'games/new.html.erb'
+  	end
+  end
+
+  def update
+  end
+
+  def edit
+  end
+
+  def show
+  end
+
+  def destroy
+  end
+end
+~~~
+
+~~~console
+bundle exec rake spec
+
+Failures:
+
+  1) games creating games should redirect users back to the new page with user input when incorrect parameters are provided
+     Failure/Error: page.find_field('Sport').value.should have_content(sport.name)
+       expected there to be content "sport7" in ""
+     # ./spec/integration/games/restful_spec.rb:134:in `block (3 levels) in <top (required)>'
+~~~
+
+Just one problem, it fails. Our drop down for sport hasn't selected the sport we chose `expected there to be content "sport7" in ""` and has displayed the first option which is blank. We can fix this in the form by updating the `options_from_collection_for_select(Sport.all, :id, :name)` so that the form looks like
+
+~~~ruby
+<%= form_for @game do |f| %>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :sport_id, 'Sport', :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.select :sport_id, options_from_collection_for_select(Sport.all, :id, :name, @game.sport.try(:id)), {:include_blank => true}, {:class => 'input-xlarge' } %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :location, :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.text_field :location, :class => 'input-xlarge' %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :at, :class => 'control-label' %>
+    <div class='controls'>
+      <%= f.datetime_select "at",{}, :class => 'input-small' %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :players, :class => 'control-label' %>
+    <div class='controls'>
+  		<% current_user.players.each do |player| %>
+			<%= check_box_tag :player, player.id, @game.players.include?(player) %> <%= player.email %><br/>
+  		<% end %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :players_not_on_stinky_trainers, :class => 'control-label' %>
+    <div class='controls'>
+  		<% current_user.external_players.each do |player| %>
+			<%= check_box_tag :external_player, player.id, @game.external_players.include?(player) %> <%= player.email %><br/>
+  		<% end %>
+    </div>
+  </div>
+
+  <div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :more_players, :class => 'control-label' %>
+    <div class='controls'>
+      <%= text_field_tag :more_players, 'email', :class => 'input-xlarge' %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= f.submit @game.new_record? ? 'Create Game' : 'Update Game', :class => 'btn btn-primary' %>
+    <%= link_to 'Back', games_path, :class => 'btn' %>
+  </div>
+
+<% end %>
+~~~
+
+We've added a third argument to option_from_collection_for_select @game.sport.try(:id). This third argument is the value we'd like the select box to choose as selected (if it exists) but why the `sport.try(:id)` and not just `sport.id` ? Well, on a completely new game in our first test above sport will actually be nil so calling id on nil will raise an error. With `sport.try(:id)` Rails will try to get the value id from sport but return nil, rather than an error, if something goes wrong.
 
 But what about the players ? We haven't added any yet
 

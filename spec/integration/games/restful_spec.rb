@@ -70,8 +70,6 @@ describe 'games' do
           
           game_user_created = @user.games.last
           
-          page.save_and_open_page
-          
           page.should_not have_content(game2.location)
           page.should_not have_content(game2.sport.name)
           page.should_not have_content(game2.at)
@@ -82,30 +80,66 @@ describe 'games' do
 
   describe 'creating games' do
     
-    it 'should create a new game when valid game parameters are provided' do
+    it 'should create a new game when valid game parameters are provided and redirect to the show page' do
        
-       sport = FactoryGirl.create(:sport)
-       
-       visit games_path
-       
-       click_link('New Game')
-       
-       fill_in("Location", :with => 'Wimbledon')
-       select(sport.name, :from => "Sport")
-       fill_in("At", "2012-07-01 12:30")
-       fill_in("Player", "joe@testxyz.co")
-       
-       expect{
-         click_button('Create Game')
-       }.to change{Game.count}.by(1)
-       
-       page.current_path.should == games_path
-       page.should have_content('Wimbledon')
-       page.should have_content("2012-07-01 12:30")
-       
+      sport = FactoryGirl.create(:sport)
+
+     	visit games_path
+
+     	click_link('Create Game')
+
+     	fill_in("Location", :with => 'Wimbledon')
+     	select(sport.name, :from => "Sport")
+
+     	time = Time.now + 3600 #make it an hour from now
+
+     	select(time.year.to_s, :from => 'game[at(1i)]')
+     	select(Date::MONTHNAMES[time.month], :from => 'game[at(2i)]')
+     	select(time.day.to_s, :from => 'game[at(3i)]')
+     	select(time.hour.to_s, :from => 'game[at(4i)]')
+     	select(time.min.to_s, :from => 'game[at(5i)]')
+
+     	expect{
+     	 click_button('Create Game')
+     	}.to change{Game.count}.by(1)
+      
+      page.current_path.should == game_path(Game.last)
+              
     end
     
-    it 'should redirect users back to the new page with user input when incorrect parameters are provided'
+    it 'should redirect users back to the new page with user input when incorrect parameters are provided' do
+      
+      sport = FactoryGirl.create(:sport)
+
+     	visit games_path
+
+     	click_link('Create Game')
+
+     	fill_in("Location", :with => 'Wimbledon')
+     	select(sport.name, :from => "Sport")
+
+     	time = Time.now - 3600 #make it an hour in the past
+
+     	select(time.year.to_s, :from => 'game[at(1i)]')
+     	select(Date::MONTHNAMES[time.month], :from => 'game[at(2i)]')
+     	select(time.day.to_s, :from => 'game[at(3i)]')
+     	select(time.hour.to_s, :from => 'game[at(4i)]')
+     	select(time.min.to_s, :from => 'game[at(5i)]')
+
+     	expect{
+     	 click_button('Create Game')
+     	}.to change{Game.count}.by(0)
+      
+      page.find_field('Location').value.should have_content('Wimbledon')
+      page.find_field('Sport').text.should have_content(sport.name)
+      
+      page.find_field('game[at(1i)]').value.should have_content(time.year.to_s)
+      page.find_field('game[at(2i)]').text.should have_content(Date::MONTHNAMES[time.month])
+      page.find_field('game[at(3i)]').value.should have_content(time.day.to_s)
+      page.find_field('game[at(4i)]').value.should have_content(time.hour.to_s)
+      page.find_field('game[at(5i)]').value.should have_content(time.min.to_s)
+     
+    end
   end
 
 
