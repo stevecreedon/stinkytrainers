@@ -1,5 +1,5 @@
 class Game < ActiveRecord::Base
-  attr_accessible :at, :location, :sport, :owner, :sport_id, :player_ids,# :external_player_ids
+  attr_accessible :at, :location, :sport, :owner, :sport_id, :player_ids, :external_player_ids
 
   validates :location, :presence => true
   validates :at, :presence => true
@@ -16,6 +16,22 @@ class Game < ActiveRecord::Base
   def over?
     Time.now > self.at
   end
+
+  def add_new_player(email)
+    
+    if (player = User.find_by_email(email))
+      players << player
+      return
+    end
+    
+    if (player = ExternalPlayer.find_by_email(email))
+      external_players << player
+      return
+    end
+    
+    external_players.create!(:email => email)
+    
+  end
   
   private
   
@@ -23,5 +39,5 @@ class Game < ActiveRecord::Base
     return unless self.at
     self.errors.add(:at, 'Cannot create a game in the past') if self.over?
   end
-  
+
 end

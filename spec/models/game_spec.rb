@@ -79,4 +79,30 @@ describe Game do
     game.valid?
     game.errors.get(:at).should be_nil
   end
+  
+  it 'should add a user to players if a user with the email exists' do
+    player = FactoryGirl.create(:user)
+    game = FactoryGirl.create(:game)
+    game.add_new_player(player.email)
+    game.players.should == [player]
+  end
+  
+  it 'should add an external player to external players if an external player with the email exists' do
+    external_player = FactoryGirl.create(:external_player)
+    game = FactoryGirl.create(:game)
+    game.add_new_player(external_player.email)
+    game.external_players.should == [external_player]
+  end
+  
+  it 'should create an external player and add it to external players if no user or external player exists' do
+    game = FactoryGirl.create(:game)
+    
+    expect{
+      game.add_new_player('test@testxyz.co.xy')
+    }.to change{ExternalPlayer.count}.by(1)
+    
+    external_player = ExternalPlayer.find_by_email('test@testxyz.co.xy')
+    game.external_players.should == [external_player]
+  end
+  
 end

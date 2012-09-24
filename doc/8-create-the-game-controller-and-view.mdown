@@ -1140,7 +1140,7 @@ Let's add a control group that iterates through the signed-in user's players col
 
 ~~~ruby
 <div class="control-group <%= "error" if @game.errors.any? %>">
-    <%= f.label :players, :class => 'control-label' %>
+    <%= label_tag :players, nil, :class => 'control-label' %>
     <div class='controls' id="players">
 		<% current_user.players.each do |player| %>
 		 <%= check_box_tag "game[player_ids][]", player.id, @game.players.include?(player), :id => "game_player_id_#{player.id}" %> <%= player.email %><br/>
@@ -1220,7 +1220,7 @@ Let's add a control group that iterates through the signed-in user's external_pl
 
 ~~~ruby
 <div class="control-group <%= "error" if @game.errors.any? %>">
-    <%= f.label :players_not_on_stinky_trainers, :class => 'control-label' %>
+    <%= label\_tag :players\_not\_on\_stinky\_trainers, nil, :class => 'control-label' %>
     <div class='controls' id="external_players">
   		<% current_user.external_players.each do |external_player| %>
 			<%= check_box_tag "game[external_player_ids][]", external_player.id, @game.external_players.include?(external_player), :id => "game_external_player_id_#{external_player.id}" %> <%= external_player.email %><br/>
@@ -1438,11 +1438,319 @@ end
 
 Lastly we need to be able to add a new player that we haven't played with before. We'll just add a textfield where the user can add an email address. When the form is submitted then we use the email to find an existing player (User) or an existing external\_player. If we don't find either then we create a new external player and add it to the game. 
 
-Let's write a test:
+Let's write some draft tests:
 
 ~~~ruby
-
+it 'should add a player where the email matches an existing user'
+it 'should add an external player where the email doesn't match an existing user but matches an existing External Player
+it 'should create and add an external player where the email doesn't match an existing user or external player' 
 ~~~
+
+Before we start with our integration tests, there's a little bit of business logic going on here and I don't want to put it into our controller so we;re going to go back and add a method to the Game class `add_new_player` that accepts an email as an argument then looks for a User with that email, an External Player with that email or otherwise creates an ExternalPlayer.
+
+Let's write some tests in `spec/models/game_spec.rb`
+
+ruby~~~
+it 'should add a user to players if a user with the email exists'
+it 'should add an external player to external players if an external player with the email exists'
+it 'should create an external player and add it to external players if no user or external player exists'
+~~~
+
+#### it 'should add a user to players if a user with the email exists'
+Let's write a test for our game model that:
+
+1. creates a game
+1. creates a user
+1. calls `add_new_player` on game with the email of the user we created
+1. checks that the user has been added to game.
+
+~~~ruby
+it 'should add a user to players if a user with the email exists' do
+  player = FactoryGirl.create(:user)
+  game = FactoryGirl.create(:game)
+  game.add\_new\_player(player.email)
+  game.players.should == [player]
+end
+~~~
+
+To get the test passing we need to code the game.add\_new\_player(email) method. In our `models/game.rb` class add this code:
+
+~~~ruby
+def add\_new\_player(email)
+
+	if (player = User.find_by_email(email))
+	  players << player
+	  return
+	end
+	
+end
+~~~
+
+the test should now pass
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+#### it 'should add a user to players if a user with the email exists'
+This test is similar to our previous one.
+
+1. creates a game
+1. creates an external player
+1. calls `add_new_player` on game with the email of the external player we created
+1. checks that the external has been added to game.
+
+
+it 'should add a user to players if a user with the email exists' do
+  external_player = FactoryGirl.create(:external_player)
+  game = FactoryGirl.create(:game)
+  game.add_new_player(external_player.email)
+  game.external_players.should == [external_player]
+end
+
+To get the test passing we need to extend the code in game.add\_new\_player(email). Add the `if (player = ExternalPlayer.find_by_email(email))` code block to `app/models/game.rb`
+
+~~~ruby
+def add\_new\_player(email)
+
+	if (player = User.find_by_email(email))
+	  players << player
+	  return
+	end
+	
+	if (player = ExternalPlayer.find_by_email(email))
+      external_players << player
+      return
+    end
+	
+end
+~~~
+
+the test should now pass
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+
+
+#### it 'should create an external player and add it to external players if no user or external player exists'
+This test expects us to create and add an external player when we provide an email that doesn't exists.
+
+1. Create a game
+1. Call `game.add_new_player` with an email that doesn't exist as a user or external player. We won't create any users or external players so it's safe to assume this email doesn't exists.
+1. Wrap the call to `game.add_new_player` in a block that expects us to increase the number of external players by 1.
+1. Find the newly created external player and ensure that the game has this player in its external players collection.
+
+~~~ruby
+it 'should create an external player and add it to external players if no user or external player exists' do
+    game = FactoryGirl.create(:game)
+
+    expect{
+     game.add_new_player('test@testxyz.co.xy')
+    }.to change{ExternalPlayer.count}.by(1)
+
+    external_player = ExternalPlayer.find_by_email('test@testxyz.co.xy')
+    game.external_players.should == [external_player]
+end
+~~~
+
+To get the test passing we need to extend the code in game.add\_new\_player(email) once again. Add the line `external_players.create!(:email => email)` to `app/models/game.rb`
+
+~~~ruby
+def add\_new\_player(email)
+
+	if (player = User.find_by_email(email))
+	  players << player
+	  return
+	end
+	
+	if (player = ExternalPlayer.find_by_email(email))
+      external_players << player
+      return
+    end
+
+    external_players.create!(:email => email)
+	
+end
+~~~
+
+the test should now pass
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+
+### it 'should add a player where the email matches an existing user'
+So that's the additional logic to our game model written and tested. Now we can return to our integration tests for the game controller. From above they were:
+
+~~~ruby
+ it 'should add a player where the email matches an existing user'
+ it 'should add an external player where the email doesn't match an existing user but matches an existing External Player
+ it 'should create and add an external player where the email doesn't match an existing user or external player' 
+~~~
+
+Hmmm, they look very similar to the three model tests we just wrote. Because we pushed the logic into the model and out of the controller, our controller tests are now just doing the same thing as our model tests. In each of these three integration tests our controller would be calling the same line of code `@game.add_new_player(email)`. So, I'm going to scrap these tests - which is good model tests are always more succinct than integration tests - and replace them by two simpler integration tests:
+
+~~~ruby
+it 'should call add\_new\_player' on creating a valid game when a new player email is provided'
+it 'should not call add\_new\_player' on creating a valid game when no new player email is provided'  
+it 'should not call add\_new\_player' on creating an invalid game when a new player email is not provided'
+~~~
+
+#### it 'should call add\_new\_player' on creating a valid game when a new player email is provided'
+A slight confession before we write the three above tests. They're not integration tests, they're controller tests we said earlier that we weren't going to do. What makes it a controller test and not an integration test ? If you look at the the three draft tests above, they all require a method to be called (or not called) inside of the controller. Integration test generally emulate the user experience while controller & view tests define what the application is doing under the hood. We could, of course, write the draft integration tests we intially envisaged even though they pretty much shadow our model tests for `game.add_new_player` but we're here to learn and this is a good opportunity to do a little old-school controller testing.
+
+If it doesn't exists, create a file spec/controllers/games_controller_spec.rb with the code
+
+~~~ruby
+require 'spec_helper'
+
+describe GamesController do
+
+end
+~~~
+
+Let's write a test for our games controller that makes sure add\_new\_player get's called for a valid game and when a new player email is provided.
+
+1. We sign\_in a user 
+1. We create an instance of game with FactoryGirl and set an expectation on that instance that add\_new\_player will be called once with the email address 'test@yxz.wx.yz' `game.should_receive(:add_new_player).with('test@yxz.wx.yz')`
+1. We also stub our instance of game so that it returns true when we call `@game.save`. This simulates the game being valid and saves us providing lots of parameters we don't need. All we do is provide the arbitrary string 'game params'.
+1. Then - and this isn't pretty - we have to stub Game.new so that it returns the instance of game we've already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don't stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.
+1. Lastly we call `post create` to call the action on our controller passing it the new\_player and game params.
+
+
+~~~ruby
+require 'spec_helper'
+
+describe GamesController do
+  
+  it 'should call add_new_player on creating a valid game when a new player email is provided' do
+ 	  
+ 	  sign_in :user, FactoryGirl.create(:user)
+ 	  
+ 	  game = FactoryGirl.create(:game)
+ 	  game.should_receive(:add_new_player).with('test@yxz.wx.yz')
+      game.stub(:save).and_return(true)
+ 	  Game.stub(:new).with('game params').and_return(game)
+
+ 	  post 'create', :new_player => 'test@yxz.wx.yz', :game => 'game params'
+ 	  
+  end
+
+end
+~~~
+
+To get this test passing we need some code in our games controllers create method
+
+~~~ruby
+def create
+	@game = Game.new(params[:game])
+	@game.owner = current_user
+	@game.add\_new\_player(params[:new\_player])
+	if @game.save
+		redirect\_to game\_path(@game)
+	else
+		render :template => 'games/new.html.erb'
+	end
+end
+~~~ 
+
+The test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+#### it 'should not call add\_new\_player on creating a valid game when a 'new player' email is not provided'
+This test is the opposite of our previous test and also a controller test except this time we don't provide the new\_player parameter and expect that add\_new\_player is never called - `game.should_receive(:add_new_player).with(anything).never`
+
+1. We sign\_in a user 
+1. We create an instance of game with FactoryGirl and set an expectation on that instance that add\_new\_player will never be called.
+1. We also stub our instance of game so that it returns true when we call `@game.save`. This simulates the game being valid and saves us providing lots of parameters we don't need. All we do is provide the arbitrary string 'game params'.
+1. Once again we have to stub Game.new so that it returns the instance of game we've already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don't stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.
+1. Lastly we call `post create` but this time don't pass the new\_player params.
+
+
+~~~ruby
+it 'should not call add\_new\_player on creating a valid game when a new player email is not provided' do
+  
+	sign_in :user, FactoryGirl.create(:user)
+
+	game = FactoryGirl.create(:game)
+	game.stub(:save).and_return(true)
+	game.should_receive(:add_new_player).with(anything).never
+	Game.stub(:new).with('game params').and_return(game)
+
+	post 'create', :game => 'game params'
+	
+end
+~~~
+
+to get this test working we have to add a condition `unless params[:new_player].blank?` to the line of code we added in the previous test in `app/controllers/games_controller.rb`
+
+~~~ruby
+def create
+	@game = Game.new(params[:game])
+	@game.owner = current_user
+	@game.add_new_player(params[:new\_player]) unless params[:new_player].blank?
+	if @game.save
+		redirect_to game_path(@game)
+	else
+		render :template => 'games/new.html.erb'
+	end
+end
+~~~  
+
+The test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+#### it 'should not call add\_new\_player on creating an invalid game even when a new player email is provided'
+This is the last controller spec test for the time being. We don't want `game.add_new_player` to be called if the game isn't valid.
+
+1. We sign\_in a user 
+1. We create an instance of game with FactoryGirl and set an expectation on that instance that add\_new\_player will never be called.
+1. We also stub our instance of game so that it returns false when we call `@game.save`. This simulates the game being invalid.
+1. Once again we have to stub Game.new so that it returns the instance of game we've already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don't stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.
+1. Lastly we call `post create` to call the action on our controller passing it the new\_player and game params.
+
+Still in `spec/controllers/games_controller_spec.rb`
+
+~~~ruby
+it 'should not call add\_new\_player on creating an invalid game even when a new player email is provided' do
+  
+	sign_in :user, FactoryGirl.create(:user)
+
+	game = FactoryGirl.create(:game)
+	game.stub(:save).and_return(false)
+	game.should_receive(:add_new_player).with('test@yxz.wx.yz').never
+	Game.stub(:new).with('game params').and_return(game)
+
+	post 'create', :new_player => 'test@yxz.wx.yz', :game => 'game params'
+  
+end
+~~~
+
+To get this test passing we just move our `add_new_player` code inside the `if @game.save` block so that it only gets called when the game is successfully saved. This brings us onto an interesting point about ActiveRecord associations. If the object has been saved to the database, the association gets created as soon as you add something to it. You don't have to call `game.save` again.
+
+~~~ruby
+def create
+  @game = Game.new(params[:game])
+  @game.owner = current_user
+
+  if @game.save
+    @game.add_new_player(params[:new_player]) unless params[:new_player].blank?
+	redirect_to game_path(@game)
+  else
+	render :template => 'games/new.html.erb'
+  end
+end
+~~~
+ 
 
 ## Testing the edit/updates actions
 

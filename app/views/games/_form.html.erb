@@ -22,7 +22,7 @@
   </div>
 
   <div class="control-group <%= "error" if @game.errors.any? %>">
-    <%= f.label :players, :class => 'control-label' %>
+    <%= label_tag :players, nil, :class => 'control-label' %>
     <div class='controls' id="players">
 		<% current_user.players.each do |player| %>
 		 <%= check_box_tag "game[player_ids][]", player.id, @game.players.include?(player), :id => "game_player_id_#{player.id}" %> <%= player.email %><br/>
@@ -31,7 +31,7 @@
   </div>
 
   <div class="control-group <%= "error" if @game.errors.any? %>">
-    <%= f.label :players_not_on_stinky_trainers, :class => 'control-label' %>
+    <%= label_tag :players_not_on_stinky_trainers, nil, :class => 'control-label' %>
     <div class='controls' id="external_players">
   		<% current_user.external_players.each do |external_player| %>
 			<%= check_box_tag "game[external_player_ids][]", external_player.id, @game.external_players.include?(external_player), :id => "game_external_player_id_#{external_player.id}" %> <%= external_player.email %><br/>
@@ -40,9 +40,9 @@
   </div>
 
   <div class="control-group <%= "error" if @game.errors.any? %>">
-    <%= f.label :more_players, :class => 'control-label' %>
+    <%= label_tag :new_player, nil, :class => 'control-label' %>
     <div class='controls'>
-      <%= text_field_tag :more_players, 'email', :class => 'input-xlarge' %>
+      <%= text_field_tag :new_player, nil, :class => 'input-xlarge' %>
     </div>
   </div>
 

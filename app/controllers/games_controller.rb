@@ -15,7 +15,9 @@ class GamesController < ApplicationController
   def create
     @game = Game.new(params[:game])
     @game.owner = current_user
+    
     if @game.save
+      @game.add_new_player(params[:new_player]) unless params[:new_player].blank?
   		redirect_to game_path(@game)
   	else
   		render :template => 'games/new.html.erb'

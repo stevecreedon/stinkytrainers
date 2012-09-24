@@ -317,10 +317,9 @@ describe 'games' do
         created_game.external_players.should =~ [player1, player3]
 
      	end
-
-     end
-    
-    
+     
+    end
+  
   end
   
  
