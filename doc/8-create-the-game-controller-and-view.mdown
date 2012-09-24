@@ -1751,6 +1751,13 @@ def create
 end
 ~~~
  
+The test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+That'll be the end of our controller specs for the time being. They served a purpose - and sometimes you just can't live without them - but I'm pretty sure you'll agree that they don't feel quite as relevant as integration test. 
 
 ## Testing the edit/updates actions
 
