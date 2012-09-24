@@ -14,10 +14,12 @@
 <li><a href="#generate-the-game-and-externalplayer-models">Generate the Game and ExternalPlayer models</a></li>
 <li><a href="#get-the-game-model-location-test-passing">Get the Game model #location test passing</a></li>
 <li><a href="#get-the-game-model-at-test-passing">Get the Game model #at test passing</a></li>
+<li><a href="#get-the-game-model-sport-test-passing">Get the Game model #sport test passing</a></li>
 <li><a href="#get-the-game-model-test-for-ordering-players-by-email-passing">Get the Game model test for ordering players by email passing</a></li>
 <li><a href="#get-the-game-model-test-for-ordering-external-players-by-email-passing">Get the Game model test for ordering external_players by email passing</a></li>
 <li><a href="#get-game-model-tests-for-the-over-helper-method-passing">Get Game model tests for the over? helper method passing</a></li>
 <li><a href="#get-the-externalplayer-model-test-for-email-passing">Get the ExternalPlayer model test for email passing</a></li>
+<li><a href="#it-should-not-be-valid-if-the-game-has-no-owner">It should not be valid if the game has no owner</a></li>
 <li><a href="#get-the-externalplayer-email-must-be-unique-test-passing">Get the ExternalPlayer email must be unique test passing</a></li>
 <li><a href="#active-record-associations">Active Record Associations</a></li>
 </ol>
@@ -31,7 +33,7 @@
 
 <span class="n">it</span> <span class="s1">&#39;should not be valid if the game has no date&#39;</span>
 
-<span class="n">it</span> <span class="s1">&#39;should not be valid if the game has no players&#39;</span>
+<span class="n">it</span> <span class="s1">&#39;should not be valid if the game has no sport&#39;</span>
 
 <span class="n">it</span> <span class="s1">&#39;should return a list of external players ordered by email&#39;</span>
 
@@ -40,6 +42,8 @@
 <span class="n">it</span> <span class="s1">&#39;should return true if the game is in the past&#39;</span>
 
 <span class="n">it</span> <span class="s1">&#39;should return false if the game is not in the past&#39;</span>
+
+<span class="n">it</span> <span class="s1">&#39;should not be valid if the game has no owner&#39;</span>
 </pre></div>
 
 <h3>7.1.2. Now Code the tests</h3>
@@ -61,8 +65,15 @@
       <span class="n">game</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">to_a</span><span class="o">.</span><span class="n">should</span> <span class="kp">include</span><span class="p">(</span><span class="s2">&quot;At can&#39;t be blank&quot;</span><span class="p">)</span>
     <span class="k">end</span>
 
+    <span class="n">it</span> <span class="s1">&#39;should not be valid if the game has no sport&#39;</span> <span class="k">do</span>
+      <span class="n">game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">new</span>
+      <span class="n">game</span><span class="o">.</span><span class="n">valid?</span><span class="o">.</span><span class="n">should</span> <span class="n">be_false</span>
+      <span class="n">game</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">to_a</span><span class="o">.</span><span class="n">should</span> <span class="kp">include</span><span class="p">(</span><span class="s2">&quot;Sport can&#39;t be blank&quot;</span><span class="p">)</span>
+    <span class="k">end</span>
+
     <span class="n">it</span> <span class="s1">&#39;should return a list of players ordered by email&#39;</span> <span class="k">do</span>
-      <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
+      <span class="n">sport</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">)</span>
+      <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:sport</span> <span class="o">=&gt;</span> <span class="n">sport</span><span class="p">)</span>
 
       <span class="n">andrew</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;andrew@textxyz.com&#39;</span><span class="p">)</span>
       <span class="n">zoe</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;zoe@textxyz.com&#39;</span><span class="p">)</span>
@@ -76,7 +87,8 @@
     <span class="k">end</span>
 
     <span class="n">it</span> <span class="s1">&#39;should return a list of external players ordered by email&#39;</span> <span class="k">do</span>
-      <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
+      <span class="n">sport</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">)</span>
+      <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:sport</span> <span class="o">=&gt;</span> <span class="n">sport</span><span class="p">)</span>
 
       <span class="n">andrew</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;andrew@textxyz.com&#39;</span><span class="p">)</span>
       <span class="n">zoe</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;zoe@textxyz.com&#39;</span><span class="p">)</span>
@@ -285,7 +297,7 @@
 <span class="k">end</span>
 </pre></div>
 
-<p>Run the tests and we should be down to 6 failures</p>
+<p>Run the tests and we should be down to 7 failures</p>
 <div class="highlight"><pre><span class="go">bundle exec rake spec</span>
 </pre></div>
 
@@ -297,13 +309,121 @@
 
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='get-the-game-model-test-for-ordering-players-by-email-passing'></a> 7.6. Get the Game model test for ordering players by email passing</h2>
+<h2><a id='get-the-game-model-sport-test-passing'></a> 7.6. Get the Game model #sport test passing</h2>
+
+<p>Our third test requires that we have a sport</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should not be valid if the game has no sport&#39;</span> <span class="k">do</span>
+  <span class="n">game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">new</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">valid?</span><span class="o">.</span><span class="n">should</span> <span class="n">be_false</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">to_a</span><span class="o">.</span><span class="n">should</span> <span class="kp">include</span><span class="p">(</span><span class="s2">&quot;Sport can&#39;t be blank&quot;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The association between Game and Sport is a simple one. A Game belongs_to Sport and a Sport has_many games. To create this relationship we need to add a sport_id column to our game and add the association to our Sport and Game classes.</p>
+
+<p>First the migration to add the sport_id column</p>
+<div class="highlight"><pre><span class="go">bundle exec rails g migration add_sport_to_game</span>
+</pre></div>
+
+<p>This will give us an empty migration in db/migrate. Add the line of code below to add a sport_id column to the games table. In other words we&#39;re adding sport_id to our game model.</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">AddSportToGame</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:games</span><span class="p">,</span> <span class="ss">:sport_id</span><span class="p">,</span> <span class="ss">:integer</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Now run the migration</p>
+<div class="highlight"><pre><span class="go">bundle exec rake db:migrate</span>
+
+<span class="go">==  AddSportToGame: migrating =================================================</span>
+<span class="go">-- add_column(:games, :sport_id, :integer)</span>
+<span class="go">   -&gt; 0.0009s</span>
+<span class="go">==  AddSportToGame: migrated (0.0010s) ========================================</span>
+</pre></div>
+
+<p>Now let&#39;s define the associations:</p>
+
+<p>Sport has many games <code>has_many :games</code>:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Sport</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+
+  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span>   <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:uniqueness</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:users</span>
+  <span class="n">has_many</span> <span class="ss">:games</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Make Game belong to Sport, <code>belongs_to :sport</code> lets also add sport to our list of accessible attributes <code>attr_accessible :at, :location, :sport</code></p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Game</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:location</span><span class="p">,</span> <span class="ss">:sport</span>
+
+  <span class="n">validates</span> <span class="ss">:location</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:players</span><span class="p">,</span> <span class="ss">:class_name</span> <span class="o">=&gt;</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="ss">:order</span> <span class="o">=&gt;</span> <span class="s2">&quot;users.email ASC&quot;</span>
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:external_players</span><span class="p">,</span> <span class="ss">:order</span> <span class="o">=&gt;</span> <span class="s2">&quot;external_players.email ASC&quot;</span>
+  <span class="n">belongs_to</span> <span class="ss">:sport</span>
+
+  <span class="k">def</span> <span class="nf">over?</span>
+    <span class="no">Time</span><span class="o">.</span><span class="n">now</span> <span class="o">&gt;</span> <span class="nb">self</span><span class="o">.</span><span class="n">at</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>We&#39;ve defined our association and added the sport_id column to our game model. At this stage we should be able to run the tests without anything dreadful happening. We&#39;ll still have a failing test but we shouldn&#39;t have anything painful like our game object not knowing what a sport is.</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">Failures:</span>
+
+<span class="go">  1) Game should not be valid if the game has no sport</span>
+<span class="go">     Failure/Error: game.errors.to_a.should include(&quot;Sport can&#39;t be blank&quot;)</span>
+<span class="go">       expected [&quot;Location can&#39;t be blank&quot;, &quot;At can&#39;t be blank&quot;] to include &quot;Sport can&#39;t be blank&quot;</span>
+<span class="go">     # ./spec/models/game_spec.rb:20:in `block (2 levels) in &lt;top (required)&gt;&#39;</span>
+</pre></div>
+
+<p>Again, we&#39;ll use an ActiveModel validation for this:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Game</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:location</span>
+
+  <span class="n">validates</span> <span class="ss">:location</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:sport</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The test should now pass.</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<p>One last thing, since we&#39;ve made sport a required field we should add it to our FactoryGrirl factory so that future tests can create game without having to explicitly specify a sport. Add the line <code>sport { FactoryGirl.create(:sport) }</code> to spec/factories/games.rb:</p>
+<div class="highlight"><pre><span class="no">FactoryGirl</span><span class="o">.</span><span class="n">define</span> <span class="k">do</span>
+  <span class="n">factory</span> <span class="ss">:game</span> <span class="k">do</span>
+    <span class="n">location</span> <span class="s2">&quot;MyString&quot;</span>
+    <span class="n">at</span> <span class="s2">&quot;2012-09-09 10:00:00&quot;</span>
+    <span class="n">sport</span> <span class="p">{</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<div class="fb-comments"
+     data-href="http://www.stinkytrainers.co.uk/ruby-on-rails-tutorial/7-create-the-game-model.html#get-the-game-model-sport-test-passing"
+     data-num-posts="2"
+     data-width="auto">
+</div>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='get-the-game-model-test-for-ordering-players-by-email-passing'></a> 7.7. Get the Game model test for ordering players by email passing</h2>
 
 <p>For this one we need to add the association between games and players. Now players are actually users but it seems a little odd that a game has a collection of users so we&#39;ll create an association called players, tell it to use User and also tell it to order users by email.</p>
 
 <p>This is the test we have to make work</p>
 <div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should return a list of players ordered by email&#39;</span> <span class="k">do</span>
-  <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
+  <span class="n">sport</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:sport</span><span class="p">)</span>
+  <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:sport</span> <span class="o">=&gt;</span> <span class="n">sport</span><span class="p">)</span>
 
   <span class="n">andrew</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;andrew@textxyz.com&#39;</span><span class="p">)</span>
   <span class="n">zoe</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:email</span> <span class="o">=&gt;</span> <span class="s1">&#39;zoe@textxyz.com&#39;</span><span class="p">)</span>
@@ -416,7 +536,7 @@
 
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='get-the-game-model-test-for-ordering-external-players-by-email-passing'></a> 7.7. Get the Game model test for ordering external_players by email passing</h2>
+<h2><a id='get-the-game-model-test-for-ordering-external-players-by-email-passing'></a> 7.8. Get the Game model test for ordering external_players by email passing</h2>
 
 <p>This is a very similar problem to the previous one so we won&#39;t spend too much time on this.</p>
 
@@ -476,7 +596,7 @@
 
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='get-game-model-tests-for-the-over-helper-method-passing'></a> 7.8. Get Game model tests for the over? helper method passing</h2>
+<h2><a id='get-game-model-tests-for-the-over-helper-method-passing'></a> 7.9. Get Game model tests for the over? helper method passing</h2>
 
 <p>We want to have a simple helper method <code>.over?</code> that tells us whether the game is in the past or not. methods ending in <code>?</code> such as <code>valid?</code>, <code>over?</code>, <code>nil?</code> &amp; <code>blank?</code> are a common ruby idiom where the method returns true or false.</p>
 
@@ -521,7 +641,7 @@
 
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='get-the-externalplayer-model-test-for-email-passing'></a> 7.9. Get the ExternalPlayer model test for email passing</h2>
+<h2><a id='get-the-externalplayer-model-test-for-email-passing'></a> 7.10. Get the ExternalPlayer model test for email passing</h2>
 
 <p>This is very similar to the test for name in our sports model. We&#39;ll use an ActiveModel validation to make sure that the email is present</p>
 
@@ -555,7 +675,145 @@
 
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='get-the-externalplayer-email-must-be-unique-test-passing'></a> 7.10. Get the ExternalPlayer email must be unique test passing</h2>
+<h2><a id='it-should-not-be-valid-if-the-game-has-no-owner'></a> 7.11. It should not be valid if the game has no owner</h2>
+
+<p>I don&#39;t believe in systems being to controlling so we want to be able to create a game that has no players so that the creator can:</p>
+
+<ol>
+<li>Create a game then invite people later.</li>
+<li>Organize a game but not have to be a player. </li>
+</ol>
+
+<p>A game with no players will just be orphaned in our system so we need to make a reference between the game and the user that created it.</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should not be valid if the game has no owner&#39;</span> <span class="k">do</span>
+  <span class="n">game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">new</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">valid?</span><span class="o">.</span><span class="n">should</span> <span class="n">be_false</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">to_a</span><span class="o">.</span><span class="n">should</span> <span class="kp">include</span><span class="p">(</span><span class="s2">&quot;Owner can&#39;t be blank&quot;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>We need to add a one to many association between user and games. Our user already has an association called &#39;games&#39; so we&#39;ll create a more explicit association <code>user.owned_games</code> and add the reverse association <code>game.owner</code>.</p>
+
+<p>First we&#39;ll need a migration:</p>
+<div class="highlight"><pre><span class="go">bundle exec rails g migration add_owner_to_game</span>
+
+<span class="go">invoke  active_record</span>
+<span class="go">     create    db/migrate/20120921122225_add_owner_to_game.rb</span>
+</pre></div>
+
+<p>now every game will belong to user as owner so we&#39;ll add an owner_id to the game model. In our newly generated migration file:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">AddOwnerToGame</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add</span><span class="p">\</span><span class="n">_column</span> <span class="ss">:games</span><span class="p">,</span> <span class="ss">:owner</span><span class="p">\</span><span class="n">_id</span><span class="p">,</span> <span class="ss">:integer</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>run the migration:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake db:migrate</span>
+
+<span class="go">==  AddOwnerToGame: migrating =================================================</span>
+<span class="go">-- add_column(:games, :owner\_id, :integer)</span>
+<span class="go">   -&gt; 0.0015s</span>
+<span class="go">==  AddOwnerToGame: migrated (0.0016s) ========================================</span>
+</pre></div>
+
+<p>Add the one to many association <code>belongs_to :owner, :class_name =&gt; &#39;User&#39;</code> to our Game model. We&#39;ll also add :owner to our attr_accessible so that we can create a game <code>Game.create(:sport =&gt; s)</code></p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Game</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:location</span><span class="p">,</span> <span class="ss">:sport</span><span class="p">,</span> <span class="ss">:owner</span>
+
+  <span class="n">validates</span> <span class="ss">:location</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:sport</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:players</span><span class="p">,</span> <span class="ss">:class_name</span> <span class="o">=&gt;</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="ss">:order</span> <span class="o">=&gt;</span> <span class="s2">&quot;users.email ASC&quot;</span>
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:external_players</span><span class="p">,</span> <span class="ss">:order</span> <span class="o">=&gt;</span> <span class="s2">&quot;external_players.email ASC&quot;</span>
+  <span class="n">belongs_to</span> <span class="ss">:sport</span>
+  <span class="n">belongs_to</span> <span class="ss">:owner</span><span class="p">,</span> <span class="ss">:class_name</span> <span class="o">=&gt;</span> <span class="s1">&#39;User&#39;</span>
+
+  <span class="k">def</span> <span class="nf">over?</span>
+    <span class="no">Time</span><span class="o">.</span><span class="n">now</span> <span class="o">&gt;</span> <span class="nb">self</span><span class="o">.</span><span class="n">at</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>now add the association to user <code>has_many :owned_games, :class_name =&gt; &#39;Game&#39;</code>:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="c1"># Include default devise modules. Others available are:</span>
+  <span class="c1"># :token_authenticatable, :confirmable,</span>
+  <span class="c1"># :lockable, :timeoutable and :omniauthable</span>
+  <span class="n">devise</span> <span class="ss">:database_authenticatable</span><span class="p">,</span> <span class="ss">:registerable</span><span class="p">,</span>
+         <span class="ss">:recoverable</span><span class="p">,</span> <span class="ss">:rememberable</span><span class="p">,</span> <span class="ss">:trackable</span><span class="p">,</span> <span class="ss">:validatable</span>
+
+  <span class="c1"># Setup accessible (or protected) attributes for your model</span>
+  <span class="n">attr_accessible</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:password</span><span class="p">,</span> <span class="ss">:password_confirmation</span><span class="p">,</span> <span class="ss">:remember_me</span>
+  <span class="c1"># attr_accessible :title, :body</span>
+
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:sports</span>
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:games</span>
+
+  <span class="n">has_many</span> <span class="ss">:owned_games</span><span class="p">,</span> <span class="ss">:class_name</span> <span class="o">=&gt;</span> <span class="s1">&#39;Game&#39;</span><span class="p">,</span> <span class="ss">:foreign_key</span> <span class="o">=&gt;</span> <span class="ss">:owner_id</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>run the tests and we will still have a failing spec:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">2) Game should not be valid if the game has no owner</span>
+<span class="go">    Failure/Error: game.errors.to_a.should include(&quot;Owner can&#39;t be blank&quot;)</span>
+<span class="go">      expected [&quot;Location can&#39;t be blank&quot;, &quot;At can&#39;t be blank&quot;, &quot;Sport can&#39;t be blank&quot;] to include &quot;Owner can&#39;t be blank&quot;</span>
+</pre></div>
+
+<p>So let&#39;s add the validation <code>validates :owner, :presence =&gt; true</code> to the game model to make sure that we require an owner:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Game</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">attr_accessible</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:location</span>
+
+  <span class="n">validates</span> <span class="ss">:location</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:at</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:sport</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:owner</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:players</span><span class="p">,</span> <span class="ss">:class_name</span> <span class="o">=&gt;</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="ss">:order</span> <span class="o">=&gt;</span> <span class="s2">&quot;users.email ASC&quot;</span>
+  <span class="n">has_and_belongs_to_many</span> <span class="ss">:external_players</span><span class="p">,</span> <span class="ss">:order</span> <span class="o">=&gt;</span> <span class="s2">&quot;external_players.email ASC&quot;</span>
+  <span class="n">belongs_to</span> <span class="ss">:sport</span>
+  <span class="n">belongs_to</span> <span class="ss">:owner</span><span class="p">,</span> <span class="ss">:class_name</span> <span class="o">=&gt;</span> <span class="s1">&#39;User&#39;</span>
+
+  <span class="k">def</span> <span class="nf">over?</span>
+    <span class="no">Time</span><span class="o">.</span><span class="n">now</span> <span class="o">&gt;</span> <span class="nb">self</span><span class="o">.</span><span class="n">at</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</pre></div>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">1) Game should return a list of players ordered by email</span>
+<span class="go">     Failure/Error: game = FactoryGirl.create(:game, :sport =&gt; sport)</span>
+<span class="go">     ActiveRecord::RecordInvalid:</span>
+<span class="go">       Validation failed: Owner can&#39;t be blank</span>
+<span class="go">     # ./spec/models/game_spec.rb:25:in `block (2 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  2) Game should return a list of external players ordered by email</span>
+<span class="go">     Failure/Error: game = FactoryGirl.create(:game, :sport =&gt; sport)</span>
+<span class="go">     ActiveRecord::RecordInvalid:</span>
+<span class="go">       Validation failed: Owner can&#39;t be blank</span>
+<span class="go">     # ./spec/models/game_spec.rb:40:in `block (2 levels) in &lt;top (required)&gt;&#39;</span>
+</pre></div>
+
+<p>Our test will pass but now we require an owner we&#39;ve broken two existing tests !!! Luckily all we need do is add an owner to our game factory in <code>spec/factories/games.rb</code></p>
+<div class="highlight"><pre><span class="go">FactoryGirl.define do</span>
+<span class="go">  factory :game do</span>
+<span class="go">    location &quot;MyString&quot;</span>
+<span class="go">    at &quot;2012-09-09 10:00:00&quot;</span>
+<span class="go">    sport { FactoryGirl.create(:sport) }   </span>
+<span class="go">    owner { FactoryGirl.create(:user) }    </span>
+<span class="go">  end</span>
+<span class="go">end</span>
+</pre></div>
+
+<p><a href="#top">back to top</a></p>
+
+<h2><a id='get-the-externalplayer-email-must-be-unique-test-passing'></a> 7.12. Get the ExternalPlayer email must be unique test passing</h2>
 
 <p>This is very similar to the test for uniqueness of name in our sports model. We&#39;ll use an ActiveModel validation to make sure that the email doesn&#39;t already exist.</p>
 
@@ -583,11 +841,9 @@
 <div class="highlight"><pre><span class="go">bundle exec rake spec</span>
 </pre></div>
 
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
-
 <p><a href="#top">back to top</a></p>
 
-<h2><a id='active-record-associations'></a> 7.11. Active Record Associations</h2>
+<h2><a id='active-record-associations'></a> 7.13. Active Record Associations</h2>
 
 <p>Now we have a little experience with Active Record associations let&#39;s take a peek under the hood by playing with them in console. Run these in the Rails console looking at the SQL output as we go:</p>
 
@@ -652,19 +908,3 @@
 </pre></div>
 
 <h1></h1>
-
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>c43b4b8e71d2b901d13d93be1dd6ab84f6acea55</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>

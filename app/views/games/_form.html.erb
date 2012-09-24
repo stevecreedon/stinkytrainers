@@ -23,18 +23,18 @@
 
   <div class="control-group <%= "error" if @game.errors.any? %>">
     <%= f.label :players, :class => 'control-label' %>
-    <div class='controls'>
-  		<% current_user.players.each do |player| %>
-			<%= check_box_tag :player, player.id, @game.players.include?(player) %> <%= player.email %><br/>
-  		<% end %>
+    <div class='controls' id="players">
+		<% current_user.players.each do |player| %>
+		 <%= check_box_tag "game[player_ids][]", player.id, @game.players.include?(player), :id => "game_player_id_#{player.id}" %> <%= player.email %><br/>
+	    <% end %>
     </div>
   </div>
 
   <div class="control-group <%= "error" if @game.errors.any? %>">
     <%= f.label :players_not_on_stinky_trainers, :class => 'control-label' %>
-    <div class='controls'>
-  		<% current_user.external_players.each do |player| %>
-			<%= check_box_tag :external_player, player.id, @game.external_players.include?(player) %> <%= player.email %><br/>
+    <div class='controls' id="external_players">
+  		<% current_user.external_players.each do |external_player| %>
+			<%= check_box_tag "game[external_player_ids][]", external_player.id, @game.external_players.include?(external_player), :id => "game_external_player_id_#{external_player.id}" %> <%= external_player.email %><br/>
   		<% end %>
     </div>
   </div>

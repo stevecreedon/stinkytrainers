@@ -1,6 +1,6 @@
 class Game < ActiveRecord::Base
-  attr_accessible :at, :location, :sport, :owner, :sport_id
-  
+  attr_accessible :at, :location, :sport, :owner, :sport_id, :player_ids,# :external_player_ids
+
   validates :location, :presence => true
   validates :at, :presence => true
   validates :sport, :presence => true
@@ -12,7 +12,7 @@ class Game < ActiveRecord::Base
   belongs_to :owner, :class_name => 'User'
   
   validate :cannot_create_a_game_in_the_past, :on => :create
- 
+   
   def over?
     Time.now > self.at
   end

@@ -140,8 +140,190 @@ describe 'games' do
       page.find_field('game[at(5i)]').value.should have_content(time.min.to_s)
      
     end
-  end
+    
+    describe 'players' do
 
+     	it 'should display a list of check_boxes for the current users players in table#players with only the current user selected' do
+
+         player1 = FactoryGirl.create(:user)
+         player2 = FactoryGirl.create(:user)
+         player3 = FactoryGirl.create(:user)
+         player4 = FactoryGirl.create(:user)
+
+         game1 = FactoryGirl.create(:game, :owner => @user)
+         game2 = FactoryGirl.create(:game, :owner => @user)
+         game3 = FactoryGirl.create(:game, :owner => FactoryGirl.create(:user))
+
+         game1.players << @user
+         game2.players << @user
+
+         game1.players << player1
+         game2.players << player3
+         game2.players << player4
+         
+         game3.players << player2 #a game created by a different user and player
+
+         visit games_path
+
+         click_link('Create Game')
+
+         within("div#players") do
+           page.has_field?("game_player_id_#{@user.id}").should be_true
+           page.find("input#game_player_id_#{@user.id}").should be_checked
+
+           page.has_field?("game_player_id_#{player1.id}").should be_true
+           page.find("input#game_player_id_#{player1.id}").should_not be_checked
+
+           page.has_field?("game_player_id_#{player3.id}").should be_true
+           page.find("input#game_player_id_#{player3.id}").should_not be_checked
+
+           page.has_field?("game_player_id_#{player4.id}").should be_true
+           page.find("input#game_player_id_#{player4.id}").should_not be_checked
+
+           page.has_field?("game_player_id_#{player2.id}").should be_false
+         end
+
+
+     	end
+
+
+
+     	it 'should display a list of check_boxes for the current users external\_players in table#players all unchecked' do
+
+         player1 = FactoryGirl.create(:external_player)
+         player2 = FactoryGirl.create(:external_player)
+         player3 = FactoryGirl.create(:external_player)
+         player4 = FactoryGirl.create(:external_player)
+
+         game1 = FactoryGirl.create(:game, :owner => @user)
+         game2 = FactoryGirl.create(:game, :owner => @user)
+         game3 = FactoryGirl.create(:game, :owner => FactoryGirl.create(:user))
+
+         game1.players << @user
+         game2.players << @user
+
+         game1.external_players << player1
+         game2.external_players << player3
+         game2.external_players << player4
+         
+         game3.external_players << player2
+
+         visit games_path
+
+         click_link('Create Game')
+
+         within("div#external_players") do
+
+           page.has_field?("game_external_player_id_#{player1.id}").should be_true
+           page.find("input#game_external_player_id_#{player1.id}").should_not be_checked
+
+           page.has_field?("game_external_player_id_#{player3.id}").should be_true
+           page.find("input#game_external_player_id_#{player3.id}").should_not be_checked
+
+           page.has_field?("game_external_player_id_#{player4.id}").should be_true
+           page.find("input#game_external_player_id_#{player4.id}").should_not be_checked
+
+           page.has_field?("game_external_player_id_#{player2.id}").should be_false
+         end
+
+     	end
+
+     	it 'should submit a list of the selected players and add them to the game' do
+
+     	   sport = FactoryGirl.create(:sport)
+
+     	   player1 = FactoryGirl.create(:user)
+         player2 = FactoryGirl.create(:user)
+         player3 = FactoryGirl.create(:user)
+
+         game = FactoryGirl.create(:game, :owner => @user)
+
+         game.players << @user
+
+         game.players << player1
+         game.players << player2
+         game.players << player3
+
+         visit games_path
+
+         click_link('Create Game')
+
+         unique_location = SecureRandom.uuid
+
+         fill_in("Location", :with => unique_location)
+         select(sport.name, :from => "Sport")
+
+         time = Time.now + 3600 
+
+         select(time.year.to_s, :from => 'game[at(1i)]')
+         select(Date::MONTHNAMES[time.month], :from => 'game[at(2i)]')
+         select(time.day.to_s, :from => 'game[at(3i)]')
+         select(time.hour.to_s, :from => 'game[at(4i)]')
+         select(time.min.to_s, :from => 'game[at(5i)]')
+
+         uncheck("game_player_id_#{@user.id}")
+         check("game_player_id_#{player1.id}")
+         check("game_player_id_#{player3.id}")
+
+         click_button('Create Game')
+
+         created_game = Game.find_by_location(unique_location)
+
+         created_game.players.should =~ [player1, player3]
+
+     	end
+
+     	it 'should submit a list of the selected external players and add them to the game' do
+
+        sport = FactoryGirl.create(:sport)
+
+        player1 = FactoryGirl.create(:external_player)
+        player2 = FactoryGirl.create(:external_player)
+        player3 = FactoryGirl.create(:external_player)
+
+        game = FactoryGirl.create(:game, :owner => @user)
+
+        game.players << @user
+
+        game.external_players << player1
+        game.external_players << player2
+        game.external_players << player3
+
+        visit games_path
+
+        click_link('Create Game')
+
+        unique_location = SecureRandom.uuid
+
+        fill_in("Location", :with => unique_location)
+        select(sport.name, :from => "Sport")
+
+        time = Time.now + 3600 
+
+        select(time.year.to_s, :from => 'game[at(1i)]')
+        select(Date::MONTHNAMES[time.month], :from => 'game[at(2i)]')
+        select(time.day.to_s, :from => 'game[at(3i)]')
+        select(time.hour.to_s, :from => 'game[at(4i)]')
+        select(time.min.to_s, :from => 'game[at(5i)]')
+
+
+        check("game_external_player_id_#{player1.id}")
+        check("game_external_player_id_#{player3.id}")
+
+        click_button('Create Game')
+
+        created_game = Game.find_by_location(unique_location)
+
+        created_game.external_players.should =~ [player1, player3]
+
+     	end
+
+     end
+    
+    
+  end
+  
+ 
 
   describe 'editing games' do
     it 'should edit a game and update it when the values are valid'

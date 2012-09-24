@@ -2,6 +2,6 @@
 
 FactoryGirl.define do
   factory :external_player do
-    email "MyString"
+    email{ generate(:email) }
   end
 end

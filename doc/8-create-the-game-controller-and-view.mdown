@@ -1,4 +1,7 @@
 # The Game Controller and View
+
+INDEX
+
 We want to be able to carry out the full RESTful actions on game:
 
 1. List - the index action
@@ -8,6 +11,8 @@ We want to be able to carry out the full RESTful actions on game:
 5. Destroy - the destroy action
 
 So we're going to generate the controller, set the controller up as a RESTful resource in our routes, write the functional tests then make them all pass.
+
+
 
 ## Generate the controller
 We'll tell the generator to all of the RESTful actions for us.
@@ -274,7 +279,7 @@ bundle exec rake spec
 ## Testing the index action
 Our previous sports controller index action was quite simple, all we wanted to do is list all sports. This one is a little more difficult as we want to list two things:
 
-ruby~~~
+~~~ruby
 describe 'listing games' do
     it 'should display a list of the games owned by the signed-in user'
     it 'should display a list of the games where the signed-in user is a player'
@@ -317,7 +322,18 @@ FactoryGirl.define do
     Time.now + (n * 3600 * 24)
   end
 end
-~~~ 
+~~~
+
+### Make our external player Factory more useful
+Lets make the email a sequence like user. We don't have to define the sequence as we can just use the one from user. In spec/factories/external_players.rb
+
+~~~ruby
+FactoryGirl.define do
+  factory :external_player do
+    email{ generate(:email) }
+  end
+end
+~~~
 
 ### it 'should display a list of the games owned by the signed-in user'
 
@@ -751,7 +767,7 @@ end
 
 Let's run the tests, with our form and controller in place they should be passing:
 
-~~~
+~~~console
 bundle exec rake spec
 ~~~
 
@@ -818,6 +834,8 @@ end
 ~~~
 
 We create a private method that checks to see if the game is in the past and call it with `validate :cannot_create_a_game_in_the_past, :on => :create`. The `:on => create` option means that the validation only runs when the object is new - in other words when `game.new_record?` is true. If it is in the past we add the desired error message against our :at attribute. So how do we make sure that the test object returns the desired true or false for `game.new_record?`. We could, for example, create an object, save it with the time at now then wait a few seconds to be sure it'sin the past but that's clumsy. Instead we `game.stub(:new\_record?).and_return(false)` or true. Stub overrides the method `game.new_record?` for that one tests and returns true or false depending on what we specify in `.and_return`. It's simple and explicit.
+
+Note that we had to put in the `return unless self.at` because the comparison would Time.now would fail if at is nil. This doesn't matter as a game with `at` is invalid anyway.
 
 Now we know that we can't create a game in the past let's try and do that to make sure our form returns us back to the new page with the bad data we've entered.
 
@@ -900,6 +918,8 @@ class GamesController < ApplicationController
 end
 ~~~
 
+Note that we change game to @game so that it can be bound into the 'new' form if the data is invalid. 
+
 ~~~console
 bundle exec rake spec
 
@@ -970,9 +990,459 @@ Just one problem, it fails. Our drop down for sport hasn't selected the sport we
 <% end %>
 ~~~
 
-We've added a third argument to option_from_collection_for_select @game.sport.try(:id). This third argument is the value we'd like the select box to choose as selected (if it exists) but why the `sport.try(:id)` and not just `sport.id` ? Well, on a completely new game in our first test above sport will actually be nil so calling id on nil will raise an error. With `sport.try(:id)` Rails will try to get the value id from sport but return nil, rather than an error, if something goes wrong.
+We've added a third argument to `option\_from\_collection\_for\_select`, `@game.sport.try(:id)`. This third argument is the value we'd like the select box to choose as selected (if it exists) but why the `sport.try(:id)` and not just `sport.id` ? Well, on a completely new game in our first test above sport will actually be nil so calling id on nil will raise an error. With `sport.try(:id)` Rails will try to get the value id from sport but return nil, rather than an error, if something goes wrong.
 
-But what about the players ? We haven't added any yet
+Run the tests and all should be passing
+
+~~~console
+bundle exec rake spec
+~~~
+
+### What about the players and external_players?
+
+But what about the players ? I know I said that I want to be able to create a game without players but so far we can't add any even if we wanted to. I've left this separate so far. The form we just created was complex enough and adding arrays of players makes it more so. I want to have my form list all of the players and external players that I know in an array of check boxes and this is one of those rare things that Rails doesn't handle seamlessly. As always there are several ways to do something but I've chosen an approach that's reasonably easy to follow.
+
+It's time for some tests. These aren't in my initial set of draft tests. We're agile so let's add these four new tests INSIDE of the `describe 'creating games' do` block as the tests are associated with game creation
+
+~~~ruby
+
+describe 'players' do
+  
+  it 'should display a list of check_boxes for the current users players in table#players with only the current user selected'
+
+  it 'should display a list of check_boxes for the current users external\_players in table#players all unchecked' 
+  	
+  it 'should submit a list of the selected players and add them to the game'
+
+  it 'should submit a list of the selected external players and add them to the game'
+  
+end
+~~~
+
+We're going to be building lists of players and external players using the `check_box_tag`. There are two groups of helpers for forms in Rails form\_helpers and form\_tag\_helpers. We've already used form\_helpers, they're useful when we have an activerecord model in our form and they neatly bind the model to the form e.g.
+
+~~~ruby
+<% form_for @game %>
+	f.text_field :location
+	f.select :sport_id
+<% end %>
+~~~ 
+
+form\_tag\_helpers aren't bound to any objects at all so you would have `check_box_tag` rather than `f.check_box` they help us create html tags. We're going to use them in our form to create a checkbox for every player or external player that our user has shared a game with. How do we get a list of these ? Active record makes this easy for us.
+
+Remember our user has a has\_and\_belongs\_to\_many relationship with games and a game has a has\_and\_belongs\_to\_many relationship with players and external\_players ? Well ActiveRecord let's use these associations so that we can get all of the players and external players associated to our user via games. That's a lot to the think about so I'll just dive straight into the code. In `app/models/users/rb` add the two new associations `has_many :players, :through => :games, :uniq => true` and `has_many :external_players, :through => :games, :uniq => true` 
+
+~~~ruby
+class User < ActiveRecord::Base
+  # Include default devise modules. Others available are:
+  # :token_authenticatable, :confirmable,
+  # :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+
+  # Setup accessible (or protected) attributes for your model
+  attr_accessible :email, :password, :password_confirmation, :remember_me
+  # attr_accessible :title, :body
+  
+  has_and_belongs_to_many :sports
+  has_and_belongs_to_many :games
+  
+  has_many :players, :through => :games, :uniq => true
+  has_many :external_players, :through => :games, :uniq => true
+  
+  has_many :owned_games, :class_name => 'Game', :foreign_key => :owner_id
+end
+~~~
+
+Let's try this in console. 
+
+~~~console
+rails c
+
+> user = User.first
+
+> user.players
+
+SELECT DISTINCT "users".* FROM "users" INNER JOIN "games_users" ON "users"."id" = "games_users"."user_id" INNER JOIN "games" ON "games_users"."game_id" = "games"."id" INNER JOIN "games_users" "games_players_join" ON "games"."id" = "games_players_join"."game_id" WHERE "games_players_join"."user_id" = 1
+~~~
+
+Active record has joined `users` to `games\_users` to `games` and self-joined back to `games_users` to get us all the players our user has been associated with in a game. It self-joined because a player is a user.
+
+~~~console
+> user.external_players
+SELECT DISTINCT "external_players".* FROM "external_players" INNER JOIN "external_players_games" ON "external_players"."id" = "external_players_games"."external_player_id" INNER JOIN "games" ON "external_players_games"."game_id" = "games"."id" INNER JOIN "games_users" ON "games"."id" = "games_users"."game_id" WHERE "games_users"."user_id" = 1
+~~~
+
+Active record has joined `external_players` to `external_players_games` to `games` to `games_users` to get us all the external users our signed-in user is associated with via a game.
+
+Glad I didn't have to do that by hand.
+
+### it 'should display a list of check_boxes for the current users players in table#players with only the current user selected'
+We want this test to ensure that we display a list of all the `user.players` associated with the signed-in user through games. Our signed-in user will be in this list and we want that user to be checked by default while all of the others are unchecked by default.
+
+1. Create four players
+1. Create three games
+1. Add the current user to the first two games.
+1. Add players 1, 3 & 4 to the first two games so they are associated with our signed-in user.
+1. Add player2 to game3 so that it has no connection with our signed-in user.
+1. Visit the index page and create a new game
+1. Ensure that we have a checked checkbox for the signed-in user in the `"div#players"` control group.
+1. Ensure that we have an unchecked checkbox for players 1, 3, 4 in the `"div#players"` control group.
+1. Ensure that we don't have a checkbox for player2 in the `"div#players"` control group.
+
+
+~~~ruby
+it 'should display a list of check_boxes for the current users players in table#players with only the current user selected' do
+
+   player1 = FactoryGirl.create(:user)
+   player2 = FactoryGirl.create(:user)
+   player3 = FactoryGirl.create(:user)
+   player4 = FactoryGirl.create(:user)
+
+   game1 = FactoryGirl.create(:game, :owner => @user)
+   game2 = FactoryGirl.create(:game, :owner => player2)
+   game3 = FactoryGirl.create(:game, :owner => FactoryGirl.create(:user))
+
+   game1.players << @user
+   game2.players << @user
+
+   game1.players << player1
+   game2.players << player3
+   game2.players << player4
+   
+   game3.players << player2 #a game created by a different user and player
+
+   visit games_path
+
+   click_link('Create Game')
+
+   within("div#players") do
+     page.has_field?("game_player_id_#{@user.id}").should be_true
+     page.find("input#game_player_id_#{@user.id}").should be_checked
+
+     page.has_field?("game_player_id_#{player1.id}").should be_true
+     page.find("input#game_player_id_#{player1.id}").should_not be_checked
+
+     page.has_field?("game_player_id_#{player3.id}").should be_true
+     page.find("input#game_player_id_#{player3.id}").should_not be_checked
+
+     page.has_field?("game_player_id_#{player4.id}").should be_true
+     page.find("input#game_player_id_#{player4.id}").should_not be_checked
+
+     page.has_field?("game_player_id_#{player2.id}").should be_false
+   end
+
+
+end
+~~~
+
+Let's add a control group that iterates through the signed-in user's players collection and creates a checkbox for each one.
+
+~~~ruby
+<div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :players, :class => 'control-label' %>
+    <div class='controls' id="players">
+		<% current_user.players.each do |player| %>
+		 <%= check_box_tag "game[player_ids][]", player.id, @game.players.include?(player), :id => "game_player_id_#{player.id}" %> <%= player.email %><br/>
+	    <% end %>
+    </div>
+</div>
+~~~
+
+`<%= check_box_tag "game[player_ids][]", player.id, @game.players.include?(player), :id => "game_player_id_#{player.id}" %>` will produce html like `<input id="game_player_id_1" name="game[player_ids][]" type="checkbox" value="1">` and we ensure the existance and checked-state for these in our tests above e.g.:
+
+~~~ruby
+page.has_field?("game_player_id_#{player4.id}").should be_true
+page.find("input#game_player_id_#{player4.id}").should_not be_checked
+~~~
+
+The test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+### it 'should display a list of check_boxes for the current users external\_players in table#players all unchecked'
+We want this test to ensure that we display a list of all the `user.external_players` associated with the signed-in user through games. They should all be unchecked.
+
+1. We create four players. 
+1. We create three games.
+1. We add our sign-in user and players 1, 3 and 4 to games so that they are associated with each other
+1. We add player2 to a game owned by another user so player 2 won't be associated with the signed-in user.
+1. We visit the index page, click 'Create Game' and make sure that we have an unchecked checkbox for players 1, 3 and 4 in the `div#external_players` control-group. 
+1. We make sure we don't have player 2 in the `div#external_players` control group.
+
+~~~ruby
+it 'should display a list of check_boxes for the current users external\_players in table#players all unchecked' do
+
+   player1 = FactoryGirl.create(:external_player)
+   player2 = FactoryGirl.create(:external_player)
+   player3 = FactoryGirl.create(:external_player)
+   player4 = FactoryGirl.create(:external_player)
+
+   game1 = FactoryGirl.create(:game, :owner => @user)
+   game2 = FactoryGirl.create(:game, :owner => player4)
+   game3 = FactoryGirl.create(:game, :owner => FactoryGirl.create(:user))
+
+   game1.players << @user
+   game2.players << @user
+
+   game1.external_players << player1
+   game2.external_players << player3
+   game2.external_players << player4
+   
+   game3.external_players << player2
+
+   visit games_path
+
+   click_link('Create Game')
+
+   within("div#external_players") do
+
+     page.has_field?("game_external_player_id_#{player1.id}").should be_true
+     page.find("input#game_external_player_id_#{player1.id}").should_not be_checked
+
+     page.has_field?("game_external_player_id_#{player3.id}").should be_true
+     page.find("input#game_external_player_id_#{player3.id}").should_not be_checked
+
+     page.has_field?("game_external_player_id_#{player4.id}").should be_true
+     page.find("input#game_external_player_id_#{player4.id}").should_not be_checked
+
+     page.has_field?("game_external_player_id_#{player2.id}").should be_false
+   end
+
+end
+~~~
+
+
+
+Let's add a control group that iterates through the signed-in user's external_players collection and creates a checkbox for each one.
+
+~~~ruby
+<div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= f.label :players_not_on_stinky_trainers, :class => 'control-label' %>
+    <div class='controls' id="external_players">
+  		<% current_user.external_players.each do |external_player| %>
+			<%= check_box_tag "game[external_player_ids][]", external_player.id, @game.external_players.include?(external_player), :id => "game_external_player_id_#{external_player.id}" %> <%= external_player.email %><br/>
+  		<% end %>
+    </div>
+</div>
+~~~
+
+The test should now pass
+
+~~~console
+bundle exec rake spec
+~~~
+
+### it 'should submit a list of the selected players and add them to the game'
+When the form is submitted we want Rails to add all of the players that have been checked in the players list to be added to the `game.players` association.
+
+1. Create 3 players
+1. Create a game, add the three players and our signed-in user. This isn't the game in our form but one that's already created & ensures that they are associated with our signed-in user.
+1. Visit the index page and click 'Create Game'
+1. Fill in the game details making our location a Guid.
+1. Uncheck our signed-in user from the list of players and select players 1 and 3
+1. Submit the form
+1. Find the game we just created using our unique Guid location.
+1. Ensure that the `game.players =~ [player1, player3]` Note that =~ is an RSpec way of comparing two arrays whilst ignoring the order of that Array.
+
+~~~ruby
+it 'should submit a list of the selected players and add them to the game' do
+
+	 sport = FactoryGirl.create(:sport)
+
+	 player1 = FactoryGirl.create(:user)
+	 player2 = FactoryGirl.create(:user)
+	 player3 = FactoryGirl.create(:user)
+
+	 game = FactoryGirl.create(:game, :owner => @user)
+
+	 game.players << @user
+
+	 game.players << player1
+	 game.players << player2
+	 game.players << player3
+
+	 visit games_path
+
+	 click_link('Create Game')
+
+	 unique_location = SecureRandom.uuid
+
+	 fill_in("Location", :with => unique_location)
+	 select(sport.name, :from => "Sport")
+
+	 time = Time.now + 3600 
+
+	 select(time.year.to_s, :from => 'game[at(1i)]')
+	 select(Date::MONTHNAMES[time.month], :from => 'game[at(2i)]')
+	 select(time.day.to_s, :from => 'game[at(3i)]')
+	 select(time.hour.to_s, :from => 'game[at(4i)]')
+	 select(time.min.to_s, :from => 'game[at(5i)]')
+
+	 uncheck("game_player_id_#{@user.id}")
+	 check("game_player_id_#{player1.id}")
+	 check("game_player_id_#{player3.id}")
+
+	 click_button('Create Game')
+
+	 created_game = Game.find_by_location(unique_location)
+
+	 created_game.players.should =~ [player1, player3]
+
+end
+~~~
+
+ActiveRecord has built-in functionality for adding these list of players to our game so we don't have to do that much. When the form is submitted, the parameters for game are passed to the controller as below:
+
+~~~console
+"game"=>{"sport\_id"=>"8", "location"=>"wembley", "at(1i)"=>"2012", "at(2i)"=>"9", "at(3i)"=>"23", "at(4i)"=>"14", "at(5i)"=>"34", "player\_ids"=>["1","3","7"]}
+~~~
+
+ActiveRecord automatically sets the game's players as players with id 1, 3 and 7 and all our has to do is do what it's already doing `Game.new(params[:game])`. ActiveRecord is smart enough to understand that player_ids array is an array of ids for the players association.
+
+There is one bit of code we must change to make all this work. We need to set our game class to accept the attributes player\_ids or we'll get a pesky `can't mass-assign attributes` error. Add the player\_ids assignment to `attr_accessible` in `app/models/game.rb`.
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr\_accessible :at, :location, :sport, :owner, :sport\_id, :player\_ids
+
+  validates :location, :presence => true
+  validates :at, :presence => true
+  validates :sport, :presence => true
+  validates :owner, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+  belongs_to :sport
+  belongs_to :owner, :class_name => 'User'
+  
+  validate :cannot_create_a_game_in_the_past, :on => :create
+   
+  def over?
+    Time.now > self.at
+  end
+  
+  private
+  
+  def cannot_create_a_game_in_the_past
+    return unless self.at
+    self.errors.add(:at, 'Cannot create a game in the past') if self.over?
+  end
+  
+end
+~~~
+
+### it 'should submit a list of the selected external players and add them to the game'
+When the form is submitted we want Rails to add all of the players that have been checked in the players list to be added to the `game.external_players` association.
+
+1. Create 3 external players
+1. Create a game, add the three players and our signed-in user. Again, this isn't the game in our form but one that's already created to ensure that the external players are associated with our signed-in user.
+1. Visit the index page and click 'Create Game'
+1. Fill in the game details making our location a Guid.
+1. Select external players 1 and 3 
+1. Submit the form
+1. Find the game we just created using our unique Guid location.
+1. Ensure that the `game.players =~ [player1, player3]` Note that =~ is an RSpec way of comparing two arrays whilst ignoring the order of that Array. 
+
+~~~ruby
+it 'should submit a list of the selected external players and add them to the game' do
+
+	sport = FactoryGirl.create(:sport)
+
+	player1 = FactoryGirl.create(:external_player)
+	player2 = FactoryGirl.create(:external_player)
+	player3 = FactoryGirl.create(:external_player)
+
+	game = FactoryGirl.create(:game, :owner => @user)
+
+	game.players << @user
+
+	game.external_players << player1
+	game.external_players << player2
+	game.external_players << player3
+
+	visit games_path
+
+	click_link('Create Game')
+
+	unique_location = SecureRandom.uuid
+
+	fill_in("Location", :with => unique_location)
+	select(sport.name, :from => "Sport")
+
+	time = Time.now + 3600 
+
+	select(time.year.to_s, :from => 'game[at(1i)]')
+	select(Date::MONTHNAMES[time.month], :from => 'game[at(2i)]')
+	select(time.day.to_s, :from => 'game[at(3i)]')
+	select(time.hour.to_s, :from => 'game[at(4i)]')
+	select(time.min.to_s, :from => 'game[at(5i)]')
+
+
+	check("game_external_player_id_#{player1.id}")
+	check("game_external_player_id_#{player3.id}")
+
+	click_button('Create Game')
+
+	created_game = Game.find_by_location(unique_location)
+
+	created_game.external_players.should =~ [player1, player3]
+
+end
+~~~
+
+This is very similar to adding players above. Again ActiveRecord has built-in functionality for adding these list of players to our game so we don't have to do that much. When the form is submitted, the parameters for game are passed to the controller as below:
+
+~~~console
+"game"=>{"sport\_id"=>"8", "location"=>"wembley", "at(1i)"=>"2012", "at(2i)"=>"9", "at(3i)"=>"23", "at(4i)"=>"14", "at(5i)"=>"34", "external_player\_ids"=>["1","3"]}
+~~~
+
+ActiveRecord automatically sets the game's players as players with id 1 & 3 and all our has to do is do what it's already doing `Game.new(params[:game])`. ActiveRecord is smart enough to understand that external\_player\_ids array is an array of ids for the players association.
+
+Again there is one bit of code we must change to make all this work. We need to set our game class to accept the attributes external\_player\_ids or we'll get the `can't mass-assign attributes` error. Add the external\_player\_ids assignment to `attr_accessible` in `app/models/game.rb`.
+
+~~~ruby
+class Game < ActiveRecord::Base
+  attr_accessible :at, :location, :sport, :owner, :sport_id, :player_ids, :external_player_ids
+
+  validates :location, :presence => true
+  validates :at, :presence => true
+  validates :sport, :presence => true
+  validates :owner, :presence => true
+  
+  has_and_belongs_to_many :players, :class_name => 'User', :order => "users.email ASC"
+  has_and_belongs_to_many :external_players, :order => "external_players.email ASC"
+  belongs_to :sport
+  belongs_to :owner, :class_name => 'User'
+  
+  validate :cannot_create_a_game_in_the_past, :on => :create
+   
+  def over?
+    Time.now > self.at
+  end
+  
+  private
+  
+  def cannot_create_a_game_in_the_past
+    return unless self.at
+    self.errors.add(:at, 'Cannot create a game in the past') if self.over?
+  end
+  
+end
+~~~
+
+
+### Adding a new player
+
+Lastly we need to be able to add a new player that we haven't played with before. We'll just add a textfield where the user can add an email address. When the form is submitted then we use the email to find an existing player (User) or an existing external\_player. If we don't find either then we create a new external player and add it to the game. 
+
+Let's write a test:
+
+~~~ruby
+
+~~~
 
 ## Testing the edit/updates actions
 
