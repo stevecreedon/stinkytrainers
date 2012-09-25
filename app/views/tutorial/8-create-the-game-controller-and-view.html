@@ -1083,7 +1083,7 @@ game[at(5i)]</p>
 
 <p>Let&#39;s add a control group that iterates through the signed-in user&#39;s players collection and creates a checkbox for each one.</p>
 <div class="highlight"><pre><span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;control-group &lt;%= &quot;</span><span class="n">error</span><span class="s2">&quot; if @game.errors.any? %&gt;&quot;</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="sx">%= f.label :players, :class =</span><span class="o">&gt;</span> <span class="s1">&#39;control-label&#39;</span> <span class="sx">%&gt;</span>
+    <span class="o">&lt;</span><span class="sx">%= label_tag :players, nil, :class =</span><span class="o">&gt;</span> <span class="s1">&#39;control-label&#39;</span> <span class="sx">%&gt;</span>
 <span class="sx">    &lt;div class=&#39;controls&#39; id=&quot;players&quot;&gt;</span>
         <span class="o">&lt;</span><span class="sx">% current_user.players.each </span><span class="k">do</span> <span class="o">|</span><span class="n">player</span><span class="o">|</span> <span class="sx">%&gt;</span>
 <span class="sx">         &lt;%= check_box_tag &quot;game[player_ids][]&quot;, player.id, @game.players.include?(player), :id =&gt;</span> <span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="sx">%&gt; &lt;%= player.email %&gt;</span><span class="o">&lt;</span><span class="n">br</span><span class="o">/&gt;</span>
@@ -1156,7 +1156,7 @@ game[at(5i)]</p>
 
 <p>Let&#39;s add a control group that iterates through the signed-in user&#39;s external_players collection and creates a checkbox for each one.</p>
 <div class="highlight"><pre><span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;control-group &lt;%= &quot;</span><span class="n">error</span><span class="s2">&quot; if @game.errors.any? %&gt;&quot;</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="sx">%= f.label :players_not_on_stinky_trainers, :class =</span><span class="o">&gt;</span> <span class="s1">&#39;control-label&#39;</span> <span class="sx">%&gt;</span>
+    <span class="o">&lt;</span><span class="sx">%= label\_tag :players\_not\_on\_stinky\_trainers, nil, :class =</span><span class="o">&gt;</span> <span class="s1">&#39;control-label&#39;</span> <span class="sx">%&gt;</span>
 <span class="sx">    &lt;div class=&#39;controls&#39; id=&quot;external_players&quot;&gt;</span>
         <span class="o">&lt;</span><span class="sx">% current_user.external_players.each </span><span class="k">do</span> <span class="o">|</span><span class="n">external_player</span><span class="o">|</span> <span class="sx">%&gt;</span>
 <span class="sx">            &lt;%= check_box_tag &quot;game[external_player_ids][]&quot;, external_player.id, @game.external_players.include?(external_player), :id =&gt;</span> <span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">external_player</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="sx">%&gt; &lt;%= external_player.email %&gt;</span><span class="o">&lt;</span><span class="n">br</span><span class="o">/&gt;</span>
@@ -1365,13 +1365,595 @@ game[at(5i)]</p>
 
 <p>Lastly we need to be able to add a new player that we haven&#39;t played with before. We&#39;ll just add a textfield where the user can add an email address. When the form is submitted then we use the email to find an existing player (User) or an existing external_player. If we don&#39;t find either then we create a new external player and add it to the game. </p>
 
-<p>Let&#39;s write a test:</p>
-<div class="highlight"><pre>
+<p>Let&#39;s write some draft tests:</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should add a player where the email matches an existing user&#39;</span>
+<span class="n">it</span> <span class="s1">&#39;should add an external player where the email doesn&#39;</span><span class="n">t</span> <span class="n">match</span> <span class="n">an</span> <span class="n">existing</span> <span class="n">user</span> <span class="n">but</span> <span class="n">matches</span> <span class="n">an</span> <span class="n">existing</span> <span class="no">External</span> <span class="no">Player</span>
+<span class="n">it</span> <span class="s1">&#39;should create and add an external player where the email doesn&#39;</span><span class="n">t</span> <span class="n">match</span> <span class="n">an</span> <span class="n">existing</span> <span class="n">user</span> <span class="ow">or</span> <span class="n">external</span> <span class="n">player</span><span class="err">&#39;</span> 
 </pre></div>
+
+<p>Before we start with our integration tests, there&#39;s a little bit of business logic going on here and I don&#39;t want to put it into our controller so we;re going to go back and add a method to the Game class <code>add_new_player</code> that accepts an email as an argument then looks for a User with that email, an External Player with that email or otherwise creates an ExternalPlayer.</p>
+
+<p>Let&#39;s write some tests in <code>spec/models/game_spec.rb</code></p>
+
+<p>ruby~~~
+it &#39;should add a user to players if a user with the email exists&#39;
+it &#39;should add an external player to external players if an external player with the email exists&#39;
+it &#39;should create an external player and add it to external players if no user or external player exists&#39;
+~~~</p>
+
+<h4>it &#39;should add a user to players if a user with the email exists&#39;</h4>
+
+<p>Let&#39;s write a test for our game model that:</p>
+
+<ol>
+<li>creates a game</li>
+<li>creates a user</li>
+<li>calls <code>add_new_player</code> on game with the email of the user we created</li>
+<li>checks that the user has been added to game.</li>
+</ol>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should add a user to players if a user with the email exists&#39;</span> <span class="k">do</span>
+  <span class="n">player</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+  <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">add</span><span class="p">\</span><span class="n">_new</span><span class="p">\</span><span class="n">_player</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="o">[</span><span class="n">player</span><span class="o">]</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>To get the test passing we need to code the game.add_new_player(email) method. In our <code>models/game.rb</code> class add this code:</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">add</span><span class="p">\</span><span class="n">_new</span><span class="p">\</span><span class="n">_player</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">player</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find_by_email</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+      <span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>the test should now pass</p>
+<div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rake</span> <span class="n">spec</span>
+</pre></div>
+
+<h4>it &#39;should add a user to players if a user with the email exists&#39;</h4>
+
+<p>This test is similar to our previous one.</p>
+
+<ol>
+<li>creates a game</li>
+<li>creates an external player</li>
+<li>calls <code>add_new_player</code> on game with the email of the external player we created</li>
+<li>checks that the external has been added to game.</li>
+</ol>
+
+<p>it &#39;should add a user to players if a user with the email exists&#39; do
+  external<em>player = FactoryGirl.create(:external</em>player)
+  game = FactoryGirl.create(:game)
+  game.add<em>new</em>player(external<em>player.email)
+  game.external</em>players.should == [external_player]
+end</p>
+
+<p>To get the test passing we need to extend the code in game.add_new_player(email). Add the <code>if (player = ExternalPlayer.find_by_email(email))</code> code block to <code>app/models/game.rb</code></p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">add</span><span class="p">\</span><span class="n">_new</span><span class="p">\</span><span class="n">_player</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">player</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find_by_email</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+      <span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">player</span> <span class="o">=</span> <span class="no">ExternalPlayer</span><span class="o">.</span><span class="n">find_by_email</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+      <span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>the test should now pass</p>
+<div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rake</span> <span class="n">spec</span>
+</pre></div>
+
+<h4>it &#39;should create an external player and add it to external players if no user or external player exists&#39;</h4>
+
+<p>This test expects us to create and add an external player when we provide an email that doesn&#39;t exists.</p>
+
+<ol>
+<li>Create a game</li>
+<li>Call <code>game.add_new_player</code> with an email that doesn&#39;t exist as a user or external player. We won&#39;t create any users or external players so it&#39;s safe to assume this email doesn&#39;t exists.</li>
+<li>Wrap the call to <code>game.add_new_player</code> in a block that expects us to increase the number of external players by 1.</li>
+<li>Find the newly created external player and ensure that the game has this player in its external players collection.</li>
+</ol>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should create an external player and add it to external players if no user or external player exists&#39;</span> <span class="k">do</span>
+    <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">{</span>
+     <span class="n">game</span><span class="o">.</span><span class="n">add_new_player</span><span class="p">(</span><span class="s1">&#39;test@testxyz.co.xy&#39;</span><span class="p">)</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">to</span> <span class="n">change</span><span class="p">{</span><span class="no">ExternalPlayer</span><span class="o">.</span><span class="n">count</span><span class="p">}</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">external_player</span> <span class="o">=</span> <span class="no">ExternalPlayer</span><span class="o">.</span><span class="n">find_by_email</span><span class="p">(</span><span class="s1">&#39;test@testxyz.co.xy&#39;</span><span class="p">)</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">external_players</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="o">[</span><span class="n">external_player</span><span class="o">]</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>To get the test passing we need to extend the code in game.add_new_player(email) once again. Add the line <code>external_players.create!(:email =&gt; email)</code> to <code>app/models/game.rb</code></p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">add</span><span class="p">\</span><span class="n">_new</span><span class="p">\</span><span class="n">_player</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">player</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find_by_email</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+      <span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">player</span> <span class="o">=</span> <span class="no">ExternalPlayer</span><span class="o">.</span><span class="n">find_by_email</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+      <span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
+
+    <span class="n">external_players</span><span class="o">.</span><span class="n">create!</span><span class="p">(</span><span class="ss">:email</span> <span class="o">=&gt;</span> <span class="n">email</span><span class="p">)</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>the test should now pass</p>
+<div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rake</span> <span class="n">spec</span>
+</pre></div>
+
+<h3>8.5.9. it &#39;should add a player where the email matches an existing user&#39;</h3>
+
+<p>So that&#39;s the additional logic to our game model written and tested. Now we can return to our integration tests for the game controller. From above they were:</p>
+<div class="highlight"><pre> <span class="n">it</span> <span class="s1">&#39;should add a player where the email matches an existing user&#39;</span>
+ <span class="n">it</span> <span class="s1">&#39;should add an external player where the email doesn&#39;</span><span class="n">t</span> <span class="n">match</span> <span class="n">an</span> <span class="n">existing</span> <span class="n">user</span> <span class="n">but</span> <span class="n">matches</span> <span class="n">an</span> <span class="n">existing</span> <span class="no">External</span> <span class="no">Player</span>
+ <span class="n">it</span> <span class="s1">&#39;should create and add an external player where the email doesn&#39;</span><span class="n">t</span> <span class="n">match</span> <span class="n">an</span> <span class="n">existing</span> <span class="n">user</span> <span class="ow">or</span> <span class="n">external</span> <span class="n">player</span><span class="err">&#39;</span> 
+</pre></div>
+
+<p>Hmmm, they look very similar to the three model tests we just wrote. Because we pushed the logic into the model and out of the controller, our controller tests are now just doing the same thing as our model tests. In each of these three integration tests our controller would be calling the same line of code <code>@game.add_new_player(email)</code>. So, I&#39;m going to scrap these tests - which is good model tests are always more succinct than integration tests - and replace them by two simpler integration tests:</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should call add\_new\_player&#39;</span> <span class="n">on</span> <span class="n">creating</span> <span class="n">a</span> <span class="n">valid</span> <span class="n">game</span> <span class="k">when</span> <span class="n">a</span> <span class="kp">new</span> <span class="n">player</span> <span class="n">email</span> <span class="n">is</span> <span class="n">provided</span><span class="s1">&#39;</span>
+<span class="s1">it &#39;</span><span class="n">should</span> <span class="ow">not</span> <span class="n">call</span> <span class="n">add</span><span class="p">\</span><span class="n">_new</span><span class="p">\</span><span class="n">_player</span><span class="s1">&#39; on creating a valid game when no new player email is provided&#39;</span>  
+<span class="n">it</span> <span class="s1">&#39;should not call add\_new\_player&#39;</span> <span class="n">on</span> <span class="n">creating</span> <span class="n">an</span> <span class="n">invalid</span> <span class="n">game</span> <span class="k">when</span> <span class="n">a</span> <span class="kp">new</span> <span class="n">player</span> <span class="n">email</span> <span class="n">is</span> <span class="ow">not</span> <span class="n">provided</span><span class="err">&#39;</span>
+</pre></div>
+
+<h4>it &#39;should call add_new_player&#39; on creating a valid game when a new player email is provided&#39;</h4>
+
+<p>A slight confession before we write the three above tests. They&#39;re not integration tests, they&#39;re controller tests we said earlier that we weren&#39;t going to do. What makes it a controller test and not an integration test ? If you look at the the three draft tests above, they all require a method to be called (or not called) inside of the controller. Integration test generally emulate the user experience while controller &amp; view tests define what the application is doing under the hood. We could, of course, write the draft integration tests we intially envisaged even though they pretty much shadow our model tests for <code>game.add_new_player</code> but we&#39;re here to learn and this is a good opportunity to do a little old-school controller testing.</p>
+
+<p>If it doesn&#39;t exists, create a file spec/controllers/games<em>controller</em>spec.rb with the code</p>
+<div class="highlight"><pre><span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
+
+<span class="n">describe</span> <span class="no">GamesController</span> <span class="k">do</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>Let&#39;s write a test for our games controller that makes sure add_new_player get&#39;s called for a valid game and when a new player email is provided.</p>
+
+<ol>
+<li>We sign_in a user </li>
+<li>We create an instance of game with FactoryGirl and set an expectation on that instance that add_new_player will be called once with the email address &#39;test@yxz.wx.yz&#39; <code>game.should_receive(:add_new_player).with(&#39;test@yxz.wx.yz&#39;)</code></li>
+<li>We also stub our instance of game so that it returns true when we call <code>@game.save</code>. This simulates the game being valid and saves us providing lots of parameters we don&#39;t need. All we do is provide the arbitrary string &#39;game params&#39;.</li>
+<li>Then - and this isn&#39;t pretty - we have to stub Game.new so that it returns the instance of game we&#39;ve already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don&#39;t stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.</li>
+<li>Lastly we call <code>post create</code> to call the action on our controller passing it the new_player and game params.</li>
+</ol>
+<div class="highlight"><pre><span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
+
+<span class="n">describe</span> <span class="no">GamesController</span> <span class="k">do</span>
+
+  <span class="n">it</span> <span class="s1">&#39;should call add_new_player on creating a valid game when a new player email is provided&#39;</span> <span class="k">do</span>
+
+      <span class="n">sign_in</span> <span class="ss">:user</span><span class="p">,</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+
+      <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
+      <span class="n">game</span><span class="o">.</span><span class="n">should_receive</span><span class="p">(</span><span class="ss">:add_new_player</span><span class="p">)</span><span class="o">.</span><span class="n">with</span><span class="p">(</span><span class="s1">&#39;test@yxz.wx.yz&#39;</span><span class="p">)</span>
+      <span class="n">game</span><span class="o">.</span><span class="n">stub</span><span class="p">(</span><span class="ss">:save</span><span class="p">)</span><span class="o">.</span><span class="n">and_return</span><span class="p">(</span><span class="kp">true</span><span class="p">)</span>
+      <span class="no">Game</span><span class="o">.</span><span class="n">stub</span><span class="p">(</span><span class="ss">:new</span><span class="p">)</span><span class="o">.</span><span class="n">with</span><span class="p">(</span><span class="s1">&#39;game params&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">and_return</span><span class="p">(</span><span class="n">game</span><span class="p">)</span>
+
+      <span class="n">post</span> <span class="s1">&#39;create&#39;</span><span class="p">,</span> <span class="ss">:new_player</span> <span class="o">=&gt;</span> <span class="s1">&#39;test@yxz.wx.yz&#39;</span><span class="p">,</span> <span class="ss">:game</span> <span class="o">=&gt;</span> <span class="s1">&#39;game params&#39;</span>
+
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>To get this test passing we need some code in our games controllers create method</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">create</span>
+    <span class="vi">@game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:game</span><span class="o">]</span><span class="p">)</span>
+    <span class="vi">@game</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">current_user</span>
+    <span class="vi">@game</span><span class="o">.</span><span class="n">add</span><span class="p">\</span><span class="n">_new</span><span class="p">\</span><span class="n">_player</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:new</span><span class="p">\</span><span class="n">_player</span><span class="o">]</span><span class="p">)</span>
+    <span class="k">if</span> <span class="vi">@game</span><span class="o">.</span><span class="n">save</span>
+        <span class="n">redirect</span><span class="p">\</span><span class="n">_to</span> <span class="n">game</span><span class="p">\</span><span class="n">_path</span><span class="p">(</span><span class="vi">@game</span><span class="p">)</span>
+    <span class="k">else</span>
+        <span class="n">render</span> <span class="ss">:template</span> <span class="o">=&gt;</span> <span class="s1">&#39;games/new.html.erb&#39;</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The test should now pass:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<h4>it &#39;should not call add_new_player on creating a valid game when a &#39;new player&#39; email is not provided&#39;</h4>
+
+<p>This test is the opposite of our previous test and also a controller test except this time we don&#39;t provide the new_player parameter and expect that add_new_player is never called - <code>game.should_receive(:add_new_player).with(anything).never</code></p>
+
+<ol>
+<li>We sign_in a user </li>
+<li>We create an instance of game with FactoryGirl and set an expectation on that instance that add_new_player will never be called.</li>
+<li>We also stub our instance of game so that it returns true when we call <code>@game.save</code>. This simulates the game being valid and saves us providing lots of parameters we don&#39;t need. All we do is provide the arbitrary string &#39;game params&#39;.</li>
+<li>Once again we have to stub Game.new so that it returns the instance of game we&#39;ve already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don&#39;t stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.</li>
+<li>Lastly we call <code>post create</code> but this time don&#39;t pass the new_player params.</li>
+</ol>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should not call add\_new\_player on creating a valid game when a new player email is not provided&#39;</span> <span class="k">do</span>
+
+    <span class="n">sign_in</span> <span class="ss">:user</span><span class="p">,</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+
+    <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">stub</span><span class="p">(</span><span class="ss">:save</span><span class="p">)</span><span class="o">.</span><span class="n">and_return</span><span class="p">(</span><span class="kp">true</span><span class="p">)</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">should_receive</span><span class="p">(</span><span class="ss">:add_new_player</span><span class="p">)</span><span class="o">.</span><span class="n">with</span><span class="p">(</span><span class="n">anything</span><span class="p">)</span><span class="o">.</span><span class="n">never</span>
+    <span class="no">Game</span><span class="o">.</span><span class="n">stub</span><span class="p">(</span><span class="ss">:new</span><span class="p">)</span><span class="o">.</span><span class="n">with</span><span class="p">(</span><span class="s1">&#39;game params&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">and_return</span><span class="p">(</span><span class="n">game</span><span class="p">)</span>
+
+    <span class="n">post</span> <span class="s1">&#39;create&#39;</span><span class="p">,</span> <span class="ss">:game</span> <span class="o">=&gt;</span> <span class="s1">&#39;game params&#39;</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>to get this test working we have to add a condition <code>unless params[:new_player].blank?</code> to the line of code we added in the previous test in <code>app/controllers/games_controller.rb</code></p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">create</span>
+    <span class="vi">@game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:game</span><span class="o">]</span><span class="p">)</span>
+    <span class="vi">@game</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">current_user</span>
+    <span class="vi">@game</span><span class="o">.</span><span class="n">add_new_player</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:new</span><span class="p">\</span><span class="n">_player</span><span class="o">]</span><span class="p">)</span> <span class="k">unless</span> <span class="n">params</span><span class="o">[</span><span class="ss">:new_player</span><span class="o">].</span><span class="n">blank?</span>
+    <span class="k">if</span> <span class="vi">@game</span><span class="o">.</span><span class="n">save</span>
+        <span class="n">redirect_to</span> <span class="n">game_path</span><span class="p">(</span><span class="vi">@game</span><span class="p">)</span>
+    <span class="k">else</span>
+        <span class="n">render</span> <span class="ss">:template</span> <span class="o">=&gt;</span> <span class="s1">&#39;games/new.html.erb&#39;</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The test should now pass:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<h4>it &#39;should not call add_new_player on creating an invalid game even when a new player email is provided&#39;</h4>
+
+<p>This is the last controller spec test for the time being. We don&#39;t want <code>game.add_new_player</code> to be called if the game isn&#39;t valid.</p>
+
+<ol>
+<li>We sign_in a user </li>
+<li>We create an instance of game with FactoryGirl and set an expectation on that instance that add_new_player will never be called.</li>
+<li>We also stub our instance of game so that it returns false when we call <code>@game.save</code>. This simulates the game being invalid.</li>
+<li>Once again we have to stub Game.new so that it returns the instance of game we&#39;ve already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don&#39;t stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.</li>
+<li>Lastly we call <code>post create</code> to call the action on our controller passing it the new_player and game params.</li>
+</ol>
+
+<p>Still in <code>spec/controllers/games_controller_spec.rb</code></p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should not call add\_new\_player on creating an invalid game even when a new player email is provided&#39;</span> <span class="k">do</span>
+
+    <span class="n">sign_in</span> <span class="ss">:user</span><span class="p">,</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+
+    <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">)</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">stub</span><span class="p">(</span><span class="ss">:save</span><span class="p">)</span><span class="o">.</span><span class="n">and_return</span><span class="p">(</span><span class="kp">false</span><span class="p">)</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">should_receive</span><span class="p">(</span><span class="ss">:add_new_player</span><span class="p">)</span><span class="o">.</span><span class="n">with</span><span class="p">(</span><span class="s1">&#39;test@yxz.wx.yz&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">never</span>
+    <span class="no">Game</span><span class="o">.</span><span class="n">stub</span><span class="p">(</span><span class="ss">:new</span><span class="p">)</span><span class="o">.</span><span class="n">with</span><span class="p">(</span><span class="s1">&#39;game params&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">and_return</span><span class="p">(</span><span class="n">game</span><span class="p">)</span>
+
+    <span class="n">post</span> <span class="s1">&#39;create&#39;</span><span class="p">,</span> <span class="ss">:new_player</span> <span class="o">=&gt;</span> <span class="s1">&#39;test@yxz.wx.yz&#39;</span><span class="p">,</span> <span class="ss">:game</span> <span class="o">=&gt;</span> <span class="s1">&#39;game params&#39;</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>To get this test passing we just move our <code>add_new_player</code> code inside the <code>if @game.save</code> block so that it only gets called when the game is successfully saved. This brings us onto an interesting point about ActiveRecord associations. If the object has been saved to the database, the association gets created as soon as you add something to it. You don&#39;t have to call <code>game.save</code> again.</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">create</span>
+  <span class="vi">@game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:game</span><span class="o">]</span><span class="p">)</span>
+  <span class="vi">@game</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">current_user</span>
+
+  <span class="k">if</span> <span class="vi">@game</span><span class="o">.</span><span class="n">save</span>
+    <span class="vi">@game</span><span class="o">.</span><span class="n">add_new_player</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:new_player</span><span class="o">]</span><span class="p">)</span> <span class="k">unless</span> <span class="n">params</span><span class="o">[</span><span class="ss">:new_player</span><span class="o">].</span><span class="n">blank?</span>
+    <span class="n">redirect_to</span> <span class="n">game_path</span><span class="p">(</span><span class="vi">@game</span><span class="p">)</span>
+  <span class="k">else</span>
+    <span class="n">render</span> <span class="ss">:template</span> <span class="o">=&gt;</span> <span class="s1">&#39;games/new.html.erb&#39;</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The test should now pass:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<p>That&#39;ll be the end of our controller specs for the time being. They served a purpose - and sometimes they are the best solution - but I&#39;m pretty sure you&#39;ll agree that they don&#39;t feel quite as relevant as integration tests particularly since we have to mock and stub so many things to get them working.</p>
 
 <p><a href="#top">back to top</a></p>
 
 <h2><a id='testing-the-edit-updates-actions'></a> 8.6. Testing the edit/updates actions</h2>
+
+<p>This will be similar to the test for new/create except that in each case we&#39;ll create the game first with FactoryGirl then edit it.</p>
+
+<h3>8.6.1. it &#39;should update a valid game and redirect to the show page&#39;</h3>
+
+<p>We&#39;ll create a game with FactoryGirl, change the time, submit it, navigate back to the edit screen and make sure our new values are there.</p>
+
+<ol>
+<li>Create a game with a unique location Guid.</li>
+<li>Visit the index page</li>
+<li>Click the edit link for our game</li>
+<li>Ensure we are on the edit page</li>
+<li>Check the details in the form are the same as those in the game we created</li>
+<li>Move the game on by a year</li>
+<li>Click the &#39;Update Game&#39; button</li>
+<li>Find the game using it&#39;s unique location Guid and make sure the year has been updated.</li>
+</ol>
+<div class="highlight"><pre><span class="n">describe</span> <span class="s1">&#39;editing games&#39;</span> <span class="k">do</span>
+
+    <span class="n">it</span> <span class="s1">&#39;should update a valid game and redirect to the show page&#39;</span> <span class="k">do</span>
+
+      <span class="n">unique_location</span> <span class="o">=</span> <span class="no">SecureRandom</span><span class="o">.</span><span class="n">uuid</span>
+
+      <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">,</span> <span class="ss">:location</span> <span class="o">=&gt;</span> <span class="n">unique_location</span><span class="p">)</span>
+
+      <span class="n">visit</span> <span class="n">games_path</span>
+
+      <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+          <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;edit&#39;</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">edit_game_path</span><span class="p">(</span><span class="n">game</span><span class="p">)</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;Location&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;Sport&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game</span><span class="o">.</span><span class="n">sport</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;game[at(1i)]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">year</span><span class="o">.</span><span class="n">to_s</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;game[at(2i)]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="no">Date</span><span class="o">::</span><span class="no">MONTHNAMES</span><span class="o">[</span><span class="n">game</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">month</span><span class="o">]</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;game[at(3i)]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">day</span><span class="o">.</span><span class="n">to_s</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;game[at(4i)]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">hour</span><span class="o">.</span><span class="n">to_s</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;game[at(5i)]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">min</span><span class="o">.</span><span class="n">to_s</span><span class="p">)</span>
+
+      <span class="n">updated_year</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">year</span> <span class="o">+</span> <span class="mi">1</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">updated_year</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span> <span class="ss">:from</span> <span class="o">=&gt;</span> <span class="s2">&quot;game[at(1i)]&quot;</span><span class="p">)</span>
+
+      <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Update Game&#39;</span><span class="p">)</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">game_path</span><span class="p">(</span><span class="n">game</span><span class="p">)</span>
+
+      <span class="n">updated_game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">find_by_location</span><span class="p">(</span><span class="n">unique_location</span><span class="p">)</span>
+
+      <span class="n">updated_game</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">year</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">updated_year</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s1">&#39;should edit a game and return then to the edit page with their edited input when incorrect parameters are provided&#39;</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>To get this test passing we&#39;ll need an edit link <code>&lt;td&gt;&lt;%= link_to &#39;edit&#39;, edit_game_path(game) %&gt;&lt;/td&gt;</code> to the index page <code>app/views/games/index.html.erb</code></p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Games</span><span class="c1">#index&lt;/h1&gt;</span>
+
+<span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="no">Game</span> <span class="n">I</span> <span class="n">have</span> <span class="n">created</span><span class="o">&lt;</span><span class="sr">/h2&gt;</span>
+<span class="sr">&lt;table id=&quot;owned_games&quot;&gt;</span>
+<span class="sr">    &lt;% @owned_games.each do |game| %&gt;</span>
+<span class="sr">    &lt;tr data-row=&#39;game_&lt;%= game.id %&gt;&#39;&gt;</span>
+<span class="sr">        &lt;td&gt;&lt;%= game.sport.name %&gt;&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;&lt;</span><span class="sx">%= game.location %&gt;&lt;/td&gt;</span>
+<span class="sx">        &lt;td&gt;&lt;%=</span> <span class="n">game</span><span class="o">.</span><span class="n">at</span> <span class="sx">%&gt;&lt;/td&gt;</span>
+        <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;&lt;</span><span class="sx">%= link_to &#39;edit&#39;, edit_game_path(game) %&gt;&lt;/td&gt;</span>
+<span class="sx">    &lt;/tr&gt;</span>
+<span class="sx">    &lt;% end %&gt;</span>
+<span class="sx">&lt;/table&gt;</span>
+
+<span class="sx">&lt;h2&gt;Game I am playing&lt;/h2&gt;</span>
+<span class="sx">&lt;table id=</span><span class="s2">&quot;games&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="sx">% @games.each </span><span class="k">do</span> <span class="o">|</span><span class="n">game</span><span class="o">|</span> <span class="sx">%&gt;</span>
+<span class="sx">    &lt;tr data-row=&#39;game_&lt;%= game.id %&gt;</span><span class="s1">&#39;&gt;</span>
+<span class="s1">        &lt;td&gt;&lt;%= game.sport.name %&gt;&lt;/td&gt;</span>
+<span class="s1">        &lt;td&gt;&lt;%= game.location %&gt;&lt;/td&gt;</span>
+<span class="s1">        &lt;td&gt;&lt;%= game.at %&gt;&lt;/td&gt;</span>
+<span class="s1">    &lt;/tr&gt;</span>
+<span class="s1">    &lt;% end %&gt;</span>
+<span class="s1">&lt;/table&gt;</span>
+
+<span class="s1">&lt;%= link_to &#39;</span><span class="no">Create</span> <span class="no">Game</span><span class="s1">&#39;, new_game_path, :class =&gt; &#39;</span><span class="n">btn</span> <span class="n">btn</span><span class="o">-</span><span class="n">primary</span><span class="err">&#39;</span> <span class="o">%&gt;</span>
+</pre></div>
+
+<p>We&#39;ll also need to include our form partial in the <code>app/views/games/edit.html.erb</code> page</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Games</span><span class="c1">#edit&lt;/h1&gt;</span>
+<span class="o">&lt;%=</span> <span class="n">render</span> <span class="s1">&#39;form&#39;</span> <span class="o">%&gt;</span>
+</pre></div>
+
+<p>and we&#39;ll need to find our game based on the id parameter passed in our <code>link_to &#39;edit&#39;, edit_game_path(game)</code> above. In our <code>app/controllers/games_controller.rb</code> update the edit method.</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">edit</span>
+  <span class="vi">@game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>then we&#39;ll need to add code to the update action of our games_controller</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">update</span>
+   <span class="vi">@game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+   <span class="vi">@game</span><span class="o">.</span><span class="n">update_attributes</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:game</span><span class="o">]</span><span class="p">)</span>
+   <span class="n">redirect</span><span class="p">\</span><span class="n">_to</span> <span class="n">game</span><span class="p">\</span><span class="n">_path</span><span class="p">(</span><span class="vi">@game</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>The test should now pass:</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<h3>8.6.2. it &#39;should not update an invalid game and display the edit page with the invalid data&#39;</h3>
+
+<p>In this test we need to create a game, make some changes so that it&#39;s invalid and make sure those changes appear on the edit page that is returned to us when we submit the form.</p>
+
+<ol>
+<li>Create a game with a unique location Guid.</li>
+<li>Visit the index page</li>
+<li>Click the edit link for our game</li>
+<li>Set the sport to the first empty option</li>
+<li>Change the location</li>
+<li>Update the Game</li>
+<li>Ensure that the empty sport and the changed location are on the form that&#39;s returned.</li>
+</ol>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should not update an invalid game and display the edit page with the invalid data&#39;</span> <span class="k">do</span>
+
+    <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+
+    <span class="n">visit</span> <span class="n">games_path</span>
+
+    <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;edit&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="ss">:from</span> <span class="o">=&gt;</span> <span class="s2">&quot;Sport&quot;</span><span class="p">)</span> <span class="c1">#ensure the update fails</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">fill_in</span><span class="p">(</span><span class="s2">&quot;Location&quot;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="s2">&quot;Updated location&quot;</span><span class="p">)</span>
+
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Update Game&#39;</span><span class="p">)</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">edit_game_path</span><span class="p">(</span><span class="n">game</span><span class="p">)</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;Sport&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find_field</span><span class="p">(</span><span class="s1">&#39;Location&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Updated location&quot;</span><span class="p">)</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>To get this test passing we&#39;ll need to amend the code in our <code>def update</code> action in the <code>app/controllers/games_controller.rb</code> </p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">update</span>
+   <span class="vi">@game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+   <span class="k">if</span> <span class="vi">@game</span><span class="o">.</span><span class="n">update_attributes</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:game</span><span class="o">]</span><span class="p">)</span>
+     <span class="n">redirect</span><span class="p">\</span><span class="n">_to</span> <span class="n">game</span><span class="p">\</span><span class="n">_path</span><span class="p">(</span><span class="vi">@game</span><span class="p">)</span>
+   <span class="k">else</span>
+     <span class="n">render</span> <span class="ss">:template</span> <span class="o">=&gt;</span> <span class="s1">&#39;games/edit.html.erb&#39;</span>
+   <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<h3>8.6.3. Updating players</h3>
+
+<p>We want to be able to change the players in our game. The two conditions we should check for are an update that adds and removes players plus an update that removes all players. We need this second test to be sure we&#39;ve overcome a typical HTML &#39;gotcha&#39;, when all of the checkboxes in a checkbox array are unticked then browser doesn&#39;t submit any data for the array at all so instead of clearing the players nothing happens.</p>
+
+<h3>8.6.4. it &#39;should update the games players&#39;</h3>
+
+<p>We want to be able to change the players in our game. </p>
+
+<p>Our test will</p>
+
+<ol>
+<li>Create two games, four players and add two players to each</li>
+<li>Add the signed-in user to each so that the user is connected to all of the players</li>
+<li>Navigate to the index page and click the edit link for game1</li>
+<li>Ensure the two players that we added to the game are shown as checked</li>
+<li>Ensure the two players we added to the other game are not checked</li>
+<li>Uncheck the players in the game - our signed-in user and the two players we added</li>
+<li>Check the two players we didn&#39;t add</li>
+<li>Submit the form</li>
+<li>Reload the association so that any changes are reflected</li>
+<li>Check that the game now only has the two users we checked as players</li>
+</ol>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should update the games players&#39;</span> <span class="k">do</span>
+    <span class="n">game1</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+    <span class="n">game2</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+
+    <span class="n">player1</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+    <span class="n">player2</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+    <span class="n">player3</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+    <span class="n">player4</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+
+    <span class="n">game1</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="vi">@user</span>
+    <span class="n">game1</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player1</span>
+    <span class="n">game1</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player2</span>
+
+    <span class="n">game2</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="vi">@user</span>
+    <span class="n">game2</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player3</span>
+    <span class="n">game2</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player4</span>
+
+    <span class="n">visit</span> <span class="n">games_path</span>
+
+    <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;edit&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="vi">@user</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="n">player1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="n">player2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="n">player3</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should_not</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="n">player4</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should_not</span> <span class="n">be_checked</span>
+
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="vi">@user</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">check</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player3</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">check</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player4</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Update Game&#39;</span><span class="p">)</span>
+
+    <span class="n">game1</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">reload</span>
+    <span class="n">game1</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">should</span> <span class="o">=~</span> <span class="o">[</span><span class="n">player3</span><span class="p">,</span> <span class="n">player4</span><span class="o">]</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>This should all work out of the box</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<h3>8.6.5. it &#39;should remove all of the games players&#39;</h3>
+
+<p>As we mentioned before a classic HTML gotcha is when all checkboxes are unchecked and no data is sent to the server so let&#39;s test for that.</p>
+
+<ol>
+<li>Create a game and four players</li>
+<li>Add the sig-in user and the four players to the game</li>
+<li>Navigate to the index page and click the edit link for the game</li>
+<li>Ensure all four players and the sign-in user is checked</li>
+<li>Uncheck all four players and the signed-in user</li>
+<li>Submit the form</li>
+<li>Reload the association and check that there are no players </li>
+</ol>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should remove all of the games players&#39;</span> <span class="k">do</span>
+
+    <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+
+    <span class="n">player1</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+    <span class="n">player2</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+    <span class="n">player3</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+    <span class="n">player4</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+
+    <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="vi">@user</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player1</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player2</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player3</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="n">player4</span>
+
+    <span class="n">visit</span> <span class="n">games_path</span>
+
+    <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;edit&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="vi">@user</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="n">player1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="n">player2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="n">player3</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_player_id_</span><span class="si">#{</span><span class="n">player4</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="vi">@user</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player3</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player4</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Update Game&#39;</span><span class="p">)</span>
+
+    <span class="n">game</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">reload</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">should</span> <span class="o">=~</span> <span class="o">[]</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>This test will fail. We have indeed fallen foul of the HTML gotcha because when we&#39;ve unchecked all the boxes no player_ids data is submitted and so the association just isn&#39;t updated. We can get around this by adding a hidden field with an empty value and the same name is the checkboxes. This will always be submitted and ensure that if all of the other players are unchecked the array player_ids =&gt; [&quot;&quot;] gets submitted with the request.</p>
+
+<p>Add this hidden field <code>&lt;%= hidden_field_tag &quot;game[player_ids][]&quot; %&gt;</code> to our players control group in <code>app/views/games/_form.html.erb</code></p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;control-group &lt;%= &quot;</span><span class="n">error</span><span class="s2">&quot; if @game.errors.any? %&gt;&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="sx">%= label_tag :players, nil, :class =</span><span class="o">&gt;</span> <span class="s1">&#39;control-label&#39;</span> <span class="sx">%&gt;</span>
+<span class="sx">    &lt;div class=&#39;controls&#39; id=&quot;players&quot;&gt;</span>
+        <span class="o">&lt;</span><span class="sx">% current_user.players.each </span><span class="k">do</span> <span class="o">|</span><span class="n">player</span><span class="o">|</span> <span class="sx">%&gt;</span>
+<span class="sx">         &lt;%= check_box_tag &quot;game[player_ids][]&quot;, player.id, @game.players.include?(player), :id =&gt;</span> <span class="s2">&quot;game_player_id_</span><span class="si">#{</span><span class="n">player</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="sx">%&gt; &lt;%= player.email %&gt;</span><span class="o">&lt;</span><span class="n">br</span><span class="o">/&gt;</span>
+        <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+<span class="sx">        &lt;%= hidden_field_tag &quot;game[player_ids][]&quot; %&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+<span class="sr">  &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</pre></div>
 
 <p><a href="#top">back to top</a></p>
 

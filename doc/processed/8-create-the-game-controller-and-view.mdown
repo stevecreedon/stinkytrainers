@@ -1153,7 +1153,7 @@ Let's add a control group that iterates through the signed-in user's players col
 
 ~~~ruby
 <div class="control-group <%= "error" if @game.errors.any? %>">
-    <%= f.label :players, :class => 'control-label' %>
+    <%= label_tag :players, nil, :class => 'control-label' %>
     <div class='controls' id="players">
 		<% current_user.players.each do |player| %>
 		 <%= check_box_tag "game[player_ids][]", player.id, @game.players.include?(player), :id => "game_player_id_#{player.id}" %> <%= player.email %><br/>
@@ -1233,7 +1233,7 @@ Let's add a control group that iterates through the signed-in user's external_pl
 
 ~~~ruby
 <div class="control-group <%= "error" if @game.errors.any? %>">
-    <%= f.label :players_not_on_stinky_trainers, :class => 'control-label' %>
+    <%= label\_tag :players\_not\_on\_stinky\_trainers, nil, :class => 'control-label' %>
     <div class='controls' id="external_players">
   		<% current_user.external_players.each do |external_player| %>
 			<%= check_box_tag "game[external_player_ids][]", external_player.id, @game.external_players.include?(external_player), :id => "game_external_player_id_#{external_player.id}" %> <%= external_player.email %><br/>
@@ -1451,14 +1451,633 @@ end
 
 Lastly we need to be able to add a new player that we haven't played with before. We'll just add a textfield where the user can add an email address. When the form is submitted then we use the email to find an existing player (User) or an existing external\_player. If we don't find either then we create a new external player and add it to the game. 
 
-Let's write a test:
+Let's write some draft tests:
 
 ~~~ruby
-
+it 'should add a player where the email matches an existing user'
+it 'should add an external player where the email doesn't match an existing user but matches an existing External Player
+it 'should create and add an external player where the email doesn't match an existing user or external player' 
 ~~~
+
+Before we start with our integration tests, there's a little bit of business logic going on here and I don't want to put it into our controller so we;re going to go back and add a method to the Game class `add_new_player` that accepts an email as an argument then looks for a User with that email, an External Player with that email or otherwise creates an ExternalPlayer.
+
+Let's write some tests in `spec/models/game_spec.rb`
+
+ruby~~~
+it 'should add a user to players if a user with the email exists'
+it 'should add an external player to external players if an external player with the email exists'
+it 'should create an external player and add it to external players if no user or external player exists'
+~~~
+
+#### it 'should add a user to players if a user with the email exists'
+Let's write a test for our game model that:
+
+1. creates a game
+1. creates a user
+1. calls `add_new_player` on game with the email of the user we created
+1. checks that the user has been added to game.
+
+~~~ruby
+it 'should add a user to players if a user with the email exists' do
+  player = FactoryGirl.create(:user)
+  game = FactoryGirl.create(:game)
+  game.add\_new\_player(player.email)
+  game.players.should == [player]
+end
+~~~
+
+To get the test passing we need to code the game.add\_new\_player(email) method. In our `models/game.rb` class add this code:
+
+~~~ruby
+def add\_new\_player(email)
+
+	if (player = User.find_by_email(email))
+	  players << player
+	  return
+	end
+	
+end
+~~~
+
+the test should now pass
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+#### it 'should add a user to players if a user with the email exists'
+This test is similar to our previous one.
+
+1. creates a game
+1. creates an external player
+1. calls `add_new_player` on game with the email of the external player we created
+1. checks that the external has been added to game.
+
+
+it 'should add a user to players if a user with the email exists' do
+  external_player = FactoryGirl.create(:external_player)
+  game = FactoryGirl.create(:game)
+  game.add_new_player(external_player.email)
+  game.external_players.should == [external_player]
+end
+
+To get the test passing we need to extend the code in game.add\_new\_player(email). Add the `if (player = ExternalPlayer.find_by_email(email))` code block to `app/models/game.rb`
+
+~~~ruby
+def add\_new\_player(email)
+
+	if (player = User.find_by_email(email))
+	  players << player
+	  return
+	end
+	
+	if (player = ExternalPlayer.find_by_email(email))
+      external_players << player
+      return
+    end
+	
+end
+~~~
+
+the test should now pass
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+
+
+#### it 'should create an external player and add it to external players if no user or external player exists'
+This test expects us to create and add an external player when we provide an email that doesn't exists.
+
+1. Create a game
+1. Call `game.add_new_player` with an email that doesn't exist as a user or external player. We won't create any users or external players so it's safe to assume this email doesn't exists.
+1. Wrap the call to `game.add_new_player` in a block that expects us to increase the number of external players by 1.
+1. Find the newly created external player and ensure that the game has this player in its external players collection.
+
+~~~ruby
+it 'should create an external player and add it to external players if no user or external player exists' do
+    game = FactoryGirl.create(:game)
+
+    expect{
+     game.add_new_player('test@testxyz.co.xy')
+    }.to change{ExternalPlayer.count}.by(1)
+
+    external_player = ExternalPlayer.find_by_email('test@testxyz.co.xy')
+    game.external_players.should == [external_player]
+end
+~~~
+
+To get the test passing we need to extend the code in game.add\_new\_player(email) once again. Add the line `external_players.create!(:email => email)` to `app/models/game.rb`
+
+~~~ruby
+def add\_new\_player(email)
+
+	if (player = User.find_by_email(email))
+	  players << player
+	  return
+	end
+	
+	if (player = ExternalPlayer.find_by_email(email))
+      external_players << player
+      return
+    end
+
+    external_players.create!(:email => email)
+	
+end
+~~~
+
+the test should now pass
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+
+### 8.5.9. it 'should add a player where the email matches an existing user'
+So that's the additional logic to our game model written and tested. Now we can return to our integration tests for the game controller. From above they were:
+
+~~~ruby
+ it 'should add a player where the email matches an existing user'
+ it 'should add an external player where the email doesn't match an existing user but matches an existing External Player
+ it 'should create and add an external player where the email doesn't match an existing user or external player' 
+~~~
+
+Hmmm, they look very similar to the three model tests we just wrote. Because we pushed the logic into the model and out of the controller, our controller tests are now just doing the same thing as our model tests. In each of these three integration tests our controller would be calling the same line of code `@game.add_new_player(email)`. So, I'm going to scrap these tests - which is good model tests are always more succinct than integration tests - and replace them by two simpler integration tests:
+
+~~~ruby
+it 'should call add\_new\_player' on creating a valid game when a new player email is provided'
+it 'should not call add\_new\_player' on creating a valid game when no new player email is provided'  
+it 'should not call add\_new\_player' on creating an invalid game when a new player email is not provided'
+~~~
+
+#### it 'should call add\_new\_player' on creating a valid game when a new player email is provided'
+A slight confession before we write the three above tests. They're not integration tests, they're controller tests we said earlier that we weren't going to do. What makes it a controller test and not an integration test ? If you look at the the three draft tests above, they all require a method to be called (or not called) inside of the controller. Integration test generally emulate the user experience while controller & view tests define what the application is doing under the hood. We could, of course, write the draft integration tests we intially envisaged even though they pretty much shadow our model tests for `game.add_new_player` but we're here to learn and this is a good opportunity to do a little old-school controller testing.
+
+If it doesn't exists, create a file spec/controllers/games_controller_spec.rb with the code
+
+~~~ruby
+require 'spec_helper'
+
+describe GamesController do
+
+end
+~~~
+
+Let's write a test for our games controller that makes sure add\_new\_player get's called for a valid game and when a new player email is provided.
+
+1. We sign\_in a user 
+1. We create an instance of game with FactoryGirl and set an expectation on that instance that add\_new\_player will be called once with the email address 'test@yxz.wx.yz' `game.should_receive(:add_new_player).with('test@yxz.wx.yz')`
+1. We also stub our instance of game so that it returns true when we call `@game.save`. This simulates the game being valid and saves us providing lots of parameters we don't need. All we do is provide the arbitrary string 'game params'.
+1. Then - and this isn't pretty - we have to stub Game.new so that it returns the instance of game we've already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don't stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.
+1. Lastly we call `post create` to call the action on our controller passing it the new\_player and game params.
+
+
+~~~ruby
+require 'spec_helper'
+
+describe GamesController do
+  
+  it 'should call add_new_player on creating a valid game when a new player email is provided' do
+ 	  
+ 	  sign_in :user, FactoryGirl.create(:user)
+ 	  
+ 	  game = FactoryGirl.create(:game)
+ 	  game.should_receive(:add_new_player).with('test@yxz.wx.yz')
+      game.stub(:save).and_return(true)
+ 	  Game.stub(:new).with('game params').and_return(game)
+
+ 	  post 'create', :new_player => 'test@yxz.wx.yz', :game => 'game params'
+ 	  
+  end
+
+end
+~~~
+
+To get this test passing we need some code in our games controllers create method
+
+~~~ruby
+def create
+	@game = Game.new(params[:game])
+	@game.owner = current_user
+	@game.add\_new\_player(params[:new\_player])
+	if @game.save
+		redirect\_to game\_path(@game)
+	else
+		render :template => 'games/new.html.erb'
+	end
+end
+~~~ 
+
+The test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+#### it 'should not call add\_new\_player on creating a valid game when a 'new player' email is not provided'
+This test is the opposite of our previous test and also a controller test except this time we don't provide the new\_player parameter and expect that add\_new\_player is never called - `game.should_receive(:add_new_player).with(anything).never`
+
+1. We sign\_in a user 
+1. We create an instance of game with FactoryGirl and set an expectation on that instance that add\_new\_player will never be called.
+1. We also stub our instance of game so that it returns true when we call `@game.save`. This simulates the game being valid and saves us providing lots of parameters we don't need. All we do is provide the arbitrary string 'game params'.
+1. Once again we have to stub Game.new so that it returns the instance of game we've already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don't stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.
+1. Lastly we call `post create` but this time don't pass the new\_player params.
+
+
+~~~ruby
+it 'should not call add\_new\_player on creating a valid game when a new player email is not provided' do
+  
+	sign_in :user, FactoryGirl.create(:user)
+
+	game = FactoryGirl.create(:game)
+	game.stub(:save).and_return(true)
+	game.should_receive(:add_new_player).with(anything).never
+	Game.stub(:new).with('game params').and_return(game)
+
+	post 'create', :game => 'game params'
+	
+end
+~~~
+
+to get this test working we have to add a condition `unless params[:new_player].blank?` to the line of code we added in the previous test in `app/controllers/games_controller.rb`
+
+~~~ruby
+def create
+	@game = Game.new(params[:game])
+	@game.owner = current_user
+	@game.add_new_player(params[:new\_player]) unless params[:new_player].blank?
+	if @game.save
+		redirect_to game_path(@game)
+	else
+		render :template => 'games/new.html.erb'
+	end
+end
+~~~  
+
+The test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+#### it 'should not call add\_new\_player on creating an invalid game even when a new player email is provided'
+This is the last controller spec test for the time being. We don't want `game.add_new_player` to be called if the game isn't valid.
+
+1. We sign\_in a user 
+1. We create an instance of game with FactoryGirl and set an expectation on that instance that add\_new\_player will never be called.
+1. We also stub our instance of game so that it returns false when we call `@game.save`. This simulates the game being invalid.
+1. Once again we have to stub Game.new so that it returns the instance of game we've already set expectations and stubs on; unlike model specs, all this code is running inside the controller, not our test so if we don't stub Game.new it will just create a new game instance inside the controller and our FactoryGirl instance will never be used.
+1. Lastly we call `post create` to call the action on our controller passing it the new\_player and game params.
+
+Still in `spec/controllers/games_controller_spec.rb`
+
+~~~ruby
+it 'should not call add\_new\_player on creating an invalid game even when a new player email is provided' do
+  
+	sign_in :user, FactoryGirl.create(:user)
+
+	game = FactoryGirl.create(:game)
+	game.stub(:save).and_return(false)
+	game.should_receive(:add_new_player).with('test@yxz.wx.yz').never
+	Game.stub(:new).with('game params').and_return(game)
+
+	post 'create', :new_player => 'test@yxz.wx.yz', :game => 'game params'
+  
+end
+~~~
+
+To get this test passing we just move our `add_new_player` code inside the `if @game.save` block so that it only gets called when the game is successfully saved. This brings us onto an interesting point about ActiveRecord associations. If the object has been saved to the database, the association gets created as soon as you add something to it. You don't have to call `game.save` again.
+
+~~~ruby
+def create
+  @game = Game.new(params[:game])
+  @game.owner = current_user
+
+  if @game.save
+    @game.add_new_player(params[:new_player]) unless params[:new_player].blank?
+	redirect_to game_path(@game)
+  else
+	render :template => 'games/new.html.erb'
+  end
+end
+~~~
+ 
+The test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+That'll be the end of our controller specs for the time being. They served a purpose - and sometimes they are the best solution - but I'm pretty sure you'll agree that they don't feel quite as relevant as integration tests particularly since we have to mock and stub so many things to get them working.
 
 [back to top](#top)
 ##<a id='testing-the-edit-updates-actions'></a> 8.6. Testing the edit/updates actions
+This will be similar to the test for new/create except that in each case we'll create the game first with FactoryGirl then edit it.
+
+### 8.6.1. it 'should update a valid game and redirect to the show page'
+We'll create a game with FactoryGirl, change the time, submit it, navigate back to the edit screen and make sure our new values are there.
+
+1. Create a game with a unique location Guid.
+1. Visit the index page
+1. Click the edit link for our game
+1. Ensure we are on the edit page
+1. Check the details in the form are the same as those in the game we created
+1. Move the game on by a year
+1. Click the 'Update Game' button
+1. Find the game using it's unique location Guid and make sure the year has been updated.
+
+~~~ruby
+describe 'editing games' do
+
+	it 'should update a valid game and redirect to the show page' do
+  
+	  unique_location = SecureRandom.uuid
+   
+      game = FactoryGirl.create(:game, :owner => @user, :location => unique_location)
+
+	  visit games_path
+
+	  within("tr[@data-row='game_#{game.id}']") do
+	  	  click_link('edit')
+	  end
+	
+	  page.current_path.should == edit_game_path(game)
+   
+	  page.find_field('Location').value.should have_content(game.location)
+	  page.find_field('Sport').text.should have_content(game.sport.name)
+   
+	  page.find_field('game[at(1i)]').value.should have_content(game.at.year.to_s)
+	  page.find_field('game[at(2i)]').text.should have_content(Date::MONTHNAMES[game.at.month])
+	  page.find_field('game[at(3i)]').value.should have_content(game.at.day.to_s)
+	  page.find_field('game[at(4i)]').value.should have_content(game.at.hour.to_s)
+	  page.find_field('game[at(5i)]').value.should have_content(game.at.min.to_s)
+   
+	  updated_year = game.at.year + 1
+   
+	  page.select(updated_year.to_s, :from => "game[at(1i)]")
+
+	  click_button('Update Game')
+  
+	  page.current_path.should == game_path(game)
+   
+	  updated_game = Game.find_by_location(unique_location)
+   
+	  updated_game.at.year.should == updated_year
+	end
+
+	it 'should edit a game and return then to the edit page with their edited input when incorrect parameters are provided'
+	
+end
+~~~
+
+To get this test passing we'll need an edit link `<td><%= link_to 'edit', edit_game_path(game) %></td>` to the index page `app/views/games/index.html.erb`
+
+~~~ruby
+<h1>Games#index</h1>
+
+<h2>Game I have created</h2>
+<table id="owned_games">
+	<% @owned_games.each do |game| %>
+	<tr data-row='game_<%= game.id %>'>
+		<td><%= game.sport.name %></td>
+		<td><%= game.location %></td>
+		<td><%= game.at %></td>
+		<td><%= link_to 'edit', edit_game_path(game) %></td>
+	</tr>
+	<% end %>
+</table>
+
+<h2>Game I am playing</h2>
+<table id="games">
+	<% @games.each do |game| %>
+	<tr data-row='game_<%= game.id %>'>
+		<td><%= game.sport.name %></td>
+		<td><%= game.location %></td>
+		<td><%= game.at %></td>
+	</tr>
+	<% end %>
+</table>
+
+<%= link_to 'Create Game', new_game_path, :class => 'btn btn-primary' %>
+~~~ 
+
+We'll also need to include our form partial in the `app/views/games/edit.html.erb` page
+
+~~~ruby
+<h1>Games#edit</h1>
+<%= render 'form' %>
+~~~
+
+and we'll need to find our game based on the id parameter passed in our `link_to 'edit', edit_game_path(game)` above. In our `app/controllers/games_controller.rb` update the edit method.
+
+~~~ruby
+def edit
+  @game = Game.find(params[:id])
+end
+~~~ 
+
+then we'll need to add code to the update action of our games\_controller
+
+~~~ruby
+def update
+   @game = Game.find(params[:id])
+   @game.update_attributes(params[:game])
+   redirect\_to game\_path(@game)
+end
+~~~
+
+The test should now pass:
+
+~~~console
+bundle exec rake spec
+~~~
+
+### 8.6.2. it 'should not update an invalid game and display the edit page with the invalid data'
+In this test we need to create a game, make some changes so that it's invalid and make sure those changes appear on the edit page that is returned to us when we submit the form.
+
+1. Create a game with a unique location Guid.
+1. Visit the index page
+1. Click the edit link for our game
+1. Set the sport to the first empty option
+1. Change the location
+1. Update the Game
+1. Ensure that the empty sport and the changed location are on the form that's returned.
+
+~~~ruby
+it 'should not update an invalid game and display the edit page with the invalid data' do
+
+	game = FactoryGirl.create(:game, :owner => @user)
+
+	visit games_path
+
+	within("tr[@data-row='game_#{game.id}']") do
+	  click_link('edit')
+	end
+
+	page.select("", :from => "Sport") #ensure the update fails
+	page.fill_in("Location", :with => "Updated location")
+
+	click_button('Update Game')
+	
+	page.current_path.should == edit_game_path(game)
+
+	page.find_field('Sport').text.should have_content("")
+	page.find_field('Location').value.should have_content("Updated location")
+
+end
+~~~
+
+To get this test passing we'll need to amend the code in our `def update` action in the `app/controllers/games_controller.rb` 
+
+~~~ruby
+def update
+   @game = Game.find(params[:id])
+   if @game.update_attributes(params[:game])
+     redirect\_to game\_path(@game)
+   else
+     render :template => 'games/edit.html.erb'
+   end
+end
+~~~
+
+### 8.6.3. Updating players
+We want to be able to change the players in our game. The two conditions we should check for are an update that adds and removes players plus an update that removes all players. We need this second test to be sure we've overcome a typical HTML 'gotcha', when all of the checkboxes in a checkbox array are unticked then browser doesn't submit any data for the array at all so instead of clearing the players nothing happens.
+
+### 8.6.4. it 'should update the games players'
+We want to be able to change the players in our game. 
+
+Our test will
+
+1. Create two games, four players and add two players to each
+1. Add the signed-in user to each so that the user is connected to all of the players
+1. Navigate to the index page and click the edit link for game1
+1. Ensure the two players that we added to the game are shown as checked
+1. Ensure the two players we added to the other game are not checked
+1. Uncheck the players in the game - our signed-in user and the two players we added
+1. Check the two players we didn't add
+1. Submit the form
+1. Reload the association so that any changes are reflected
+1. Check that the game now only has the two users we checked as players
+
+~~~ruby
+it 'should update the games players' do
+	game1 = FactoryGirl.create(:game, :owner => @user)
+	game2 = FactoryGirl.create(:game, :owner => @user)
+
+	player1 = FactoryGirl.create(:user)
+	player2 = FactoryGirl.create(:user)
+	player3 = FactoryGirl.create(:user)
+	player4 = FactoryGirl.create(:user)
+
+	game1.players << @user
+	game1.players << player1
+	game1.players << player2
+
+	game2.players << @user
+	game2.players << player3
+	game2.players << player4
+
+	visit games_path
+
+	within("tr[@data-row='game_#{game1.id}']") do
+	  click_link('edit')
+	end
+
+    page.find("input#game_player_id_#{@user.id}").should be_checked
+	page.find("input#game_player_id_#{player1.id}").should be_checked
+	page.find("input#game_player_id_#{player2.id}").should be_checked
+	page.find("input#game_player_id_#{player3.id}").should_not be_checked
+	page.find("input#game_player_id_#{player4.id}").should_not be_checked
+
+	uncheck("game_player_id_#{@user.id}")
+	uncheck("game_player_id_#{player1.id}")
+	uncheck("game_player_id_#{player2.id}")
+	check("game_player_id_#{player3.id}")
+	check("game_player_id_#{player4.id}")
+
+	click_button('Update Game')
+
+	game1.players.reload
+	game1.players.should =~ [player3, player4]
+end
+~~~
+
+This should all work out of the box
+
+~~~console
+bundle exec rake spec
+~~~
+
+### 8.6.5. it 'should remove all of the games players'
+As we mentioned before a classic HTML gotcha is when all checkboxes are unchecked and no data is sent to the server so let's test for that.
+
+1. Create a game and four players
+1. Add the sig-in user and the four players to the game
+1. Navigate to the index page and click the edit link for the game
+1. Ensure all four players and the sign-in user is checked
+1. Uncheck all four players and the signed-in user
+1. Submit the form
+1. Reload the association and check that there are no players 
+
+~~~ruby
+it 'should remove all of the games players' do
+
+	game = FactoryGirl.create(:game, :owner => @user)
+
+	player1 = FactoryGirl.create(:user)
+	player2 = FactoryGirl.create(:user)
+	player3 = FactoryGirl.create(:user)
+	player4 = FactoryGirl.create(:user)
+
+	game.players << @user
+	game.players << player1
+	game.players << player2
+	game.players << player3
+	game.players << player4
+
+	visit games_path
+
+	within("tr[@data-row='game_#{game.id}']") do
+	  click_link('edit')
+	end
+
+	page.find("input#game_player_id_#{@user.id}").should be_checked
+	page.find("input#game_player_id_#{player1.id}").should be_checked
+	page.find("input#game_player_id_#{player2.id}").should be_checked
+	page.find("input#game_player_id_#{player3.id}").should be_checked
+	page.find("input#game_player_id_#{player4.id}").should be_checked
+
+	uncheck("game_player_id_#{@user.id}")
+	uncheck("game_player_id_#{player1.id}")
+	uncheck("game_player_id_#{player2.id}")
+	uncheck("game_player_id_#{player3.id}")
+	uncheck("game_player_id_#{player4.id}")
+
+	click_button('Update Game')
+
+	game.players.reload
+	game.players.should =~ []
+
+end
+~~~
+
+This test will fail. We have indeed fallen foul of the HTML gotcha because when we've unchecked all the boxes no player\_ids data is submitted and so the association just isn't updated. We can get around this by adding a hidden field with an empty value and the same name is the checkboxes. This will always be submitted and ensure that if all of the other players are unchecked the array player_ids => [""] gets submitted with the request.
+
+Add this hidden field `<%= hidden_field_tag "game[player_ids][]" %>` to our players control group in `app/views/games/_form.html.erb`
+
+~~~ruby
+<div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= label_tag :players, nil, :class => 'control-label' %>
+    <div class='controls' id="players">
+		<% current_user.players.each do |player| %>
+		 <%= check_box_tag "game[player_ids][]", player.id, @game.players.include?(player), :id => "game_player_id_#{player.id}" %> <%= player.email %><br/>
+	    <% end %>
+	    <%= hidden_field_tag "game[player_ids][]" %>
+    </div>
+  </div>
+~~~
 
 [back to top](#top)
 ##<a id='testing-the-show-action'></a> 8.7. Testing the show action

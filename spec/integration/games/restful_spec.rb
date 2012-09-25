@@ -141,7 +141,7 @@ describe 'games' do
      
     end
     
-    describe 'players' do
+    describe 'adding players' do
 
      	it 'should display a list of check_boxes for the current users players in table#players with only the current user selected' do
 
@@ -325,8 +325,149 @@ describe 'games' do
  
 
   describe 'editing games' do
-    it 'should edit a game and update it when the values are valid'
-    it 'should edit a game and return then to the edit page with their edited input when incorrect parameters are provided'
+    
+    it 'should update a valid game and redirect to the show page' do
+      
+      unique_location = SecureRandom.uuid
+      
+      game = FactoryGirl.create(:game, :owner => @user, :location => unique_location)
+
+     	visit games_path
+
+      within("tr[@data-row='game_#{game.id}']") do
+     	  click_link('edit')
+      end
+      
+      page.current_path.should == edit_game_path(game)
+      
+      page.find_field('Location').value.should have_content(game.location)
+      page.find_field('Sport').text.should have_content(game.sport.name)
+      
+      page.find_field('game[at(1i)]').value.should have_content(game.at.year.to_s)
+      page.find_field('game[at(2i)]').text.should have_content(Date::MONTHNAMES[game.at.month])
+      page.find_field('game[at(3i)]').value.should have_content(game.at.day.to_s)
+      page.find_field('game[at(4i)]').value.should have_content(game.at.hour.to_s)
+      page.find_field('game[at(5i)]').value.should have_content(game.at.min.to_s)
+      
+      updated_year = game.at.year + 1
+      
+      page.select(updated_year.to_s, :from => "game[at(1i)]")
+
+     	click_button('Update Game')
+     
+      page.current_path.should == game_path(game)
+      
+      updated_game = Game.find_by_location(unique_location)
+      
+      updated_game.at.year.should == updated_year
+    end
+    
+    it 'should not update an invalid game and display the edit page with the invalid data' do
+      
+      game = FactoryGirl.create(:game, :owner => @user)
+
+     	visit games_path
+
+      within("tr[@data-row='game_#{game.id}']") do
+     	  click_link('edit')
+      end
+
+      page.select("", :from => "Sport") #ensure the update fails
+      page.fill_in("Location", :with => "Updated location")
+
+     	click_button('Update Game')
+     	
+      page.find_field('Sport').text.should have_content("")
+      page.find_field('Location').value.should have_content("Updated location")
+      
+    end
+    
+    describe 'updating players' do
+      
+      it 'should update the games players' do
+        
+        game1 = FactoryGirl.create(:game, :owner => @user)
+        game2 = FactoryGirl.create(:game, :owner => @user)
+        
+        player1 = FactoryGirl.create(:user)
+        player2 = FactoryGirl.create(:user)
+        player3 = FactoryGirl.create(:user)
+        player4 = FactoryGirl.create(:user)
+        
+        game1.players << @user
+        game1.players << player1
+        game1.players << player2
+        
+        game2.players << @user
+        game2.players << player3
+        game2.players << player4
+        
+        visit games_path
+
+        within("tr[@data-row='game_#{game1.id}']") do
+       	  click_link('edit')
+        end
+        
+        page.find("input#game_player_id_#{@user.id}").should be_checked
+        page.find("input#game_player_id_#{player1.id}").should be_checked
+        page.find("input#game_player_id_#{player2.id}").should be_checked
+        page.find("input#game_player_id_#{player3.id}").should_not be_checked
+        page.find("input#game_player_id_#{player4.id}").should_not be_checked
+        
+        uncheck("game_player_id_#{@user.id}")
+        uncheck("game_player_id_#{player1.id}")
+        uncheck("game_player_id_#{player2.id}")
+        check("game_player_id_#{player3.id}")
+        check("game_player_id_#{player4.id}")
+        
+        click_button('Update Game')
+        
+        game1.players.reload
+        game1.players.should =~ [player3, player4]
+      end
+      
+      it 'should remove all of the games players' do
+        
+          game = FactoryGirl.create(:game, :owner => @user)
+          
+          player1 = FactoryGirl.create(:user)
+          player2 = FactoryGirl.create(:user)
+          player3 = FactoryGirl.create(:user)
+          player4 = FactoryGirl.create(:user)
+
+          game.players << @user
+          game.players << player1
+          game.players << player2
+          game.players << player3
+          game.players << player4
+
+          visit games_path
+
+          within("tr[@data-row='game_#{game.id}']") do
+         	  click_link('edit')
+          end
+
+          page.find("input#game_player_id_#{@user.id}").should be_checked
+          page.find("input#game_player_id_#{player1.id}").should be_checked
+          page.find("input#game_player_id_#{player2.id}").should be_checked
+          page.find("input#game_player_id_#{player3.id}").should be_checked
+          page.find("input#game_player_id_#{player4.id}").should be_checked
+
+          uncheck("game_player_id_#{@user.id}")
+          uncheck("game_player_id_#{player1.id}")
+          uncheck("game_player_id_#{player2.id}")
+          uncheck("game_player_id_#{player3.id}")
+          uncheck("game_player_id_#{player4.id}")
+
+          click_button('Update Game')
+
+          game.players.reload
+          game.players.should =~ []
+        
+      end
+      
+    end
+    
   end
 
   describe 'showing games' do

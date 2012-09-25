@@ -25,9 +25,16 @@ class GamesController < ApplicationController
   end
 
   def update
+    @game = Game.find(params[:id])
+    if @game.update_attributes(params[:game])
+      redirect_to game_path(@game)
+    else
+      render :template => 'games/edit.html.erb'
+    end
   end
 
   def edit
+    @game = Game.find(params[:id])
   end
 
   def show

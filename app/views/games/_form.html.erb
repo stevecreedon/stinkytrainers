@@ -27,6 +27,7 @@
 		<% current_user.players.each do |player| %>
 		 <%= check_box_tag "game[player_ids][]", player.id, @game.players.include?(player), :id => "game_player_id_#{player.id}" %> <%= player.email %><br/>
 	    <% end %>
+	    <%= hidden_field_tag "game[player_ids][]" %>
     </div>
   </div>
 
