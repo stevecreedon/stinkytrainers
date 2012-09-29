@@ -38,8 +38,12 @@ class GamesController < ApplicationController
   end
 
   def show
+    @game = Game.find(params[:id])
   end
 
   def destroy
+    game = Game.find(params[:id])
+    game.destroy
+    redirect_to games_path
   end
 end

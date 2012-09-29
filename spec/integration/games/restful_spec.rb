@@ -13,6 +13,15 @@ describe 'games' do
   end
     
   describe 'listing games' do
+    
+    it 'should be possible to navigate from the dashboard page to the game index page' do
+      visit dashboard_index_path
+      
+      within("ul.nav") do
+        page.has_link?("games").should be_true
+      end
+    end
+    
     it 'should display a list of the games owned by the signed-in user' do
             
         other_user = FactoryGirl.create(:user)
@@ -426,6 +435,47 @@ describe 'games' do
         game1.players.should =~ [player3, player4]
       end
       
+      it 'should update the games external players' do
+        
+        game1 = FactoryGirl.create(:game, :owner => @user)
+        game2 = FactoryGirl.create(:game, :owner => @user)
+        
+        player1 = FactoryGirl.create(:external_player)
+        player2 = FactoryGirl.create(:external_player)
+        player3 = FactoryGirl.create(:external_player)
+        player4 = FactoryGirl.create(:external_player)
+        
+        game1.players << @user
+        game1.external_players << player1
+        game1.external_players << player2
+        
+        game2.players << @user
+        game2.external_players << player3
+        game2.external_players << player4
+        
+        visit games_path
+
+        within("tr[@data-row='game_#{game1.id}']") do
+       	  click_link('edit')
+        end
+                
+        page.find("input#game_external_player_id_#{player1.id}").should be_checked
+        page.find("input#game_external_player_id_#{player2.id}").should be_checked
+        page.find("input#game_external_player_id_#{player3.id}").should_not be_checked
+        page.find("input#game_external_player_id_#{player4.id}").should_not be_checked
+        
+        uncheck("game_external_player_id_#{player1.id}")
+        uncheck("game_external_player_id_#{player2.id}")
+        check("game_external_player_id_#{player3.id}")
+        check("game_external_player_id_#{player4.id}")
+        
+        click_button('Update Game')
+        
+        game1.external_players.reload
+        game1.external_players.should =~ [player3, player4]
+      end
+      
+      
       it 'should remove all of the games players' do
         
           game = FactoryGirl.create(:game, :owner => @user)
@@ -466,16 +516,104 @@ describe 'games' do
         
       end
       
+      it 'should remove all of the games external players' do
+        
+          game = FactoryGirl.create(:game, :owner => @user)
+          
+          player1 = FactoryGirl.create(:external_player)
+          player2 = FactoryGirl.create(:external_player)
+          player3 = FactoryGirl.create(:external_player)
+          player4 = FactoryGirl.create(:external_player)
+
+          game.players << @user
+          game.external_players << player1
+          game.external_players << player2
+          game.external_players << player3
+          game.external_players << player4
+
+          visit games_path
+
+          within("tr[@data-row='game_#{game.id}']") do
+         	  click_link('edit')
+          end
+
+          page.find("input#game_external_player_id_#{player1.id}").should be_checked
+          page.find("input#game_external_player_id_#{player2.id}").should be_checked
+          page.find("input#game_external_player_id_#{player3.id}").should be_checked
+          page.find("input#game_external_player_id_#{player4.id}").should be_checked
+
+          uncheck("game_external_player_id_#{player1.id}")
+          uncheck("game_external_player_id_#{player2.id}")
+          uncheck("game_external_player_id_#{player3.id}")
+          uncheck("game_external_player_id_#{player4.id}")
+          
+          click_button('Update Game')
+
+          game.external_players.reload
+          game.external_players.should =~ []
+        
+      end
+      
     end
     
   end
 
   describe 'showing games' do
-    it 'should allow users to view a game'
+    it 'should allow users to view a game' do
+      
+      game1 = FactoryGirl.create(:game, :owner => @user)
+      game2 = FactoryGirl.create(:game, :owner => @user)
+      
+      game2.players << FactoryGirl.create(:user)
+      game2.external_players << FactoryGirl.create(:external_player)
+      
+      visit games_path
+      
+      within("tr[@data-row='game_#{game2.id}']") do
+     	  click_link('show')
+      end
+      
+      page.current_path.should == game_path(game2)
+      
+      page.should have_content(game2.location)
+      page.should have_content(game2.at)
+      page.should have_content(game2.sport.name)
+      
+      within("ul#players") do
+        page.should have_content(game2.players.first.email)
+        page.should have_content(game2.players.first.email)
+      end
+      
+      within("ul#external_players") do
+        page.should have_content(game2.external_players.first.email)
+        page.should have_content(game2.external_players.first.email)
+      end
+      
+    end
   end
 
   describe 'destroying games' do
-    it 'should allow users to destroy a game and redirect them back to the index page'
+    it 'should allow users to destroy a game and redirect them back to the index page' do
+      
+      game = FactoryGirl.create(:game, :owner => @user)
+      
+      visit games_path
+      
+      within("tr[@data-row='game_#{game.id}']") do
+     	  click_link('show')
+      end
+      
+      page.current_path.should == game_path(game)
+      
+      expect{ 
+        click_link('Destroy')
+      }.to change{Game.count}.by(-1)
+      
+      page.current_path.should == games_path
+      
+      page.should_not have_content("tr[@data-row='game_#{game.id}']")
+      
+    end
   end
   
 end

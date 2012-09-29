@@ -1,2 +1,23 @@
 <h1>Games#show</h1>
-<p>Find me in app/views/games/show.html.erb</p>
+
+<div id="game">
+	<p><%= @game.location %></p>
+	<p><%= @game.at %></p>
+	<p><%= @game.sport.name %></p>
+</div>
+
+<h2>Players</h2>
+<ul id="players">
+	<% @game.players.each do |player| %>
+		<li><%= player.email %></li>
+	<% end %>
+</ul>
+
+<h2>Players outside Stinky Trainers</h2>
+<ul id="external_players">
+	<% @game.external_players.each do |player| %>
+		<li><%= player.email %></li>
+	<% end %>
+</ul>
+
+<div><%= link_to 'Destroy', game_path(@game), method: :delete, data: { confirm: 'Are you sure?' }, :class => 'btn btn-danger btn-mini' %></div>	

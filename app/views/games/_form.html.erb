@@ -37,6 +37,7 @@
   		<% current_user.external_players.each do |external_player| %>
 			<%= check_box_tag "game[external_player_ids][]", external_player.id, @game.external_players.include?(external_player), :id => "game_external_player_id_#{external_player.id}" %> <%= external_player.email %><br/>
   		<% end %>
+        <%= hidden_field_tag "game[external_player_ids][]" %>
     </div>
   </div>
 

@@ -8,6 +8,7 @@
 		<td><%= game.location %></td>
 		<td><%= game.at %></td>
 		<td><%= link_to 'edit', edit_game_path(game) %></td>
+		<td><%= link_to 'show', game_path(game) %></td>
 	</tr>
 	<% end %>
 </table>

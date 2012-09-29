@@ -331,11 +331,61 @@
 <span class="k">end</span>
 </pre></div>
 
-<h3>8.4.3. it &#39;should display a list of the games owned by the signed-in user&#39;</h3>
+<h3>8.4.3. it &#39;should be possible for a signed-in user to navigate from the dashboard page to the game index page&#39;</h3>
+
+<p>We want to make sure our navigation bar has a &#39;games&#39; link. We&#39;ll write a test that</p>
+
+<ol>
+<li>Creates and signs-in a user</li>
+<li>Visits the dashboard page</li>
+<li>Ensures there&#39;s a &#39;games&#39; lik in the navigation bar.</li>
+</ol>
+
+<p>This entire spec (and it&#39;s going to be a big one) will require a signed-in user for every test so before we doning anything else let&#39;s create a before(:each) block inside the <code>describe games</code> block. This will run before each test giving us a signed-in user <code>@user</code> so we don&#39;t have to keep writing the same login code over and over again. Again because we assign user to the instance variable <code>@user</code> and not just <code>user</code> it&#39;s available throughout the test.</p>
+<div class="highlight"><pre><span class="n">describe</span> <span class="s1">&#39;games&#39;</span> <span class="k">do</span>
+
+  <span class="n">before</span> <span class="ss">:each</span> <span class="k">do</span>
+    <span class="vi">@user</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+
+    <span class="n">visit</span> <span class="n">new_user_session_path</span>
+
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Email&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+    <span class="n">fill_in</span><span class="p">(</span><span class="s1">&#39;Password&#39;</span><span class="p">,</span> <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Sign in&#39;</span><span class="p">)</span>
+  <span class="k">end</span>
+</pre></div>
+
+<p>We can now write our test knowing that Devise isn&#39;t going to boot us out each time.</p>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should be possible to navigate from the dashboard page to the game index page&#39;</span> <span class="k">do</span>
+    <span class="n">visit</span> <span class="n">dashboard_index_path</span>
+
+    <span class="n">within</span><span class="p">(</span><span class="s2">&quot;ul.nav&quot;</span><span class="p">)</span> <span class="k">do</span>
+        <span class="n">page</span><span class="o">.</span><span class="n">has_link?</span><span class="p">(</span><span class="s2">&quot;games&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_true</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Run the tests</p>
+<div class="highlight"><pre><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">rake</span> <span class="n">spec</span>
+</pre></div>
+
+<p>and the test will fail because we don&#39;t have the link in our layout <code>app/views/layouts/application.html.erb</code></p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">ul</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;nav&quot;</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="sx">% if </span><span class="n">user_signed_in?</span> <span class="sx">%&gt;</span>
+<span class="sx">    &lt;li&gt;</span><span class="o">&lt;</span><span class="sx">%= link_to &quot;dashboard&quot;, dashboard_index_path  %&gt;&lt;/li&gt;</span>
+<span class="sx">    &lt;li&gt;&lt;%=</span> <span class="n">link_to</span> <span class="s2">&quot;games&quot;</span><span class="p">,</span> <span class="n">games_path</span>  <span class="sx">%&gt;&lt;/li&gt;</span>
+    <span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;&lt;</span><span class="sx">%= link_to &quot;sports&quot;, sports_path  %&gt;&lt;/li&gt;</span>
+<span class="sx">    &lt;li&gt;&lt;%=</span> <span class="n">link_to</span> <span class="s2">&quot;sign-out&quot;</span><span class="p">,</span> <span class="n">destroy_user_session_path</span><span class="p">,</span> <span class="ss">:method</span> <span class="o">=&gt;</span> <span class="ss">:delete</span>  <span class="sx">%&gt;&lt;/li&gt;</span>
+  <span class="o">&lt;</span><span class="sx">% else %&gt;</span>
+<span class="sx">        &lt;li&gt;</span><span class="o">&lt;%=</span> <span class="n">link_to</span> <span class="s2">&quot;Sign In&quot;</span><span class="p">,</span> <span class="n">new_user_session_path</span> <span class="sx">%&gt;&lt;/li&gt;</span>
+  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+<span class="sx">&lt;/ul&gt;</span>
+</pre></div>
+
+<h3>8.4.4. it &#39;should display a list of the games owned by the signed-in user&#39;</h3>
 
 <p>So now let&#39;s code the first of our two tests.</p>
-
-<p>First let&#39;s create a before(:each) block inside the <code>describe games</code> block. This will run before each test giving us a signed-in user <code>@user</code> so we don&#39;t have to keep writing the same login code over and over again. Again because we assign user to the instance variable <code>@user</code> and not just <code>user</code> it&#39;s available throughout the test. </p>
 
 <p>Write a test to: </p>
 
@@ -494,7 +544,7 @@
 <div class="highlight"><pre><span class="go">bundle exec rake spec</span>
 </pre></div>
 
-<h3>8.4.4. it &#39;should display a list of the games where the signed-in user is a player&#39;</h3>
+<h3>8.4.5. it &#39;should display a list of the games where the signed-in user is a player&#39;</h3>
 
 <p>Now let&#39;s add the test that checks the list of games the signed-in user is playing in.</p>
 
@@ -1830,7 +1880,7 @@ end</p>
 <p>Our test will</p>
 
 <ol>
-<li>Create two games, four players and add two players to each</li>
+<li>Create two games, four players and add two players to each. We create two separate games so that our signed-in user is connected to four players but only two are selected in game1. If we had just one game then all four players would have to be selected. </li>
 <li>Add the signed-in user to each so that the user is connected to all of the players</li>
 <li>Navigate to the index page and click the edit link for game1</li>
 <li>Ensure the two players that we added to the game are shown as checked</li>
@@ -1887,7 +1937,71 @@ end</p>
 <div class="highlight"><pre><span class="go">bundle exec rake spec</span>
 </pre></div>
 
-<h3>8.6.5. it &#39;should remove all of the games players&#39;</h3>
+<h3>8.6.5. it &#39;should update the games external players&#39;</h3>
+
+<p>This test is very similar to our previous test. We want to be able to change the external players in our game. </p>
+
+<p>Our test will</p>
+
+<ol>
+<li>Create two games, four external players and add two players to each.</li>
+<li>Add the signed-in user to each so that the user is connected to all of the players</li>
+<li>Navigate to the index page and click the edit link for game1</li>
+<li>Ensure the two players that we added to the game are shown as checked</li>
+<li>Ensure the two players we added to the other game are not checked</li>
+<li>Uncheck the players in the game - our signed-in user and the two players we added</li>
+<li>Check the two players we didn&#39;t add</li>
+<li>Submit the form</li>
+<li>Reload the association so that any changes are reflected</li>
+<li>Check that the game now only has the two users we checked as players</li>
+</ol>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should update the games external players&#39;</span> <span class="k">do</span>
+
+    <span class="n">game1</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+    <span class="n">game2</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+
+    <span class="n">player1</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+    <span class="n">player2</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+    <span class="n">player3</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+    <span class="n">player4</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+
+    <span class="n">game1</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="vi">@user</span>
+    <span class="n">game1</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player1</span>
+    <span class="n">game1</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player2</span>
+
+    <span class="n">game2</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="vi">@user</span>
+    <span class="n">game2</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player3</span>
+    <span class="n">game2</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player4</span>
+
+    <span class="n">visit</span> <span class="n">games_path</span>
+
+    <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;edit&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_external_player_id_</span><span class="si">#{</span><span class="n">player1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_external_player_id_</span><span class="si">#{</span><span class="n">player2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_external_player_id_</span><span class="si">#{</span><span class="n">player3</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should_not</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_external_player_id_</span><span class="si">#{</span><span class="n">player4</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should_not</span> <span class="n">be_checked</span>
+
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">player1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">player2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">check</span><span class="p">(</span><span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">player3</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">check</span><span class="p">(</span><span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">player4</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Update Game&#39;</span><span class="p">)</span>
+
+    <span class="n">game1</span><span class="o">.</span><span class="n">external_players</span><span class="o">.</span><span class="n">reload</span>
+    <span class="n">game1</span><span class="o">.</span><span class="n">external_players</span><span class="o">.</span><span class="n">should</span> <span class="o">=~</span> <span class="o">[</span><span class="n">player3</span><span class="p">,</span> <span class="n">player4</span><span class="o">]</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>This should all work out of the box</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<h3>8.6.6. it &#39;should remove all of the games players&#39;</h3>
 
 <p>As we mentioned before a classic HTML gotcha is when all checkboxes are unchecked and no data is sent to the server so let&#39;s test for that.</p>
 
@@ -1955,10 +2069,388 @@ end</p>
 <span class="sr">  &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
 </pre></div>
 
+<p>The tests should now pass</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
+<h3>8.6.7. it &#39;should remove all of the games external players&#39;</h3>
+
+<p>Again this test is very similar to our previous test and checks for the classic HTML gotcha when all checkboxes are unchecked and no data is sent to the server.</p>
+
+<ol>
+<li>Create a game and four external players</li>
+<li>Add the sig-in user and the four external players to the game</li>
+<li>Navigate to the index page and click the edit link for the game</li>
+<li>Ensure all four external players and the sign-in user is checked</li>
+<li>Uncheck all four external players and the signed-in user</li>
+<li>Submit the form</li>
+<li>Reload the association and check that there are no external players </li>
+</ol>
+<div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should remove all of the games external players&#39;</span> <span class="k">do</span>
+
+    <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+
+    <span class="n">player1</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+    <span class="n">player2</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+    <span class="n">player3</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+    <span class="n">player4</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+
+    <span class="n">game</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="vi">@user</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player1</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player2</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player3</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="n">player4</span>
+
+    <span class="n">visit</span> <span class="n">games_path</span>
+
+    <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;edit&#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_external_player_id_</span><span class="si">#{</span><span class="n">player1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_external_player_id_</span><span class="si">#{</span><span class="n">player2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_external_player_id_</span><span class="si">#{</span><span class="n">player3</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input#game_external_player_id_</span><span class="si">#{</span><span class="n">player4</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">should</span> <span class="n">be_checked</span>
+
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">player1</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">player2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">player3</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">uncheck</span><span class="p">(</span><span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">player4</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">click_button</span><span class="p">(</span><span class="s1">&#39;Update Game&#39;</span><span class="p">)</span>
+
+    <span class="n">game</span><span class="o">.</span><span class="n">external_players</span><span class="o">.</span><span class="n">reload</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">external_players</span><span class="o">.</span><span class="n">should</span> <span class="o">=~</span> <span class="o">[]</span>
+
+<span class="k">end</span>
+</pre></div>
+
+<p>This test will fail. Again we&#39;ve fallen foul of the HTML gotcha because when we&#39;ve unchecked all the boxes no external_player_ids are submitted and so the association just isn&#39;t updated. We get around this by adding a hidden field with an empty value and the same name as the checkboxes. This will always be submitted and ensure that if all of the other players are unchecked the array player_ids =&gt; [&quot;&quot;] gets submitted with the request.</p>
+
+<p>Add this hidden field <code>&lt;%= hidden_field_tag &quot;game[external_player_ids][]&quot; %&gt;</code> to our external players control group in <code>app/views/games/_form.html.erb</code></p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;control-group &lt;%= &quot;</span><span class="n">error</span><span class="s2">&quot; if @game.errors.any? %&gt;&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="sx">%= label_tag :players_not_on_stinky_trainers, nil, :class =</span><span class="o">&gt;</span> <span class="s1">&#39;control-label&#39;</span> <span class="sx">%&gt;</span>
+<span class="sx">    &lt;div class=&#39;controls&#39; id=&quot;external_players&quot;&gt;</span>
+        <span class="o">&lt;</span><span class="sx">% current_user.external_players.each </span><span class="k">do</span> <span class="o">|</span><span class="n">external_player</span><span class="o">|</span> <span class="sx">%&gt;</span>
+<span class="sx">            &lt;%= check_box_tag &quot;game[external_player_ids][]&quot;, external_player.id, @game.external_players.include?(external_player), :id =&gt;</span> <span class="s2">&quot;game_external_player_id_</span><span class="si">#{</span><span class="n">external_player</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="sx">%&gt; &lt;%= external_player.email %&gt;</span><span class="o">&lt;</span><span class="n">br</span><span class="o">/&gt;</span>
+        <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+<span class="sx">        &lt;%= hidden_field_tag &quot;game[external_player_ids][]&quot; %&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+<span class="sr">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</pre></div>
+
+<p>The tests should now pass</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
 <p><a href="#top">back to top</a></p>
 
 <h2><a id='testing-the-show-action'></a> 8.7. Testing the show action</h2>
 
+<p>We want our show page to display all of the details we added in our create and update pages.</p>
+
+<ol>
+<li>Create two games and add players to one of the games</li>
+<li>Navigate to the games index page</li>
+<li>Navigate to one of the two games show page</li>
+<li>Ensure the correct content is present.</li>
+</ol>
+<div class="highlight"><pre><span class="n">describe</span> <span class="s1">&#39;showing games&#39;</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s1">&#39;should allow users to view a game&#39;</span> <span class="k">do</span>
+
+      <span class="n">game1</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+      <span class="n">game2</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+
+      <span class="n">game2</span><span class="o">.</span><span class="n">players</span> <span class="o">&lt;&lt;</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+      <span class="n">game2</span><span class="o">.</span><span class="n">external_players</span> <span class="o">&lt;&lt;</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:external_player</span><span class="p">)</span>
+
+      <span class="n">visit</span> <span class="n">games_path</span>
+
+      <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game2</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+          <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;show&#39;</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">game_path</span><span class="p">(</span><span class="n">game2</span><span class="p">)</span>
+
+      <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game2</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game2</span><span class="o">.</span><span class="n">at</span><span class="p">)</span>
+      <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game2</span><span class="o">.</span><span class="n">sport</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+      <span class="n">within</span><span class="p">(</span><span class="s2">&quot;ul#players&quot;</span><span class="p">)</span> <span class="k">do</span>
+        <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game2</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+        <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game2</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">within</span><span class="p">(</span><span class="s2">&quot;ul#external_players&quot;</span><span class="p">)</span> <span class="k">do</span>
+        <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game2</span><span class="o">.</span><span class="n">external_players</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+        <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="n">game2</span><span class="o">.</span><span class="n">external_players</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+      <span class="k">end</span>
+
+    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Run the test and see what fails first.</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">1) games showing games should allow users to view a game</span>
+<span class="go">   Failure/Error: click_link(&#39;show&#39;)</span>
+<span class="go">   Capybara::ElementNotFound:</span>
+<span class="go">     no link with title, id or text &#39;show&#39; found</span>
+<span class="go">   # (eval):2:in `click_link&#39;</span>
+<span class="go">   # ./spec/integration/games/restful_spec.rb:573:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+<span class="go">   # ./spec/integration/games/restful_spec.rb:572:in `block (3 levels) in &lt;top (required)&gt;&#39;</span>
+</pre></div>
+
+<p>We need to add a &#39;show&#39; link to the index page. Add <code>&lt;td&gt;&lt;%= link_to &#39;show&#39;, game_path(game) %&gt;&lt;/td&gt;</code> to <code>app/views/games/index.html.erb</code></p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="no">Game</span> <span class="n">I</span> <span class="n">have</span> <span class="n">created</span><span class="o">&lt;</span><span class="sr">/h2&gt;</span>
+<span class="sr">&lt;table id=&quot;owned_games&quot;&gt;</span>
+<span class="sr">    &lt;% @owned_games.each do |game| %&gt;</span>
+<span class="sr">    &lt;tr data-row=&#39;game_&lt;%= game.id %&gt;&#39;&gt;</span>
+<span class="sr">        &lt;td&gt;&lt;%= game.sport.name %&gt;&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;&lt;</span><span class="sx">%= game.location %&gt;&lt;/td&gt;</span>
+<span class="sx">        &lt;td&gt;&lt;%=</span> <span class="n">game</span><span class="o">.</span><span class="n">at</span> <span class="sx">%&gt;&lt;/td&gt;</span>
+        <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;&lt;</span><span class="sx">%= link\_to &#39;edit&#39;, edit\_game_path(game) %&gt;&lt;/td&gt;</span>
+<span class="sx">        &lt;td&gt;&lt;%=</span> <span class="n">link</span><span class="p">\</span><span class="n">_to</span> <span class="s1">&#39;show&#39;</span><span class="p">,</span> <span class="n">game</span><span class="p">\</span><span class="n">_path</span><span class="p">(</span><span class="n">game</span><span class="p">)</span> <span class="sx">%&gt;&lt;/td&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/tr&gt;</span>
+<span class="sr">    &lt;% end %&gt;</span>
+<span class="sr">&lt;/</span><span class="n">table</span><span class="o">&gt;</span>
+</pre></div>
+
+<p>Run the test and see what fails next.</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">Failures:</span>
+
+<span class="go">  1) games showing games should allow users to view a game</span>
+<span class="go">     Failure/Error: page.should have_content(game2.location)</span>
+<span class="go">       expected there to be content &quot;location26&quot; in &quot;StinkyTrainers\n    \n    \n      \n        \n          \n            \n            \n            \n          \n\n          Stinkytrainers\n          \n            dashboard\n                games\n                sports\n\t   \t\t    sign-out\n            Ruby On Rails Tutorial\n\n            \n        \n      \n\t  \n\t\n    \n\t\n    \n\t\n    \n      \n        \n           \n\t\t\t\n\t\t\t\tGames#show\n\n\n\n\t\t\t\n            \n            \n\t\t\t\t \n            \n        \n      \n\n      © Stinky Trainers 2012\n       \n\n    \n    \n    &quot;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:578:in `block (3 levels) in &lt;top (required)&gt;&#39;</span>
+</pre></div>
+
+<p>Ok we need to code our show page so add this to <code>app/views/games/show.html.erb</code></p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Games</span><span class="c1">#show&lt;/h1&gt;</span>
+
+<span class="o">&lt;</span><span class="n">div</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;game&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;&lt;</span><span class="sx">%= @game.location %&gt;&lt;/p&gt;</span>
+<span class="sx">    &lt;p&gt;&lt;%=</span> <span class="vi">@game</span><span class="o">.</span><span class="n">at</span> <span class="sx">%&gt;&lt;/p&gt;</span>
+    <span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;&lt;</span><span class="sx">%= @game.sport.name %&gt;&lt;/p&gt;</span>
+<span class="sx">&lt;/div&gt;</span>
+
+<span class="sx">&lt;h2&gt;Players&lt;/h2&gt;</span>
+<span class="sx">&lt;ul id=</span><span class="s2">&quot;players&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="sx">% @game.players.each </span><span class="k">do</span> <span class="o">|</span><span class="n">player</span><span class="o">|</span> <span class="sx">%&gt;</span>
+<span class="sx">        &lt;%= player.email %&gt;</span>
+    <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+<span class="sx">&lt;/ul&gt;</span>
+
+<span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="no">Players</span> <span class="n">outside</span> <span class="no">Stinky</span> <span class="no">Trainers</span><span class="o">&lt;</span><span class="sr">/h2&gt;</span>
+<span class="sr">&lt;ul id=&quot;external_players&quot;&gt;</span>
+<span class="sr">    &lt;% @game.external_players.each do |player| %&gt;</span>
+<span class="sr">        &lt;%= player.email %&gt;</span>
+<span class="sr">    &lt;% end %&gt;</span>
+<span class="sr">&lt;/u</span><span class="n">l</span><span class="o">&gt;</span>
+</pre></div>
+
+<p>Run the tests again and suddenly we&#39;ve got 9 failing...</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">Failures:</span>
+
+<span class="go">  1) games showing games should allow users to view a game</span>
+<span class="go">     Failure/Error: click_link(&#39;show&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_link&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:573:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:572:in `block (3 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  2) games editing games should update a valid game and redirect to the show page</span>
+<span class="go">     Failure/Error: click_button(&#39;Update Game&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_button&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:365:in `block (3 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  3) games editing games updating players should update the games players</span>
+<span class="go">     Failure/Error: click_button(&#39;Update Game&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_button&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:432:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  4) games editing games updating players should update the games external players</span>
+<span class="go">     Failure/Error: click_button(&#39;Update Game&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_button&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:472:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  5) games editing games updating players should remove all of the games players</span>
+<span class="go">     Failure/Error: click_button(&#39;Update Game&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_button&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:512:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  6) games editing games updating players should remove all of the games external players</span>
+<span class="go">     Failure/Error: click_button(&#39;Update Game&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_button&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:550:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  7) games creating games should create a new game when valid game parameters are provided and redirect to the show page</span>
+<span class="go">     Failure/Error: click_button(&#39;Create Game&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_button&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:112:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:111:in `block (3 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  8) games creating games adding players should submit a list of the selected players and add them to the game</span>
+<span class="go">     Failure/Error: click_button(&#39;Create Game&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_button&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:277:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+
+<span class="go">  9) games creating games adding players should submit a list of the selected external players and add them to the game</span>
+<span class="go">     Failure/Error: click_button(&#39;Create Game&#39;)</span>
+<span class="go">     ActionView::Template::Error:</span>
+<span class="go">       undefined method `location&#39; for nil:NilClass</span>
+<span class="go">     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200&#39;</span>
+<span class="go">     # (eval):2:in `click_button&#39;</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:322:in `block (4 levels) in &lt;top (required)&gt;&#39;</span>
+</pre></div>
+
+<p>Don&#39;t panic; all of these tests use the show page at some point. We&#39;ve coded the page itself so the view is trying to call things like <code>@game.location</code> but we haven&#39;t added code the to controller to populate the <code>@game</code> variable. Just add this code to <code>def show</code> action of <code>app/controllers/ga,es_controller.rb</code> </p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">show</span>
+ <span class="vi">@game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>and the tests should all now pass</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+</pre></div>
+
 <p><a href="#top">back to top</a></p>
 
 <h2><a id='testing-the-destroy-action'></a> 8.8. Testing the destroy action</h2>
+
+<p>To be sure that uses don&#39;t accidentally destroy the wrong game we&#39;ll have the destroy link in the show page. So our test must </p>
+
+<ol>
+<li>Create a game</li>
+<li>Navigate to the game&#39;s show page.</li>
+<li>Click the destroy link</li>
+<li>Ensure game count is changed by -1</li>
+<li>Ensure we&#39;re redirected back to the games index page</li>
+<li>Ensure the game is no longer there.</li>
+</ol>
+<div class="highlight"><pre><span class="n">describe</span> <span class="s1">&#39;destroying games&#39;</span> <span class="k">do</span>
+   <span class="n">it</span> <span class="s1">&#39;should allow users to destroy a game and redirect them back to the index page&#39;</span> <span class="k">do</span>
+
+     <span class="n">game</span> <span class="o">=</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:game</span><span class="p">,</span> <span class="ss">:owner</span> <span class="o">=&gt;</span> <span class="vi">@user</span><span class="p">)</span>
+
+     <span class="n">visit</span> <span class="n">games_path</span>
+
+     <span class="n">within</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span> <span class="k">do</span>
+          <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;show&#39;</span><span class="p">)</span>
+     <span class="k">end</span>
+
+     <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">game_path</span><span class="p">(</span><span class="n">game</span><span class="p">)</span>
+
+     <span class="n">expect</span><span class="p">{</span> 
+       <span class="n">click_link</span><span class="p">(</span><span class="s1">&#39;Destroy&#39;</span><span class="p">)</span>
+     <span class="p">}</span><span class="o">.</span><span class="n">to</span> <span class="n">change</span><span class="p">{</span><span class="no">Game</span><span class="o">.</span><span class="n">count</span><span class="p">}</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+     <span class="n">page</span><span class="o">.</span><span class="n">current_path</span><span class="o">.</span><span class="n">should</span> <span class="o">==</span> <span class="n">games_path</span>
+
+     <span class="n">page</span><span class="o">.</span><span class="n">should_not</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;tr[@data-row=&#39;game_</span><span class="si">#{</span><span class="n">game</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span>
+
+   <span class="k">end</span>
+ <span class="k">end</span>
+</pre></div>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">Failures:</span>
+
+<span class="go">  1) games destroying games should allow users to destroy a game and redirect them back to the index page</span>
+<span class="go">     Failure/Error: click_link(&#39;Destroy&#39;)</span>
+<span class="go">     Capybara::ElementNotFound:</span>
+<span class="go">       no link with title, id or text &#39;Destroy&#39; found</span>
+</pre></div>
+
+<p>We don&#39;t have a destroy link on our show page so add <code>&lt;div&gt;&lt;%= link_to &#39;Destroy&#39;, game_path(@game), method: :delete, data: { confirm: &#39;Are you sure?&#39; }, :class =&gt; &#39;btn btn-danger btn-mini&#39; %&gt;&lt;/div&gt;</code> to the bottom of <code>app/views/games/show.html.erb</code>.</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Games</span><span class="c1">#show&lt;/h1&gt;</span>
+
+<span class="o">&lt;</span><span class="n">div</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;game&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;&lt;</span><span class="sx">%= @game.location %&gt;&lt;/p&gt;</span>
+<span class="sx">    &lt;p&gt;&lt;%=</span> <span class="vi">@game</span><span class="o">.</span><span class="n">at</span> <span class="sx">%&gt;&lt;/p&gt;</span>
+    <span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;&lt;</span><span class="sx">%= @game.sport.name %&gt;&lt;/p&gt;</span>
+<span class="sx">&lt;/div&gt;</span>
+
+<span class="sx">&lt;h2&gt;Players&lt;/h2&gt;</span>
+<span class="sx">&lt;ul id=</span><span class="s2">&quot;players&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="sx">% @game.players.each </span><span class="k">do</span> <span class="o">|</span><span class="n">player</span><span class="o">|</span> <span class="sx">%&gt;</span>
+<span class="sx">        &lt;li&gt;</span><span class="o">&lt;</span><span class="sx">%= player.email %&gt;&lt;/li&gt;</span>
+<span class="sx">    &lt;% end %&gt;</span>
+<span class="sx">&lt;/ul&gt;</span>
+
+<span class="sx">&lt;h2&gt;Players outside Stinky Trainers&lt;/h2&gt;</span>
+<span class="sx">&lt;ul id=</span><span class="s2">&quot;external_players&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="sx">% @game.external_players.each </span><span class="k">do</span> <span class="o">|</span><span class="n">player</span><span class="o">|</span> <span class="sx">%&gt;</span>
+<span class="sx">        &lt;li&gt;</span><span class="o">&lt;</span><span class="sx">%= player.email %&gt;&lt;/li&gt;</span>
+<span class="sx">    &lt;% end %&gt;</span>
+<span class="sx">&lt;/ul&gt;</span>
+
+<span class="sx">&lt;div&gt;&lt;%=</span> <span class="n">link_to</span> <span class="s1">&#39;Destroy&#39;</span><span class="p">,</span> <span class="n">game_path</span><span class="p">(</span><span class="vi">@game</span><span class="p">),</span> <span class="nb">method</span><span class="p">:</span> <span class="ss">:delete</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="p">{</span> <span class="n">confirm</span><span class="p">:</span> <span class="s1">&#39;Are you sure?&#39;</span> <span class="p">},</span> <span class="ss">:class</span> <span class="o">=&gt;</span> <span class="s1">&#39;btn btn-danger btn-mini&#39;</span> <span class="sx">%&gt;&lt;/div&gt;</span>
+</pre></div>
+
+<p>Run the tests again</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">Failures:</span>
+
+<span class="go">  1) games destroying games should allow users to destroy a game and redirect them back to the index page</span>
+<span class="go">     Failure/Error: expect{</span>
+<span class="go">       result should have been changed by -1, but was changed by 0</span>
+<span class="go">     # ./spec/integration/games/restful_spec.rb:608:in `block (3 levels) in &lt;top (required)&gt;&#39;</span>
+</pre></div>
+
+<p>Our game count hasn&#39;t reduced even though we&#39;ve clicked on &quot;Destroy&quot;. Well, we haven&#39;t added the destroy code to our controller. Add the lines below to <code>def destroy</code> of <code>app/controllers/games_controller.rb</code></p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">destroy</span>
+  <span class="n">game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">destroy</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Run the tests again</p>
+<div class="highlight"><pre><span class="go">bundle exec rake spec</span>
+
+<span class="go">Failures:</span>
+
+<span class="go">  1) games destroying games should allow users to destroy a game and redirect them back to the index page</span>
+<span class="go">     Failure/Error: page.current_path.should == games_path</span>
+<span class="go">       expected: &quot;/games&quot;</span>
+<span class="go">            got: &quot;/games/1&quot; (using ==)</span>
+</pre></div>
+
+<p>We&#39;re not redirecting to the index page when the game is destroyed so add the line <code>redirect_to games_path</code> to <code>def destroy</code> in our controller</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">destroy</span>
+  <span class="n">game</span> <span class="o">=</span> <span class="no">Game</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+  <span class="n">game</span><span class="o">.</span><span class="n">destroy</span>
+  <span class="n">redirect</span><span class="p">\</span><span class="n">_to</span> <span class="n">games</span><span class="p">\</span><span class="n">_path</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>and everything should pass.</p>

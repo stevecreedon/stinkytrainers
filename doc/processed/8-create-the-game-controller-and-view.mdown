@@ -347,11 +347,66 @@ FactoryGirl.define do
 end
 ~~~
 
-### 8.4.3. it 'should display a list of the games owned by the signed-in user'
+### 8.4.3. it 'should be possible for a signed-in user to navigate from the dashboard page to the game index page'
+We want to make sure our navigation bar has a 'games' link. We'll write a test that
+
+1. Creates and signs-in a user
+1. Visits the dashboard page
+1. Ensures there's a 'games' lik in the navigation bar.
+
+This entire spec (and it's going to be a big one) will require a signed-in user for every test so before we doning anything else let's create a before(:each) block inside the `describe games` block. This will run before each test giving us a signed-in user `@user` so we don't have to keep writing the same login code over and over again. Again because we assign user to the instance variable `@user` and not just `user` it's available throughout the test.
+
+~~~ruby
+describe 'games' do
+  
+  before :each do
+    @user = FactoryGirl.create(:user)
+	  
+	visit new_user_session_path
+	  
+	fill_in('Email', :with => @user.email)
+    fill_in('Password', :with => @user.password)
+
+    click_button('Sign in')
+  end
+~~~ 
+
+We can now write our test knowing that Devise isn't going to boot us out each time.
+
+~~~ruby
+it 'should be possible to navigate from the dashboard page to the game index page' do
+	visit dashboard_index_path
+
+	within("ul.nav") do
+		page.has_link?("games").should be_true
+	end
+end
+~~~
+
+Run the tests
+
+~~~ruby
+bundle exec rake spec
+~~~
+
+and the test will fail because we don't have the link in our layout `app/views/layouts/application.html.erb`
+
+~~~ruby
+<ul class="nav">
+  <% if user_signed_in? %>
+    <li><%= link_to "dashboard", dashboard_index_path  %></li>
+    <li><%= link_to "games", games_path  %></li>
+    <li><%= link_to "sports", sports_path  %></li>
+    <li><%= link_to "sign-out", destroy_user_session_path, :method => :delete  %></li>
+  <% else %>
+        <li><%= link_to "Sign In", new_user_session_path %></li>
+  <% end %>
+</ul>
+~~~
+
+### 8.4.4. it 'should display a list of the games owned by the signed-in user'
 
 So now let's code the first of our two tests.
-
-First let's create a before(:each) block inside the `describe games` block. This will run before each test giving us a signed-in user `@user` so we don't have to keep writing the same login code over and over again. Again because we assign user to the instance variable `@user` and not just `user` it's available throughout the test. 
 
 Write a test to: 
 
@@ -522,7 +577,7 @@ Our test should now pass:
 bundle exec rake spec
 ~~~
 
-### 8.4.4. it 'should display a list of the games where the signed-in user is a player'
+### 8.4.5. it 'should display a list of the games where the signed-in user is a player'
 Now let's add the test that checks the list of games the signed-in user is playing in.
 
 In this test we will
@@ -1950,7 +2005,7 @@ We want to be able to change the players in our game.
 
 Our test will
 
-1. Create two games, four players and add two players to each
+1. Create two games, four players and add two players to each. We create two separate games so that our signed-in user is connected to four players but only two are selected in game1. If we had just one game then all four players would have to be selected. 
 1. Add the signed-in user to each so that the user is connected to all of the players
 1. Navigate to the index page and click the edit link for game1
 1. Ensure the two players that we added to the game are shown as checked
@@ -2010,7 +2065,72 @@ This should all work out of the box
 bundle exec rake spec
 ~~~
 
-### 8.6.5. it 'should remove all of the games players'
+### 8.6.5. it 'should update the games external players'
+This test is very similar to our previous test. We want to be able to change the external players in our game. 
+
+Our test will
+
+1. Create two games, four external players and add two players to each.
+1. Add the signed-in user to each so that the user is connected to all of the players
+1. Navigate to the index page and click the edit link for game1
+1. Ensure the two players that we added to the game are shown as checked
+1. Ensure the two players we added to the other game are not checked
+1. Uncheck the players in the game - our signed-in user and the two players we added
+1. Check the two players we didn't add
+1. Submit the form
+1. Reload the association so that any changes are reflected
+1. Check that the game now only has the two users we checked as players
+
+~~~ruby
+it 'should update the games external players' do
+
+	game1 = FactoryGirl.create(:game, :owner => @user)
+	game2 = FactoryGirl.create(:game, :owner => @user)
+
+	player1 = FactoryGirl.create(:external_player)
+	player2 = FactoryGirl.create(:external_player)
+	player3 = FactoryGirl.create(:external_player)
+	player4 = FactoryGirl.create(:external_player)
+
+	game1.players << @user
+	game1.external_players << player1
+	game1.external_players << player2
+
+	game2.players << @user
+	game2.external_players << player3
+	game2.external_players << player4
+
+	visit games_path
+
+	within("tr[@data-row='game_#{game1.id}']") do
+	  click_link('edit')
+	end
+
+	page.find("input#game_external_player_id_#{player1.id}").should be_checked
+	page.find("input#game_external_player_id_#{player2.id}").should be_checked
+	page.find("input#game_external_player_id_#{player3.id}").should_not be_checked
+	page.find("input#game_external_player_id_#{player4.id}").should_not be_checked
+
+	uncheck("game_external_player_id_#{player1.id}")
+	uncheck("game_external_player_id_#{player2.id}")
+	check("game_external_player_id_#{player3.id}")
+	check("game_external_player_id_#{player4.id}")
+
+	click_button('Update Game')
+
+	game1.external_players.reload
+	game1.external_players.should =~ [player3, player4]
+	
+end
+~~~
+
+This should all work out of the box
+
+~~~console
+bundle exec rake spec
+~~~
+
+### 8.6.6. it 'should remove all of the games players'
 As we mentioned before a classic HTML gotcha is when all checkboxes are unchecked and no data is sent to the server so let's test for that.
 
 1. Create a game and four players
@@ -2079,8 +2199,418 @@ Add this hidden field `<%= hidden_field_tag "game[player_ids][]" %>` to our play
   </div>
 ~~~
 
+The tests should now pass
+
+~~~console
+bundle exec rake spec
+~~~
+
+### 8.6.7. it 'should remove all of the games external players'
+Again this test is very similar to our previous test and checks for the classic HTML gotcha when all checkboxes are unchecked and no data is sent to the server.
+
+1. Create a game and four external players
+1. Add the sig-in user and the four external players to the game
+1. Navigate to the index page and click the edit link for the game
+1. Ensure all four external players and the sign-in user is checked
+1. Uncheck all four external players and the signed-in user
+1. Submit the form
+1. Reload the association and check that there are no external players 
+
+~~~ruby
+it 'should remove all of the games external players' do
+
+	game = FactoryGirl.create(:game, :owner => @user)
+
+	player1 = FactoryGirl.create(:external_player)
+	player2 = FactoryGirl.create(:external_player)
+	player3 = FactoryGirl.create(:external_player)
+	player4 = FactoryGirl.create(:external_player)
+
+	game.players << @user
+	game.external_players << player1
+	game.external_players << player2
+	game.external_players << player3
+	game.external_players << player4
+
+	visit games_path
+
+	within("tr[@data-row='game_#{game.id}']") do
+	click_link('edit')
+	end
+
+	page.find("input#game_external_player_id_#{player1.id}").should be_checked
+	page.find("input#game_external_player_id_#{player2.id}").should be_checked
+	page.find("input#game_external_player_id_#{player3.id}").should be_checked
+	page.find("input#game_external_player_id_#{player4.id}").should be_checked
+
+	uncheck("game_external_player_id_#{player1.id}")
+	uncheck("game_external_player_id_#{player2.id}")
+	uncheck("game_external_player_id_#{player3.id}")
+	uncheck("game_external_player_id_#{player4.id}")
+
+	click_button('Update Game')
+
+	game.external_players.reload
+	game.external_players.should =~ []
+
+end
+~~~
+
+This test will fail. Again we've fallen foul of the HTML gotcha because when we've unchecked all the boxes no external\_player\_ids are submitted and so the association just isn't updated. We get around this by adding a hidden field with an empty value and the same name as the checkboxes. This will always be submitted and ensure that if all of the other players are unchecked the array player_ids => [""] gets submitted with the request.
+
+Add this hidden field `<%= hidden_field_tag "game[external_player_ids][]" %>` to our external players control group in `app/views/games/_form.html.erb`
+
+~~~ruby
+<div class="control-group <%= "error" if @game.errors.any? %>">
+    <%= label_tag :players_not_on_stinky_trainers, nil, :class => 'control-label' %>
+    <div class='controls' id="external_players">
+  		<% current_user.external_players.each do |external_player| %>
+			<%= check_box_tag "game[external_player_ids][]", external_player.id, @game.external_players.include?(external_player), :id => "game_external_player_id_#{external_player.id}" %> <%= external_player.email %><br/>
+  		<% end %>
+        <%= hidden_field_tag "game[external_player_ids][]" %>
+    </div>
+</div>
+~~~
+
+The tests should now pass
+
+~~~console
+bundle exec rake spec
+~~~
+
 [back to top](#top)
 ##<a id='testing-the-show-action'></a> 8.7. Testing the show action
+We want our show page to display all of the details we added in our create and update pages.
+
+1. Create two games and add players to one of the games
+1. Navigate to the games index page
+1. Navigate to one of the two games show page
+1. Ensure the correct content is present.
+
+~~~ruby
+describe 'showing games' do
+	it 'should allow users to view a game' do
+  
+	  game1 = FactoryGirl.create(:game, :owner => @user)
+	  game2 = FactoryGirl.create(:game, :owner => @user)
+  
+	  game2.players << FactoryGirl.create(:user)
+	  game2.external_players << FactoryGirl.create(:external_player)
+  
+	  visit games_path
+  
+	  within("tr[@data-row='game_#{game2.id}']") do
+	 	  click_link('show')
+	  end
+  
+	  page.current_path.should == game_path(game2)
+  
+	  page.should have_content(game2.location)
+	  page.should have_content(game2.at)
+	  page.should have_content(game2.sport.name)
+  
+	  within("ul#players") do
+	    page.should have_content(game2.players.first.email)
+	    page.should have_content(game2.players.first.email)
+	  end
+  
+	  within("ul#external_players") do
+	    page.should have_content(game2.external_players.first.email)
+	    page.should have_content(game2.external_players.first.email)
+	  end
+  
+	end
+end
+~~~
+
+Run the test and see what fails first.
+
+~~~console
+bundle exec rake spec
+
+1) games showing games should allow users to view a game
+   Failure/Error: click_link('show')
+   Capybara::ElementNotFound:
+     no link with title, id or text 'show' found
+   # (eval):2:in `click_link'
+   # ./spec/integration/games/restful_spec.rb:573:in `block (4 levels) in <top (required)>'
+   # ./spec/integration/games/restful_spec.rb:572:in `block (3 levels) in <top (required)>'
+
+~~~
+
+
+We need to add a 'show' link to the index page. Add `<td><%= link_to 'show', game_path(game) %></td>` to `app/views/games/index.html.erb`
+
+~~~ruby
+<h2>Game I have created</h2>
+<table id="owned_games">
+	<% @owned_games.each do |game| %>
+	<tr data-row='game_<%= game.id %>'>
+		<td><%= game.sport.name %></td>
+		<td><%= game.location %></td>
+		<td><%= game.at %></td>
+		<td><%= link\_to 'edit', edit\_game_path(game) %></td>
+		<td><%= link\_to 'show', game\_path(game) %></td>
+	</tr>
+	<% end %>
+</table>
+~~~
+
+Run the test and see what fails next.
+
+~~~console
+bundle exec rake spec
+
+Failures:
+
+  1) games showing games should allow users to view a game
+     Failure/Error: page.should have_content(game2.location)
+       expected there to be content "location26" in "StinkyTrainers\n    \n    \n      \n        \n          \n            \n            \n            \n          \n\n          Stinkytrainers\n          \n            dashboard\n                games\n                sports\n\t   \t\t    sign-out\n            Ruby On Rails Tutorial\n\n            \n        \n      \n\t  \n\t\n    \n\t\n    \n\t\n    \n      \n        \n           \n\t\t\t\n\t\t\t\tGames#show\n\n\n\n\t\t\t\n            \n            \n\t\t\t\t \n            \n        \n      \n\n      © Stinky Trainers 2012\n       \n\n    \n    \n    "
+     # ./spec/integration/games/restful_spec.rb:578:in `block (3 levels) in <top (required)>'
+~~~
+
+Ok we need to code our show page so add this to `app/views/games/show.html.erb`
+
+~~~ruby
+<h1>Games#show</h1>
+
+<div id="game">
+	<p><%= @game.location %></p>
+	<p><%= @game.at %></p>
+	<p><%= @game.sport.name %></p>
+</div>
+
+<h2>Players</h2>
+<ul id="players">
+	<% @game.players.each do |player| %>
+		<%= player.email %>
+	<% end %>
+</ul>
+
+<h2>Players outside Stinky Trainers</h2>
+<ul id="external_players">
+	<% @game.external_players.each do |player| %>
+		<%= player.email %>
+	<% end %>
+</ul>
+~~~
+
+Run the tests again and suddenly we've got 9 failing...
+
+~~~console
+bundle exec rake spec
+
+Failures:
+
+  1) games showing games should allow users to view a game
+     Failure/Error: click_link('show')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_link'
+     # ./spec/integration/games/restful_spec.rb:573:in `block (4 levels) in <top (required)>'
+     # ./spec/integration/games/restful_spec.rb:572:in `block (3 levels) in <top (required)>'
+
+  2) games editing games should update a valid game and redirect to the show page
+     Failure/Error: click_button('Update Game')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_button'
+     # ./spec/integration/games/restful_spec.rb:365:in `block (3 levels) in <top (required)>'
+
+  3) games editing games updating players should update the games players
+     Failure/Error: click_button('Update Game')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_button'
+     # ./spec/integration/games/restful_spec.rb:432:in `block (4 levels) in <top (required)>'
+
+  4) games editing games updating players should update the games external players
+     Failure/Error: click_button('Update Game')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_button'
+     # ./spec/integration/games/restful_spec.rb:472:in `block (4 levels) in <top (required)>'
+
+  5) games editing games updating players should remove all of the games players
+     Failure/Error: click_button('Update Game')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_button'
+     # ./spec/integration/games/restful_spec.rb:512:in `block (4 levels) in <top (required)>'
+
+  6) games editing games updating players should remove all of the games external players
+     Failure/Error: click_button('Update Game')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_button'
+     # ./spec/integration/games/restful_spec.rb:550:in `block (4 levels) in <top (required)>'
+
+  7) games creating games should create a new game when valid game parameters are provided and redirect to the show page
+     Failure/Error: click_button('Create Game')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_button'
+     # ./spec/integration/games/restful_spec.rb:112:in `block (4 levels) in <top (required)>'
+     # ./spec/integration/games/restful_spec.rb:111:in `block (3 levels) in <top (required)>'
+
+  8) games creating games adding players should submit a list of the selected players and add them to the game
+     Failure/Error: click_button('Create Game')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_button'
+     # ./spec/integration/games/restful_spec.rb:277:in `block (4 levels) in <top (required)>'
+
+  9) games creating games adding players should submit a list of the selected external players and add them to the game
+     Failure/Error: click_button('Create Game')
+     ActionView::Template::Error:
+       undefined method `location' for nil:NilClass
+     # ./app/views/games/show.html.erb:4:in `_app_views_games_show_html_erb___3654771997461038398_70359103604200'
+     # (eval):2:in `click_button'
+     # ./spec/integration/games/restful_spec.rb:322:in `block (4 levels) in <top (required)>'
+~~~
+
+Don't panic; all of these tests use the show page at some point. We've coded the page itself so the view is trying to call things like `@game.location` but we haven't added code the to controller to populate the `@game` variable. Just add this code to `def show` action of `app/controllers/ga,es_controller.rb` 
+
+~~~ruby
+def show
+ @game = Game.find(params[:id])
+end
+~~~
+
+and the tests should all now pass
+
+~~~console
+bundle exec rake spec
+~~~
 
 [back to top](#top)
 ##<a id='testing-the-destroy-action'></a> 8.8. Testing the destroy action
+To be sure that uses don't accidentally destroy the wrong game we'll have the destroy link in the show page. So our test must 
+
+1. Create a game
+1. Navigate to the game's show page.
+1. Click the destroy link
+1. Ensure game count is changed by -1
+1. Ensure we're redirected back to the games index page
+1. Ensure the game is no longer there.
+
+~~~ruby
+describe 'destroying games' do
+   it 'should allow users to destroy a game and redirect them back to the index page' do
+     
+     game = FactoryGirl.create(:game, :owner => @user)
+     
+     visit games_path
+     
+     within("tr[@data-row='game_#{game.id}']") do
+    	  click_link('show')
+     end
+     
+     page.current_path.should == game_path(game)
+     
+     expect{ 
+       click_link('Destroy')
+     }.to change{Game.count}.by(-1)
+     
+     page.current_path.should == games_path
+     
+     page.should_not have_content("tr[@data-row='game_#{game.id}']")
+     
+   end
+ end
+~~~
+
+~~~console
+bundle exec rake spec
+
+Failures:
+
+  1) games destroying games should allow users to destroy a game and redirect them back to the index page
+     Failure/Error: click_link('Destroy')
+     Capybara::ElementNotFound:
+       no link with title, id or text 'Destroy' found
+~~~
+
+We don't have a destroy link on our show page so add `<div><%= link_to 'Destroy', game_path(@game), method: :delete, data: { confirm: 'Are you sure?' }, :class => 'btn btn-danger btn-mini' %></div>` to the bottom of `app/views/games/show.html.erb`.
+
+~~~ruby
+<h1>Games#show</h1>
+
+<div id="game">
+	<p><%= @game.location %></p>
+	<p><%= @game.at %></p>
+	<p><%= @game.sport.name %></p>
+</div>
+
+<h2>Players</h2>
+<ul id="players">
+	<% @game.players.each do |player| %>
+		<li><%= player.email %></li>
+	<% end %>
+</ul>
+
+<h2>Players outside Stinky Trainers</h2>
+<ul id="external_players">
+	<% @game.external_players.each do |player| %>
+		<li><%= player.email %></li>
+	<% end %>
+</ul>
+
+<div><%= link_to 'Destroy', game_path(@game), method: :delete, data: { confirm: 'Are you sure?' }, :class => 'btn btn-danger btn-mini' %></div>
+~~~
+
+Run the tests again
+
+~~~console
+bundle exec rake spec
+
+Failures:
+
+  1) games destroying games should allow users to destroy a game and redirect them back to the index page
+     Failure/Error: expect{
+       result should have been changed by -1, but was changed by 0
+     # ./spec/integration/games/restful_spec.rb:608:in `block (3 levels) in <top (required)>'
+~~~
+
+Our game count hasn't reduced even though we've clicked on "Destroy". Well, we haven't added the destroy code to our controller. Add the lines below to `def destroy` of `app/controllers/games_controller.rb`
+
+~~~ruby
+def destroy
+  game = Game.find(params[:id])
+  game.destroy
+end
+~~~
+
+Run the tests again
+
+~~~console
+bundle exec rake spec
+
+Failures:
+
+  1) games destroying games should allow users to destroy a game and redirect them back to the index page
+     Failure/Error: page.current_path.should == games_path
+       expected: "/games"
+            got: "/games/1" (using ==)
+~~~
+
+We're not redirecting to the index page when the game is destroyed so add the line `redirect_to games_path` to `def destroy` in our controller
+
+~~~ruby
+def destroy
+  game = Game.find(params[:id])
+  game.destroy
+  redirect\_to games\_path
+end
+~~~
+
+and everything should pass.
+
