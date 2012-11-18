@@ -4,7 +4,6 @@ gem 'rails', '3.2.8'
 gem 'mysql2'
 
 group :production do
-  gem 'newrelic_rpm'
   gem 'unicorn'
 end
 
