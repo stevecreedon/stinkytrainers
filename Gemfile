@@ -1,10 +1,11 @@
 source 'https://rubygems.org'
 
 gem 'rails', '3.2.8'
-gem 'pg'
+gem 'mysql2'
 
 group :production do
   gem 'newrelic_rpm'
+  gem 'unicorn'
 end
 
 # Bundle edge Rails instead:
@@ -16,6 +17,8 @@ group :development do
   gem 'redcarpet'
   gem 'pygmentize'
   gem 'nokogiri'
+  gem 'capistrano'
+  gem 'capistrano-tools', :git => 'git://github.com/fragallia/capistrano-tools.git', :require => false
 end
 
 
