@@ -7,7 +7,7 @@ worker_processes 2
 timeout 30
 
 # socket for nginx
-listen "#{app_path}/tmp/unicorn.sock", :backlog => 64
+listen "/tmp/stinkytrainers.unicorn.sock", :backlog => 64
 
 # Spawn unicorn master worker for user deploy (group: deploy)
 user 'deploy', 'deploy'
